@@ -30,13 +30,13 @@ cd social-network
 
 ## Contributors
 
-* [DavJesse](https://github.com/oduortoni)
+* [DavJesse](https://github.com/DavJesse)
 
-* [Murzuqisah](https://github.com/oduortoni)
+* [Murzuqisah](https://github.com/Murzuqisah)
 
-* [siaka385](https://github.com/oduortoni)
+* [siaka385](https://github.com/siaka385)
 
-* [nyunja](https://github.com/oduortoni)
+* [nyunja](https://github.com/nunja)
 
 * [oduortoni](https://github.com/oduortoni)
 
