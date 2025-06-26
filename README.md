@@ -36,7 +36,7 @@ cd social-network
 
 * [siaka385](https://github.com/siaka385)
 
-* [nyunja](https://github.com/nunja)
+* [nyunja](https://github.com/nyunja)
 
 * [oduortoni](https://github.com/oduortoni)
 
