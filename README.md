@@ -26,3 +26,20 @@ To get started with this project, clone the repository:
 ```bash
 git clone [https://github.com/oduortoni/social-network.git](https://github.com/oduortoni/social-network.git)
 cd social-network
+```
+
+## Contributors
+
+* [DavJesse](https://github.com/oduortoni)
+
+* [Murzuqisah](https://github.com/oduortoni)
+
+* [siaka385](https://github.com/oduortoni)
+
+* [nyunja](https://github.com/oduortoni)
+
+* [oduortoni](https://github.com/oduortoni)
+
+## License
+
+This project is licensed under the MIT License.
