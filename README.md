@@ -34,6 +34,8 @@ cd social-network
 
 * [Murzuqisah](https://github.com/Murzuqisah)
 
+* [karodgers](https://github.com/karodgers)
+
 * [siaka385](https://github.com/siaka385)
 
 * [nyunja](https://github.com/nyunja)
