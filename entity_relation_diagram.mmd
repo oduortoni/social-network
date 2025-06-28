@@ -1,0 +1,146 @@
+erDiagram
+    USERS {
+        INTEGER id PK
+        TEXT email UK
+        TEXT password
+        TEXT first_name
+        TEXT last_name
+        DATE date_of_birth
+        TEXT avatar
+        TEXT nickname
+        TEXT about_me
+        BOOLEAN is_profile_public
+        DATETIME created_at
+    }
+
+    SESSIONS {
+        TEXT id PK
+        INTEGER user_id FK
+        DATETIME created_at
+        DATETIME expires_at
+    }
+
+    FOLLOWERS {
+        INTEGER id PK
+        INTEGER follower_id FK
+        INTEGER followee_id FK
+        BOOLEAN is_accepted
+        DATETIME requested_at
+        DATETIME accepted_at
+    }
+
+    POSTS {
+        INTEGER id PK
+        INTEGER user_id FK
+        TEXT content
+        TEXT image
+        TEXT privacy
+        DATETIME created_at
+    }
+
+    POST_VISIBILITY {
+        INTEGER post_id PK,FK
+        INTEGER viewer_id PK,FK
+    }
+
+    COMMENTS {
+        INTEGER id PK
+        INTEGER post_id FK
+        INTEGER user_id FK
+        TEXT content
+        TEXT image
+        DATETIME created_at
+    }
+
+    GROUPS {
+        INTEGER id PK
+        TEXT title
+        TEXT description
+        INTEGER creator_id FK
+        DATETIME created_at
+    }
+
+    GROUP_MEMBERS {
+        INTEGER group_id PK,FK
+        INTEGER user_id PK,FK
+        TEXT role
+        BOOLEAN is_accepted
+        INTEGER invited_by FK
+        BOOLEAN requested
+        DATETIME created_at
+    }
+
+    GROUP_POSTS {
+        INTEGER id PK
+        INTEGER group_id FK
+        INTEGER user_id FK
+        TEXT content
+        TEXT image
+        DATETIME created_at
+    }
+
+    GROUP_EVENTS {
+        INTEGER id PK
+        INTEGER group_id FK
+        TEXT title
+        TEXT description
+        DATETIME event_time
+        INTEGER created_by FK
+        DATETIME created_at
+    }
+
+    EVENT_RESPONSES {
+        INTEGER event_id PK,FK
+        INTEGER user_id PK,FK
+        TEXT response
+        DATETIME responded_at
+    }
+
+    MESSAGES {
+        INTEGER id PK
+        INTEGER sender_id FK
+        INTEGER receiver_id FK
+        INTEGER group_id FK
+        TEXT content
+        BOOLEAN is_emoji
+        DATETIME created_at
+    }
+
+    NOTIFICATIONS {
+        INTEGER id PK
+        INTEGER user_id FK
+        TEXT type
+        TEXT message
+        BOOLEAN is_read
+        DATETIME created_at
+    }
+
+    %% User relationships
+    USERS ||--o{ SESSIONS : "has"
+    USERS ||--o{ FOLLOWERS : "follows (follower)"
+    USERS ||--o{ FOLLOWERS : "followed by (followee)"
+    USERS ||--o{ POSTS : "creates"
+    USERS ||--o{ POST_VISIBILITY : "can view"
+    USERS ||--o{ COMMENTS : "writes"
+    USERS ||--o{ GROUPS : "creates"
+    USERS ||--o{ GROUP_MEMBERS : "belongs to"
+    USERS ||--o{ GROUP_MEMBERS : "invites"
+    USERS ||--o{ GROUP_POSTS : "writes"
+    USERS ||--o{ GROUP_EVENTS : "creates"
+    USERS ||--o{ EVENT_RESPONSES : "responds to"
+    USERS ||--o{ MESSAGES : "sends"
+    USERS ||--o{ MESSAGES : "receives"
+    USERS ||--o{ NOTIFICATIONS : "receives"
+
+    %% Post relationships
+    POSTS ||--o{ POST_VISIBILITY : "visible to"
+    POSTS ||--o{ COMMENTS : "has"
+
+    %% Group relationships
+    GROUPS ||--o{ GROUP_MEMBERS : "has"
+    GROUPS ||--o{ GROUP_POSTS : "contains"
+    GROUPS ||--o{ GROUP_EVENTS : "hosts"
+    GROUPS ||--o{ MESSAGES : "chat in"
+
+    %% Event relationships
+    GROUP_EVENTS ||--o{ EVENT_RESPONSES : "receives"
