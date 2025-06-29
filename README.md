@@ -28,6 +28,7 @@ Clone the repository and navigate to the frontend directory:
 ```bash
     git clone https://github.com/oduortoni/social-network.git
     cd social-network/frontend
+    npm install
 ```
 
 **Port Configuration**
@@ -35,14 +36,14 @@ Clone the repository and navigate to the frontend directory:
 This project runs a Go backend and a Next.js frontend at the same time. Each must use a different port to avoid conflicts. Use a .env file within the root of the frontend folder
 
 ```env
-    PORT=9000
-    NEXT_PORT=3000
+PORT=9000
+NEXT_PORT=3000
 
-    # development
-    NEXT_PUBLIC_API_URL=http://localhost:9000
+# development
+NEXT_PUBLIC_API_URL=http://localhost:9000
 
-    # production
-    # NEXT_PUBLIC_API_URL=https://api.example.com
+# production
+# NEXT_PUBLIC_API_URL=https://api.example.com
 ```
 
 the NEXT_PUBLIC_API_URL will be used by the browser automatically to access the backend url
@@ -50,7 +51,7 @@ the NEXT_PUBLIC_API_URL will be used by the browser automatically to access the 
 finally, run both servers
 
 ```bash
-    npm run dev
+npm run dev
 ```
 
 This command starts both the backend and frontend concurrently using the correct port settings.
