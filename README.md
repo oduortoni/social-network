@@ -31,9 +31,9 @@ cd social-network/frontend
 npm install
 ```
 
-**Port Configuration**
+**create a .env file**
 
-This project runs a Go backend and a Next.js frontend at the same time. Each must use a different port to avoid conflicts. Use a .env file within the root of the frontend folder
+This project runs a Go backend and a Next.js frontend at the same time. Each must use a different port to avoid conflicts. Using a .env file within the root of the frontend folder, populate it with the following content:
 
 ```env
 PORT=9000
