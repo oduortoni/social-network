@@ -24,7 +24,7 @@ To run this project, you will need:
 ## Usage
 To get started with this project, clone the repository:
 ```bash
-git clone [https://github.com/oduortoni/social-network.git](https://github.com/oduortoni/social-network.git)
+git clone https://github.com/oduortoni/social-network.git
 cd social-network
 ```
 
