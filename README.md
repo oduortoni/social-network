@@ -26,9 +26,9 @@ To run this project, you will need:
 Clone the repository and navigate to the frontend directory:
 
 ```bash
-    git clone https://github.com/oduortoni/social-network.git
-    cd social-network/frontend
-    npm install
+git clone https://github.com/oduortoni/social-network.git
+cd social-network/frontend
+npm install
 ```
 
 **Port Configuration**
