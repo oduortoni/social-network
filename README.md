@@ -158,9 +158,18 @@ since we defined the frontend to run using NEXT_PORT=3000
 ## Usage
 To get started with this project, clone the repository:
 ```bash
-git clone [https://github.com/oduortoni/social-network.git](https://github.com/oduortoni/social-network.git)
-cd social-network
+npm run dev
 ```
+
+This command starts both the backend and frontend concurrently using the correct port settings.
+
+**open in your browser**
+
+Follow the link that falls under the next js project i.e either of the last two urls
+
+e.g  http://localhost:3000
+
+since we defined the frontend to run using NEXT_PORT=3000
 
 ## Contributors
 
