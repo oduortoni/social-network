@@ -14,6 +14,97 @@ A Facebook-like social network with features like profiles, posts, groups, real-
 * **Real-time Chat:** Private messaging between followers/following users, Group chat rooms, Emoji support, Instant delivery via WebSockets.
 * **Notifications:** Follow requests, Group invitations, Group join requests (for creators), New group events.
 
+## API Contract
+
+### Authentication
+
+*   **POST /api/login**
+    *   Description: Authenticates a user and returns a session token.
+    *   Request Body:
+        ```json
+        {
+          "email": "user@example.com",
+          "password": "password123"
+        }
+        ```
+    *   Response:
+        ```json
+        {
+          "token": "your-session-token"
+        }
+        ```
+
+*   **POST /api/register**
+    *   Description: Registers a new user.
+    *   Request Body:
+        ```json
+        {
+          "username": "newuser",
+          "email": "newuser@example.com",
+          "password": "password123"
+        }
+        ```
+    *   Response:
+        ```json
+        {
+          "id": 123,
+          "username": "newuser",
+          "email": "newuser@example.com"
+        }
+        ```
+
+### Users
+
+*   **GET /api/users/{id}**
+    *   Description: Retrieves a user's profile information.
+    *   Response:
+        ```json
+        {
+          "id": 123,
+          "username": "newuser",
+          "email": "newuser@example.com",
+          "profile": {
+            "avatar": "url-to-avatar",
+            "nickname": "Newbie",
+            "about": "Hello, I'm new here!"
+          }
+        }
+        ```
+
+### Posts
+
+*   **GET /api/posts**
+    *   Description: Retrieves a feed of posts.
+    *   Response:
+        ```json
+        [
+          {
+            "id": 1,
+            "authorId": 123,
+            "content": "This is my first post!",
+            "createdAt": "2025-06-29T12:00:00Z"
+          }
+        ]
+        ```
+
+*   **POST /api/posts**
+    *   Description: Creates a new post.
+    *   Request Body:
+        ```json
+        {
+          "content": "My new post content."
+        }
+        ```
+    *   Response:
+        ```json
+        {
+          "id": 2,
+          "authorId": 123,
+          "content": "My new post content.",
+          "createdAt": "2025-06-29T13:00:00Z"
+        }
+        ```
+
 ## Requirements
 To run this project, you will need:
 * Next JS
@@ -50,6 +141,22 @@ the NEXT_PUBLIC_API_URL will be used by the browser automatically to access the 
 
 finally, run both servers
 
+```bash
+npm run dev
+```
+
+This command starts both the backend and frontend concurrently using the correct port settings.
+
+**open in your browser**
+
+Follow the link that falls under the next js project i.e either of the last two urls
+
+e.g  http://localhost:3000
+
+since we defined the frontend to run using NEXT_PORT=3000
+
+## Usage
+To get started with this project, clone the repository:
 ```bash
 npm run dev
 ```
