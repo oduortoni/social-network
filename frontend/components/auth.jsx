@@ -15,13 +15,15 @@ export function AuthPanel() {
       }`}
     >
       {/* Sign Up Form */}
-   <div
-      className={`absolute top-0 left-1/2 h-full w-1/2 transition-all duration-700
+      <div
+      className={`
+        absolute top-0 left-1/2 h-full w-1/2 transition-all duration-700
         ${rightPanelActive
-          ? 'opacity-100 z-10 animate-fadeIn'
-          : 'opacity-0 z-0'
-        }`}
-    >
+          ? 'translate-x-0 opacity-100 z-10'
+          : 'translate-x-[100%] opacity-0 z-0'
+        }
+      `}
+      >
         <form className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
           <h1 className="font-bold text-2xl">Create Account</h1>
           <div className="my-5 flex space-x-3">
@@ -58,13 +60,15 @@ export function AuthPanel() {
       </div>
 
       {/* Sign In Form */}
-      <div
-        className={`absolute top-0 left-0 h-full w-1/2 transition-all duration-700
-          ${rightPanelActive
-            ? 'opacity-0 z-0'
-            : 'opacity-100 z-10 animate-fadeIn'
-          }`}
-      >
+       <div
+      className={`
+        absolute top-0 left-0 h-full w-1/2 transition-all duration-700
+        ${rightPanelActive
+          ? 'translate-x-[-100%] opacity-0 z-0'
+          : 'translate-x-0 opacity-100 z-10'
+        }
+      `}
+        >
         <form className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
           <h1 className="font-bold text-2xl text-[var(--tertiary-text)]">Sign in</h1>
           <div className="my-5 flex space-x-3">
