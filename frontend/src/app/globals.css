@@ -1,9 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Background Colors */
+  --Primary-background: #010c66;
+  --secondary-background: #2a2a86;
+  --tertiary-background: #c5c6db;
+
+  /* Text Color */
+  --Primary-text: #ffffff;
+  --secondary-text: #afafed;
+  --tertiary-text: #3f3fd3;
+
+  /* Accent Colors */
+  --Primary-accent: #ffd700 ;
+
+  /* Status Colors */
+  --Sucess-color: #00ff00;
+  --Warning-color: #ff4444;
 }
+
+/* Body Background with Texture */
+body {
+  background-color: var(--Primary-background);
+  background-image: url('../../assets/background/grain.png');
+  background-blend-mode: overlay;
+  background-repeat: repeat;
+}
+
 
 @theme inline {
   --color-background: var(--background);
