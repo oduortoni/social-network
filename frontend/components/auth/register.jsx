@@ -33,7 +33,7 @@ export function RegisterForm() {
         <>
         <form onSubmit={handleRegistrationFormSubmit} className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
             {/* Third-Party Authentication */}
-          <h1 className="font-bold text-2xl">Create Account</h1>
+          <h1 className="font-bold text-2xl text-[var(--tertiary-text)]">Create Account</h1>
           <div className="my-5 flex space-x-3">
             <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--quinternary-text)]">
               <FaFacebookF />
@@ -55,14 +55,14 @@ export function RegisterForm() {
                 type="email"
                 name="email"
                 placeholder="Email"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange} required
                 />
               <input
                 type="password"
                 name="password"
                 placeholder="Password"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange}
                 required
                  />
@@ -70,7 +70,7 @@ export function RegisterForm() {
                 type="password"
                 name="confirmPassword"
                 placeholder="Confirm Password"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange}
                 required
                 />
@@ -83,7 +83,7 @@ export function RegisterForm() {
                 type="text"
                 name="firstName"
                 placeholder="First Name"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange}
                 required
                 />
@@ -91,14 +91,14 @@ export function RegisterForm() {
                 type="text"
                 name="lastName"
                 placeholder="Last Name"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange}
                 required
                 />
               <input
                 type="date"
                 name="dob"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange}
                 required
                 />
@@ -111,19 +111,19 @@ export function RegisterForm() {
                 type="file"
                 name="avatar"
                 accept="image/png, image/jpeg, image/gif"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange} />
               <input
                 type="text"
                 name="nickname"
                 placeholder="Nickname (Optional)"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange}
                 />
               <textarea
                 name="aboutMe"
                 placeholder="About Me (Optional)"
-                className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange}
                 ></textarea>
             </>

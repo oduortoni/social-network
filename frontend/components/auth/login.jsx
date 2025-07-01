@@ -20,12 +20,12 @@ export function LoginForm() {
                 <input
                   type="email"
                   placeholder="Email"
-                  className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                  className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 />
                 <input
                   type="password"
                   placeholder="Password"
-                  className="bg-[var(--tertiary-background)] p-3 my-2 w-full outline-none"
+                  className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 />
                 <a href="#" className="text-sm text-[var(--tertiary-text)] mt-2 mb-4">
                   Forgot your password?
