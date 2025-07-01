@@ -35,13 +35,13 @@ export function RegisterForm() {
             {/* Third-Party Authentication */}
           <h1 className="font-bold text-2xl">Create Account</h1>
           <div className="my-5 flex space-x-3">
-            <a className="border border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--primary-accent)]">
+            <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--quinternary-text)]">
               <FaFacebookF />
             </a>
-            <a className="border border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--primary-accent)]">
+            <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--quinternary-text)]">
               <FaGooglePlusG />
             </a>
-            <a className="border border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--primary-accent)]">
+            <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--quinternary-text)]">
               <FaLinkedinIn />
             </a>
           </div>
