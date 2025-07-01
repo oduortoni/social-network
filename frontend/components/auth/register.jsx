@@ -5,6 +5,7 @@ import { handleRegistrationFormSubmit } from '../../lib/auth';
 export function RegisterForm() {
     // State to manage steps and form data
       const [step, setStep] = useState(1);
+      const [formError, setFormError] = useState("");
       const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -47,6 +48,13 @@ export function RegisterForm() {
           </div>
 
           <span className="text-xs mb-2 text-[var(--tertiary-text)]">or use your email for registration</span>
+
+            {/* Error Message Display*/}
+          {formError && (
+             <div className="font-bold text-base text-[var(--warning-color)]">
+                {formError}
+              </div>
+            )}
 
             {/* Step Forms */}
           {step === 1 && (
