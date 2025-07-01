@@ -32,7 +32,7 @@ export function RegisterForm() {
     
     return (
         <>
-        <form onSubmit={handleRegistrationFormSubmit} className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
+        <form onSubmit={e => handleRegistrationFormSubmit(e, formData, setFormError)} className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
             {/* Third-Party Authentication */}
           <h1 className="font-bold text-2xl text-[var(--tertiary-text)]">Create Account</h1>
           <div className="my-5 flex space-x-3">

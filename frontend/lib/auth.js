@@ -14,8 +14,7 @@ export const registrationFormNextStep = () => setStep((prev) => prev + 1);
 export const registrationFormPrevStep = () => setStep((prev) => prev - 1);
 
   // Function to handle form submission
-export const handleRegistrationFormSubmit = async (e) => {
-    const [formError, setFormError] = useState("");
+export const handleRegistrationFormSubmit = async (e, formData, setFormError) => {
     e.preventDefault();
   
     // Validate required fields
