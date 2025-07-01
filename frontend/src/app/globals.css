@@ -23,7 +23,7 @@
 
 /* Body Background with Texture */
 body {
-  background-color: var(--Primary-background);
+  background-color: var(--primary-background);
   background-image: url('/assets/background_textures/grain.png');
   background-blend-mode: overlay;
   font-family: Arial, Helvetica, sans-serif;
