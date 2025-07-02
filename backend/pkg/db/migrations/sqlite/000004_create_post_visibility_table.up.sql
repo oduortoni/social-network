@@ -1,0 +1,11 @@
+-- Create POST_VISIBILITY table
+CREATE TABLE IF NOT EXISTS POST_VISIBILITY (
+    post_id INTEGER NOT NULL,
+    viewer_id INTEGER NOT NULL,
+    PRIMARY KEY (post_id, viewer_id),
+    FOREIGN KEY (post_id) REFERENCES POSTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (viewer_id) REFERENCES USERS(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_post_visibility_post_id ON POST_VISIBILITY(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_visibility_viewer_id ON POST_VISIBILITY(viewer_id);
