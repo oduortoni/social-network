@@ -38,3 +38,7 @@ next-env.d.ts
 # commit and push script
 commit.sh
 push.sh
+
+# Docker
+.docker/
+docker-compose.override.yml
