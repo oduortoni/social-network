@@ -1,0 +1,2 @@
+-- Drop POSTS table
+DROP TABLE IF EXISTS POSTS;
