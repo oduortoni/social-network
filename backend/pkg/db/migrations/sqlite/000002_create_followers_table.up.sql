@@ -14,7 +14,3 @@ CREATE TABLE IF NOT EXISTS FOLLOWERS (
 -- Create INDEX on FOLLOWERS table for faster lookups
 CREATE INDEX IF NOT EXISTS idx_followers_follower_id ON FOLLOWERS(follower_id);
 CREATE INDEX IF NOT EXISTS idx_followers_followee_id ON FOLLOWERS(followee_id);
-
--- Create TRIGGERS for FOLLOWERS table
-CREATE TRIGGER IF NOT EXISTS trg_followers_follower_id;
-CREATE TRIGGER IF NOT EXISTS trg_followers_followee_id;
