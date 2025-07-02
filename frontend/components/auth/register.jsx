@@ -3,6 +3,8 @@ import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaArrowLeft, FaArrowRight } f
 import { handleRegistrationFormSubmit } from '../../lib/auth';
 
 export function RegisterForm() {
+    document.title = 'Social Network - Register'; // Set the document title for the registration page
+
     // State to manage steps and form data
       const [step, setStep] = useState(1);
       const [formError, setFormError] = useState("");

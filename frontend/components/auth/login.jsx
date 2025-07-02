@@ -1,6 +1,8 @@
 import { FaFacebookF, FaGooglePlusG, FaLinkedinIn } from 'react-icons/fa';
 
 export function LoginForm() {
+    document.title = 'Social Network - Login'; // Set the document title for the login page
+    
     return (
         <>
             <form className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
