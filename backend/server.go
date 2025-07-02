@@ -1,8 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
+	"log"
+
+	"github.com/tajjjjr/social-network/backend/pkg/db/sqlite"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
 	"github.com/tajjjjr/social-network/backend/www/controllers"
@@ -14,6 +20,18 @@ var (
 )
 
 func main() {
+
+	// Initialize the database
+	db, err := sql.Open("sqlite3", "file:app.db?cache=shared&_fk=1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	if err := sqlite.Migrate(db); err != nil {
+		log.Fatal("migration failed:", err)
+	}
+
 	Port := utils.Port(Port)
 	srvAddr := fmt.Sprintf("%s:%d", Host, Port)
 	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
