@@ -1,0 +1,13 @@
+-- Create EVENT_RESPONSES table
+CREATE TABLE IF NOT EXISTS EVENT_RESPONSES (
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    response TEXT,
+    responded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES GROUP_EVENTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_responses_event_id ON EVENT_RESPONSES(event_id);
+CREATE INDEX IF NOT EXISTS idx_event_responses_user_id ON EVENT_RESPONSES(user_id);
