@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS USERS (
     avatar TEXT,
     nickname TEXT,
     about_me TEXT,
-    is_profile_public BOOLEAN DEFAULT 1,
+    is_profile_public INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
