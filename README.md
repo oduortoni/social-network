@@ -111,6 +111,7 @@ To run this project, you will need:
 * A Go environment for the backend.
 * SQLite database.
 * Docker.
+* Docker Compose.
 
 ## Getting Started
 
@@ -171,10 +172,14 @@ e.g  http://localhost:3000
 
 since we defined the frontend to run using NEXT_PORT=3000
 
-## docker intergration
-
+## Docker Integration
+TO start the docker containers
 ```bash
 docker-compose up --build
+```
+TO delete the docker containers
+```bash
+docker-compose down
 ```
 
 ## Contributors
