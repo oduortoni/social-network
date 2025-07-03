@@ -1,0 +1,2 @@
+-- Drop GROUPS table
+DROP TABLE IF EXISTS GROUPS;
