@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-
+import { FaGoogle, FaFacebookF, FaXTwitter } from 'react-icons/fa6'; // or 'react-icons/fa'
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -14,15 +13,23 @@ const ContactForm = () => {
     nickname: '',
     about_me: '',
     is_profile_public: false,
-    avatar: null // <-- for profile photo
+    avatar: null,
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: type === 'checkbox' ? checked : type === 'file' ? files[0] : value,
-    }));
+
+    if (type === 'file' && files.length > 0) {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: files[0],
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: type === 'checkbox' ? checked : value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -48,62 +55,107 @@ const ContactForm = () => {
     }
   };
 
+  const redirectToOAuth = (provider) => {
+    window.location.href = `http://localhost:9000/auth/${provider}`;
+  };
+
   return (
-    <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+    <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
       <h1 className="text-2xl font-bold">User Registration</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm">
-        {/* Other fields */}
         <label className="flex flex-col text-sm">
           Email
-          <input type="email" name="email" value={formData.email}
-            onChange={handleChange} className="border rounded px-3 py-2 mt-1" required />
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 mt-1"
+            required
+          />
         </label>
 
         <label className="flex flex-col text-sm">
           Password
-          <input type="password" name="password" value={formData.password}
-            onChange={handleChange} className="border rounded px-3 py-2 mt-1" required />
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 mt-1"
+            required
+          />
         </label>
 
         <label className="flex flex-col text-sm">
           First Name
-          <input type="text" name="first_name" value={formData.first_name}
-            onChange={handleChange} className="border rounded px-3 py-2 mt-1" required />
+          <input
+            type="text"
+            name="first_name"
+            value={formData.first_name}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 mt-1"
+            required
+          />
         </label>
 
         <label className="flex flex-col text-sm">
           Last Name
-          <input type="text" name="last_name" value={formData.last_name}
-            onChange={handleChange} className="border rounded px-3 py-2 mt-1" required />
+          <input
+            type="text"
+            name="last_name"
+            value={formData.last_name}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 mt-1"
+            required
+          />
         </label>
 
         <label className="flex flex-col text-sm">
           Date of Birth
-          <input type="date" name="date_of_birth" value={formData.date_of_birth}
-            onChange={handleChange} className="border rounded px-3 py-2 mt-1" required />
+          <input
+            type="date"
+            name="date_of_birth"
+            value={formData.date_of_birth}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 mt-1"
+            required
+          />
         </label>
 
         <label className="flex flex-col text-sm">
           Nickname
-          <input type="text" name="nickname" value={formData.nickname}
-            onChange={handleChange} className="border rounded px-3 py-2 mt-1" />
+          <input
+            type="text"
+            name="nickname"
+            value={formData.nickname}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 mt-1"
+          />
         </label>
 
         <label className="flex flex-col text-sm">
           About Me
-          <textarea name="about_me" rows="3" value={formData.about_me}
-            onChange={handleChange} className="border rounded px-3 py-2 mt-1" />
+          <textarea
+            name="about_me"
+            rows="3"
+            value={formData.about_me}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 mt-1"
+          />
         </label>
 
         <label className="flex items-center text-sm gap-2">
-          <input type="checkbox" name="is_profile_public"
+          <input
+            type="checkbox"
+            name="is_profile_public"
             checked={formData.is_profile_public}
-            onChange={handleChange} />
+            onChange={handleChange}
+          />
           Make Profile Public
         </label>
 
-        {/* 🔽 Profile Photo Upload */}
         <label className="flex flex-col text-sm">
           Profile Photo
           <input
@@ -115,14 +167,50 @@ const ContactForm = () => {
           />
         </label>
 
-        <button type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
           Submit
         </button>
       </form>
+
+      <div className="flex items-center gap-2 w-full max-w-sm mt-6">
+        <hr className="flex-grow border-gray-300" />
+        <span className="text-gray-500 text-sm">or sign up with</span>
+        <hr className="flex-grow border-gray-300" />
+      </div>
+
+      <div className="flex gap-4 w-full max-w-sm justify-center">
+        <button
+          onClick={() => redirectToOAuth("google/login")}
+          className="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded hover:bg-gray-100 shadow-sm"
+        >
+          <FaGoogle className="text-red-500" />
+          Google
+        </button>
+
+        <button
+          onClick={() => redirectToOAuth("facebook")}
+          className="flex items-center gap-2 bg-[#1877f2] text-white px-4 py-2 rounded hover:bg-[#155dc3] shadow-sm"
+        >
+          <FaFacebookF />
+          Facebook
+        </button>
+
+        <button
+          onClick={() => redirectToOAuth("twitter")}
+          className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 shadow-sm"
+        >
+          <FaXTwitter />
+          X
+        </button>
+      </div>
     </main>
   );
 };
+
+
 
 
 export default function Home() {
