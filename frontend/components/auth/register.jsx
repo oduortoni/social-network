@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import Head from 'next/head';
-import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaArrowLeft, FaArrowRight, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { handleRegistrationFormSubmit } from '../../lib/auth';
 
 export function RegisterForm() {
     // State to manage steps and form data
       const [step, setStep] = useState(1);
+      const [showPassword, setShowPassword] = useState(false);
+      const [showConfirmPassword, setShowConfirmPassword] = useState(false);
       const [formError, setFormError] = useState("");
       const [formData, setFormData] = useState({
         email: '',
@@ -71,22 +73,45 @@ export function RegisterForm() {
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange} required
                 />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
-                onChange={handleChange}
-                required
-                 />
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
-                onChange={handleChange}
-                required
+                {/* Password and Visibility Toggle Button Container */}
+              <div className="relative w-full">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none pr-10"
+                  onChange={handleChange}
+                  required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--quaternary-text)]"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+
+                {/* Confirm Password and Visibility Toggle Button Container */}
+              <div className="relative w-full">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--quaternary-text)]"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </>
           )}
 
