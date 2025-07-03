@@ -178,7 +178,12 @@ export function RegisterForm() {
                 maxLength={300}
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none h-28 resize-none"
                 onChange={handleChange}
-                ></textarea>
+                value={formData.aboutMe}
+                />
+                {/* Textarea Character Limit Counter */}
+              <div className="w-full text-right text-xs text-[var(--tertiary-text)]">
+                {300 - (formData.aboutMe?.length || 0)} characters left
+              </div>
             </>
           )}
 
