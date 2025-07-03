@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -15,7 +16,7 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func SigninHandler(w http.ResponseWriter, r *http.Request) {
+func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var req User
 	var serverresponse Response
 	statusCode := http.StatusOK
@@ -38,7 +39,7 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user from database
-	userInDB, err := GetUserByEmail(req.Email)
+	userInDB, err := GetUserByEmail(req.Email, db)
 	if err != nil {
 		serverresponse.Message = "User not found"
 		statusCode = http.StatusUnauthorized
@@ -55,11 +56,11 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear previous sessions
-	DeleteUserSessions(userInDB.ID)
+	DeleteUserSessions(userInDB.ID, db)
 
 	// Create session
 	sessionID := uuid.New().String()
-	if err := StoreSession(userInDB.ID, sessionID); err != nil {
+	if err := StoreSession(userInDB.ID, sessionID, db); err != nil {
 		serverresponse.Message = "Failed to create session"
 		statusCode = http.StatusInternalServerError
 		respondJSON(w, statusCode, serverresponse)
@@ -84,13 +85,25 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, statusCode, serverresponse)
 }
 
-func DeleteUserSessions(id int) {
+func DeleteUserSessions(id int, db *sql.DB) {
+	_, err := db.Exec("DELETE FROM Sessions WHERE user_id = ?", id)
+	if err != nil {
+		panic(err)
+	}
 }
 
-func StoreSession(id int, sessionID string) error {
-	return nil
+func StoreSession(id int, sessionID string, db *sql.DB) error {
+	_, err := db.Exec("INSERT INTO Sessions (user_id, session_id, created_at) VALUES (?, ?, ?)", id, sessionID, time.Now())
+	return err
 }
 
-func GetUserByEmail(email string) (User, error) {
-	return User{}, nil
+func GetUserByEmail(email string, db *sql.DB) (User, error) {
+	var users User
+
+	err := db.QueryRow("SELECT id, email, password FROM Users WHERE email = ?", email).Scan(&users.ID, &users.Email, &users.Password)
+	if err != nil {
+		return User{}, err // Return an error if the query fails
+	}
+
+	return users, nil
 }

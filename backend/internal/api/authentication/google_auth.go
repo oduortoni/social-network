@@ -129,10 +129,10 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// Step 5: Manage session
-	DeleteUserSessions(userID)
+	DeleteUserSessions(userID,db)
 
 	sessionID := uuid.New().String()
-	if err := StoreSession(userID, sessionID); err != nil {
+	if err := StoreSession(userID, sessionID,db); err != nil {
 		serverresponse.Message = "Failed to create session"
 		statusCode = http.StatusInternalServerError
 		respondJSON(w, statusCode, serverresponse)
@@ -173,7 +173,7 @@ func SaveGoogleUser(userInfo GoogleUserInfo, db *sql.DB) (int, error) {
 			}
 
 			// Insert the new user into the database (password is empty for Google login)
-			_, err = db.Exec("INSERT INTO users (username, useremail, password) VALUES (?, ?, ?)", newUsername, userInfo.Email, "")
+			_, err = db.Exec("INSERT INTO Users (username, useremail, password) VALUES (?, ?, ?)", newUsername, userInfo.Email, "")
 			if err != nil {
 				fmt.Println("Error inserting Google user:", err)
 				return -1, err

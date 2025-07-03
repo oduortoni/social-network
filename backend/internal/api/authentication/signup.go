@@ -1,9 +1,10 @@
 package authentication
 
 import (
+	"database/sql"
 	"net/http"
+	"time"
 )
-
 
 type Profile_User struct {
 	Email           string `json:"email"`
@@ -17,7 +18,7 @@ type Profile_User struct {
 	Avatar          string `json:"avatar"`
 }
 
-func SignupHandler(w http.ResponseWriter, r *http.Request) {
+func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var serverresponse Response
 	statusCode := http.StatusOK
 
@@ -48,7 +49,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user already exists
-	if UserExists(email, nickname) {
+	if UserExists(email, nickname, db) {
 		serverresponse.Message = "Email or nickname already taken"
 		statusCode = http.StatusConflict
 		respondJSON(w, statusCode, serverresponse)
@@ -92,7 +93,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert user into DB
-	if err := InsertUserIntoDB(newUser); err != nil {
+	if err := InsertUserIntoDB(newUser, db); err != nil {
 		serverresponse.Message = "Failed to create user"
 		statusCode = http.StatusInternalServerError
 		respondJSON(w, statusCode, serverresponse)
@@ -105,10 +106,12 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, statusCode, serverresponse)
 }
 
-func UserExists(email, nickname string) bool {
-	return false
+func UserExists(email, nickname string, db *sql.DB) bool {
+	_, err := db.Query("SELECT * FROM Users WHERE email = ? OR nickname = ?", email, nickname)
+	return err == nil
 }
 
-func InsertUserIntoDB(user Profile_User) error {
-	return nil
+func InsertUserIntoDB(user Profile_User, db *sql.DB) error {
+	_, err := db.Exec("INSERT INTO Users (email,password,first_name,last_name,date_of_birth,nickname,about_me,is_profile_public,avatar,created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)", user.Email, user.Password, user.FirstName, user.LastName, user.DateOfBirth, user.Nickname, user.AboutMe, user.IsProfilePublic, user.Avatar, time.Now())
+	return err
 }
