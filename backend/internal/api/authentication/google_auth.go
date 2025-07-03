@@ -17,14 +17,12 @@ import (
 )
 
 var (
-
-	
 	ClientID     = os.Getenv("client-id")
 	ClientSecret = os.Getenv("client-secret") // client secret
-	RedirectURI = "http://localhost:8080/auth/google/callback"
-	AuthURL     = "https://accounts.google.com/o/oauth2/auth"
-	TokenURL    = "https://oauth2.googleapis.com/token"
-	UserInfoURL = "https://www.googleapis.com/oauth2/v2/userinfo"
+	RedirectURI  = "http://localhost:8080/auth/google/callback"
+	AuthURL      = "https://accounts.google.com/o/oauth2/auth"
+	TokenURL     = "https://oauth2.googleapis.com/token"
+	UserInfoURL  = "https://www.googleapis.com/oauth2/v2/userinfo"
 )
 
 type GoogleUserInfo struct {
@@ -135,19 +133,19 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	DeleteUserSessions(userID, db)
 
 	sessionID := uuid.New().String()
-	if err := StoreSession(userID, sessionID, db); err != nil {
+	expiray := time.Now().Add(24 * time.Hour)
+	if err := StoreSession(userID, sessionID, expiray, db); err != nil {
 		serverresponse.Message = "Failed to create session"
 		statusCode = http.StatusInternalServerError
 		respondJSON(w, statusCode, serverresponse)
 		return
 	}
-
 	// Step 6: Set session cookie
 	cookie := http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
 		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
+		Expires:  expiray,
 		HttpOnly: true,
 		Secure:   false, // Change to true in production
 		SameSite: http.SameSiteStrictMode,
@@ -164,7 +162,7 @@ func SaveGoogleUser(userInfo GoogleUserInfo, db *sql.DB) (int, error) {
 	var username string
 
 	// Check if the user already exists in the database
-	row := db.QueryRow("SELECT id, username FROM users WHERE useremail = ?", userInfo.Email)
+	row := db.QueryRow("SELECT id, nickname FROM Users WHERE email = ?", userInfo.Email)
 	err := row.Scan(&userID, &username)
 	if err != nil {
 		// If no existing user is found, create a new account
@@ -175,15 +173,25 @@ func SaveGoogleUser(userInfo GoogleUserInfo, db *sql.DB) (int, error) {
 				return 0, err
 			}
 
+			user := Profile_User{
+				Email:           userInfo.Email,
+				Password:        "",
+				FirstName:       userInfo.Name,
+				LastName:        "",
+				DateOfBirth:     "",
+				Nickname:        newUsername,
+				AboutMe:         "",
+				IsProfilePublic: false,
+				Avatar:          "no profile photo",
+			}
+
 			// Insert the new user into the database (password is empty for Google login)
-			_, err = db.Exec("INSERT INTO Users (username, useremail, password) VALUES (?, ?, ?)", newUsername, userInfo.Email, "")
-			if err != nil {
-				fmt.Println("Error inserting Google user:", err)
+			if err := InsertUserIntoDB(user, db); err != nil {
 				return -1, err
 			}
 
 			// Retrieve the newly inserted user ID
-			err = db.QueryRow("SELECT id FROM users WHERE useremail = ?", userInfo.Email).Scan(&userID)
+			err = db.QueryRow("SELECT id FROM Users WHERE email = ?", userInfo.Email).Scan(&userID)
 			if err != nil {
 				fmt.Println("Error fetching user ID:", err)
 				return -1, err
@@ -208,7 +216,7 @@ func CreateUniqueUsername(name string, db *sql.DB) (string, error) {
 
 	for {
 		// Check if the username already exists in the database
-		err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", username).Scan(&count)
+		err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE nickname = ?", username).Scan(&count)
 		if err != nil {
 			return "", err // Return an error if the query fails
 		}
