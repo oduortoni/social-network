@@ -4,11 +4,12 @@ import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaArrowLeft, FaArrowRight, Fa
 import { handleRegistrationFormSubmit } from '../../lib/auth';
 
 export function RegisterForm() {
-    // State to manage steps and form data
+    // State to manage registrationform data
       const [step, setStep] = useState(1);
       const [showPassword, setShowPassword] = useState(false);
       const [showConfirmPassword, setShowConfirmPassword] = useState(false);
       const [formError, setFormError] = useState("");
+      const [avatarPreview, setAvatarPreview] = useState(null);
       const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -24,11 +25,19 @@ export function RegisterForm() {
     
     // Function to handle form input changes
     const handleChange = (e) => {
-    const { name, value, files } = e.target;
-      setFormData({
-        ...formData,
-        [name]: files ? files[0] : value
-      });
+      const { name, value, files } = e.target;
+      if (name === "avatar" && files && files[0]) {
+        setFormData({
+          ...formData,
+          [name]: files[0]
+        });
+        setAvatarPreview(URL.createObjectURL(files[0]));
+      } else {
+        setFormData({
+          ...formData,
+          [name]: value
+        });
+      }
     };
     // Functions to toggle form steps
     const nextStep = () => setStep((prev) => prev + 1);
@@ -196,6 +205,15 @@ export function RegisterForm() {
                 accept="image/png, image/jpeg, image/gif"
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange} />
+              {avatarPreview && (
+                <div className="w-full flex justify-center my-2">
+                  <img
+                    src={avatarPreview}
+                    alt="Avatar Preview"
+                    className="h-28 w-28 object-cover rounded-full border"
+                  />
+                </div>
+              )}
             </>
           )}
 
