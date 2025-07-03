@@ -171,6 +171,12 @@ e.g  http://localhost:3000
 
 since we defined the frontend to run using NEXT_PORT=3000
 
+## docker intergration
+
+```bash
+docker-compose up --build
+```
+
 ## Contributors
 
 * [DavJesse](https://github.com/DavJesse)

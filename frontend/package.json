@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "start": "next start",
     "lint": "next lint",
     "serve:next": "dotenv -e .env -- sh -c 'PORT=$NEXT_PORT next dev'",
     "serve:go": "dotenv -e .env -- sh -c 'cd ../backend && go run .'",
@@ -22,5 +23,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "tailwindcss": "^4"
+  },
+  "engines": {
+    "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
   }
 }
