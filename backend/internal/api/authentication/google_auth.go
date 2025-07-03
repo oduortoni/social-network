@@ -16,12 +16,15 @@ import (
 )
 
 const (
+
+	// 507360807732-ffdo768j3po6senaftckanhk1u01q9nb.apps.googleusercontent.com
 	ClientID     = ""
 	ClientSecret = "" // client secret
-	RedirectURI  = "http://localhost:8080/auth/google/callback"
-	AuthURL      = "https://accounts.google.com/o/oauth2/auth"
-	TokenURL     = "https://oauth2.googleapis.com/token"
-	UserInfoURL  = "https://www.googleapis.com/oauth2/v2/userinfo"
+	// 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
+	RedirectURI = "http://localhost:8080/auth/google/callback"
+	AuthURL     = "https://accounts.google.com/o/oauth2/auth"
+	TokenURL    = "https://oauth2.googleapis.com/token"
+	UserInfoURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 )
 
 type GoogleUserInfo struct {
@@ -129,10 +132,10 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// Step 5: Manage session
-	DeleteUserSessions(userID,db)
+	DeleteUserSessions(userID, db)
 
 	sessionID := uuid.New().String()
-	if err := StoreSession(userID, sessionID,db); err != nil {
+	if err := StoreSession(userID, sessionID, db); err != nil {
 		serverresponse.Message = "Failed to create session"
 		statusCode = http.StatusInternalServerError
 		respondJSON(w, statusCode, serverresponse)

@@ -170,5 +170,5 @@ func HandleTwitterCallback(w http.ResponseWriter, r *http.Request) {
 		MaxAge: -1,
 	})
 
-	fmt.Fprintf(w, "Logged in as: @%s (%s)", twitterUser.Data.Username, twitterUser.Data.Name)
+	fmt.Printf("Logged in as: @%s (%s)", twitterUser.Data.Username, twitterUser.Data.Name)
 }
