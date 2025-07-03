@@ -1,10 +1,9 @@
 import { useState } from 'react';
+import Head from 'next/head';
 import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { handleRegistrationFormSubmit } from '../../lib/auth';
 
 export function RegisterForm() {
-    document.title = 'Social Network - Register'; // Set the document title for the registration page
-
     // State to manage steps and form data
       const [step, setStep] = useState(1);
       const [formError, setFormError] = useState("");
@@ -34,6 +33,10 @@ export function RegisterForm() {
     
     return (
         <>
+         <Head>
+        <title>Social Network - Register</title>
+        </Head>
+        
         <form onSubmit={e => handleRegistrationFormSubmit(e, formData, setFormError)} className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
             {/* Third-Party Authentication */}
           <h1 className="font-bold text-2xl text-[var(--tertiary-text)]">Create Account</h1>
