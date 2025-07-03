@@ -210,7 +210,7 @@ export function RegisterForm() {
                   <img
                     src={avatarPreview}
                     alt="Avatar Preview"
-                    className="h-28 w-28 object-cover rounded-full border"
+                    className="h-28 w-28 object-cover rounded-full border border-[var(--tertiary-text)]"
                   />
                 </div>
               )}
