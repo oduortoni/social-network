@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tajjjjr/social-network/backend/pkg/db/sqlite"
 )
 
 func TestMigration(t *testing.T) {
@@ -14,9 +15,8 @@ func TestMigration(t *testing.T) {
 	defer os.Remove(testDBPath)
 	defer os.Unsetenv("SQLITE_DB_PATH")
 
-
 	testDir := "/pkg/db/migrations/sqlite"
-	os.MkdirAll(testDir, 0755)
+	os.MkdirAll(testDir, 0o755)
 	defer os.RemoveAll("pkg")
 
 	upMigration := `
@@ -25,7 +25,13 @@ func TestMigration(t *testing.T) {
 		name TEXT NOT NULL
 	);`
 	upFile := filepath.Join(testDir, "001_create_test_users.up.sql")
-	if err := os.WriteFile(upFile, []byte(upMigration), 0644); err != nil {
+	if err := os.WriteFile(upFile, []byte(upMigration), 0o644); err != nil {
 		t.Fatalf("Failed to write migration file: %v", err)
 	}
+
+	db, err := sqlite.Migration()
+	if err != nil {
+		t.Fatalf("Migration error: %v", err)
+	}
+	defer db.Close()
 }
