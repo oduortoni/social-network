@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -15,12 +16,11 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
+var (
 
-	// 507360807732-ffdo768j3po6senaftckanhk1u01q9nb.apps.googleusercontent.com
-	ClientID     = ""
-	ClientSecret = "" // client secret
-	// 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
+	
+	ClientID     = os.Getenv("client-id")
+	ClientSecret = os.Getenv("client-secret") // client secret
 	RedirectURI = "http://localhost:8080/auth/google/callback"
 	AuthURL     = "https://accounts.google.com/o/oauth2/auth"
 	TokenURL    = "https://oauth2.googleapis.com/token"
