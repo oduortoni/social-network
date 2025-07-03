@@ -16,6 +16,7 @@ export function RegisterForm() {
         firstName: '',
         lastName: '',
         dob: '',
+        profileVisibility: '',
         avatar: null,
         nickname: '',
         aboutMe: ''
@@ -66,6 +67,7 @@ export function RegisterForm() {
             {/* Step Forms */}
           {step === 1 && (
             <>
+                {/* Email Input */}
               <input 
                 type="email"
                 name="email"
@@ -73,7 +75,8 @@ export function RegisterForm() {
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange} required
                 />
-                {/* Password and Visibility Toggle Button Container */}
+
+                {/* Password Input */}
               <div className="relative w-full">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -82,7 +85,8 @@ export function RegisterForm() {
                   className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none pr-10"
                   onChange={handleChange}
                   required
-                />
+                  />
+                  {/* Visibility Toggle Button */}
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
@@ -93,7 +97,7 @@ export function RegisterForm() {
                 </button>
               </div>
 
-                {/* Confirm Password and Visibility Toggle Button Container */}
+                {/* Confirm Password Input */}
               <div className="relative w-full">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -102,7 +106,8 @@ export function RegisterForm() {
                   className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                   onChange={handleChange}
                   required
-                />
+                  />
+                  {/* Visibility Toggle Button */}
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
@@ -115,6 +120,7 @@ export function RegisterForm() {
             </>
           )}
 
+          {/* First Name, Last Name, and Date of Birth Inputs */}
           {step === 2 && (
             <>
               <input
@@ -143,14 +149,22 @@ export function RegisterForm() {
             </>
           )}
 
+          {/* Profile Visibility, Nickname, and About Me Inputs */}
           {step === 3 && (
             <>
-              <input
-                type="file"
-                name="avatar"
-                accept="image/png, image/jpeg, image/gif"
+              <select
+                name="profileVisibility"
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
-                onChange={handleChange} />
+                onChange={handleChange}
+                value={formData.profileVisibility}
+                required
+              >
+                <option value="" disabled>
+                  Profile Visibility
+                </option>
+                <option value="private">Private</option>
+                <option value="public">Public</option>
+              </select>
               <input
                 type="text"
                 name="nickname"
@@ -161,9 +175,22 @@ export function RegisterForm() {
               <textarea
                 name="aboutMe"
                 placeholder="About Me (Optional)"
-                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
+                maxLength={300}
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none h-28 resize-none"
                 onChange={handleChange}
                 ></textarea>
+            </>
+          )}
+
+          {/* Avatar Upload */}
+          {step === 4 && (
+            <>
+            <input
+                type="file"
+                name="avatar"
+                accept="image/png, image/jpeg, image/gif"
+                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
+                onChange={handleChange} />
             </>
           )}
 
@@ -178,7 +205,7 @@ export function RegisterForm() {
                   <FaArrowLeft className='inline mr-1'/>
                   {' Back'}
                   </button>)}
-            {step < 3 && (
+            {step < 4 && (
               <button
                 type="button"
                 onClick={nextStep}
@@ -187,7 +214,7 @@ export function RegisterForm() {
                   {'Next '}
                   <FaArrowRight className='inline mr-1'/>
                   </button>)}
-            {step === 3 && <button type="submit" className='text-[var(--tertiary-text)] hover:scale-95 transition-transform'>Register</button>}
+            {step === 4 && <button type="submit" className='text-[var(--tertiary-text)] hover:scale-95 transition-transform'>Register</button>}
           </div>
             
         </form>
