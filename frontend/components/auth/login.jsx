@@ -29,19 +29,22 @@ export function LoginForm() {
                 placeholder="Email"
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
               />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--quaternary-text)]"
-                tabIndex={-1}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
+              {/* Password and Visibility Toggle Button Container */}
+              <div className="relative w-full">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--quaternary-text)]"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
               <a href="#" className="text-sm text-[var(--tertiary-text)] mt-2 mb-4">
                 Forgot your password?
               </a>
