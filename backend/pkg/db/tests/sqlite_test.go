@@ -34,4 +34,13 @@ func TestMigration(t *testing.T) {
 		t.Fatalf("Migration error: %v", err)
 	}
 	defer db.Close()
+
+	var tableName string
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='test_users'`).Scan(&tableName)
+	if err != nil {
+		t.Errorf("Expected table 'table_users', got errors: %v", err)
+	}
+	if tableName != "test_users" {
+		t.Errorf("Expected test_users but got %s", tableName)
+	}
 }
