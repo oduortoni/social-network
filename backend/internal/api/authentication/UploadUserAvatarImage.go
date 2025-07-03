@@ -17,10 +17,14 @@ func UploadAvatarImage(imagereader multipart.File, imageheader *multipart.FileHe
 	}
 	// Get the file extension (e.g., .jpg, .png)
 	ext := filepath.Ext(imageheader.Filename)
-
 	filename := uuid.New().String()
+	filepath := filepath.Join("./UserAvatars", filename+ext)
 
-	filepath := filepath.Join("./images", filename+ext)
+	// Create the directory if it doesn't exist
+	err := os.MkdirAll("./UserAvatars", os.ModePerm)
+	if err != nil {
+		return "failed to create UserAvatars directory", err
+	}
 
 	out, err := os.OpenFile(filepath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
 	if err != nil {

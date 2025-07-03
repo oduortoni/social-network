@@ -2,6 +2,8 @@ package authentication
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -58,11 +60,12 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Handle avatar upload
 	userAvatar := "no profile photo"
-	file, header, err := r.FormFile("image")
+	file, header, err := r.FormFile("avatar")
 	if err == nil && file != nil {
 		defer file.Close()
 		userAvatar, err = UploadAvatarImage(file, header)
 		if err != nil {
+			fmt.Println(err)
 			serverresponse.Message = "Failed to upload image"
 			statusCode = http.StatusInternalServerError
 			respondJSON(w, statusCode, serverresponse)
@@ -107,8 +110,13 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func UserExists(email, nickname string, db *sql.DB) bool {
-	_, err := db.Query("SELECT * FROM Users WHERE email = ? OR nickname = ?", email, nickname)
-	return err == nil
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ? OR nickname = ?", email, nickname).Scan(&count)
+	if err != nil {
+		log.Println(err)
+		return false // return error if something goes wrong
+	}
+	return count > 0 // return true if user exists
 }
 
 func InsertUserIntoDB(user Profile_User, db *sql.DB) error {
