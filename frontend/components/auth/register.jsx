@@ -39,9 +39,14 @@ export function RegisterForm() {
         });
       }
     };
-    // Functions to toggle form steps
+    
+    // Functions to toggle form processes
     const nextStep = () => setStep((prev) => prev + 1);
     const prevStep = () => setStep((prev) => prev - 1);
+    const handleRemoveAvatar = () => {
+      setFormData({ ...formData, avatar: null });
+      setAvatarPreview(null);
+    };
     
     return (
         <>
@@ -206,12 +211,19 @@ export function RegisterForm() {
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
                 onChange={handleChange} />
               {avatarPreview && (
-                <div className="w-full flex justify-center my-2">
+                <div className="w-full flex flex-col items-center my-2">
                   <img
                     src={avatarPreview}
                     alt="Avatar Preview"
                     className="h-28 w-28 object-cover rounded-full border border-[var(--tertiary-text)]"
                   />
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="mt-2 px-6 py-1 bg-[var(--primary-accent)] text-[var(--quaternary-text)] rounded-full hover:scale-95 transition-transform"
+                  >
+                    Remove
+                  </button>
                 </div>
               )}
             </>
