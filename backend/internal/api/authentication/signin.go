@@ -66,22 +66,23 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Create session
 	sessionID := uuid.New().String()
-	if err := StoreSession(userInDB.ID, sessionID, db); err != nil {
-		serverresponse.Message = "Failed to create session"
-		statusCode = http.StatusInternalServerError
-		respondJSON(w, statusCode, serverresponse)
-		return
-	}
+	expirey := time.Now().Add(24 * time.Hour)
 
 	// Set cookie
 	cookie := http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
 		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
+		Expires:  expirey,
 		HttpOnly: true,
 		Secure:   false, // Set to true in production
 		SameSite: http.SameSiteStrictMode,
+	}
+	if err := StoreSession(userInDB.ID, sessionID, expirey, db); err != nil {
+		serverresponse.Message = "Failed to create session"
+		statusCode = http.StatusInternalServerError
+		respondJSON(w, statusCode, serverresponse)
+		return
 	}
 	http.SetCookie(w, &cookie)
 
@@ -92,13 +93,13 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func DeleteUserSessions(id int, db *sql.DB) error {
-	_, err := db.Exec("DELETE FROM Sessions WHERE user_id = ?", id) 
+	_, err := db.Exec("DELETE FROM Sessions WHERE user_id = ?", id)
 
 	return err
 }
 
-func StoreSession(id int, sessionID string, db *sql.DB) error {
-	_, err := db.Exec("INSERT INTO Sessions (user_id, session_id, created_at) VALUES (?, ?, ?)", id, sessionID, time.Now())
+func StoreSession(id int, sessionID string, expiray time.Time, db *sql.DB) error {
+	_, err := db.Exec("INSERT INTO Sessions (user_id, id, created_at,expires_at) VALUES (?, ?, ?,?)", id, sessionID, time.Now(), expiray)
 	return err
 }
 
