@@ -1,2 +1,2 @@
--- Drop NOTIFICATIONS table
-DROP TABLE IF EXISTS NOTIFICATIONS;
+-- Drop Notifications table
+DROP TABLE IF EXISTS Notifications;

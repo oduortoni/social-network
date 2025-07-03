@@ -1,2 +1,2 @@
--- Drop GROUP_POSTS table
-DROP TABLE IF EXISTS GROUP_POSTS;
+-- Drop Group_Posts table
+DROP TABLE IF EXISTS Group_Posts;

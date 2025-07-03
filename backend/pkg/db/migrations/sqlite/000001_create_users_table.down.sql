@@ -1,5 +1,5 @@
--- Drop SESSIONS table
-DROP TABLE IF EXISTS SESSIONS;
+-- Drop Sessions table
+DROP TABLE IF EXISTS Sessions;
 
--- Drop USERS table
-DROP TABLE IF EXISTS USERS;
+-- Drop Users table
+DROP TABLE IF EXISTS Users;

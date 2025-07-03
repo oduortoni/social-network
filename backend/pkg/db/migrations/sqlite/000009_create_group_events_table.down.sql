@@ -1,2 +1,2 @@
--- Drop GROUP_EVENTS table
-DROP TABLE IF EXISTS GROUP_EVENTS;
+-- Drop Group_Events table
+DROP TABLE IF EXISTS Group_Events;

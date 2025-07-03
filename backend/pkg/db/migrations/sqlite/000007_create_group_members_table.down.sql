@@ -1,2 +1,2 @@
--- Drop GROUP_MEMBERS table
-DROP TABLE IF EXISTS GROUP_MEMBERS;
+-- Drop Group_Members table
+DROP TABLE IF EXISTS Group_Members;

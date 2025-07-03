@@ -1,2 +1,2 @@
--- Drop POST_VISIBILITY table
-DROP TABLE IF EXISTS POST_VISIBILITY;
+-- Drop Post_Visibility table
+DROP TABLE IF EXISTS Post_Visibility;

@@ -1,5 +1,5 @@
--- Create MESSAGES table
-CREATE TABLE IF NOT EXISTS MESSAGES (
+-- Create Messages table
+CREATE TABLE IF NOT EXISTS Messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sender_id INTEGER NOT NULL,
     receiver_id INTEGER,
@@ -7,11 +7,11 @@ CREATE TABLE IF NOT EXISTS MESSAGES (
     content TEXT,
     is_emoji BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_id) REFERENCES USERS(id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id) REFERENCES USERS(id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES GROUPS(id) ON DELETE CASCADE
+    FOREIGN KEY (sender_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES Groups(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON MESSAGES(sender_id);
-CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON MESSAGES(receiver_id);
-CREATE INDEX IF NOT EXISTS idx_messages_group_id ON MESSAGES(group_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON Messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON Messages(receiver_id);
+CREATE INDEX IF NOT EXISTS idx_messages_group_id ON Messages(group_id);

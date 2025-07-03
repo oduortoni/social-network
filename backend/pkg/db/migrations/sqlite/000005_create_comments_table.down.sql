@@ -1,2 +1,2 @@
--- Drop COMMENTS table
-DROP TABLE IF EXISTS COMMENTS;
+-- Drop Comments table
+DROP TABLE IF EXISTS Comments;

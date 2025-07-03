@@ -1,2 +1,2 @@
--- Drop EVENT_RESPONSES table
-DROP TABLE IF EXISTS EVENT_RESPONSES;
+-- Drop Event_Responses table
+DROP TABLE IF EXISTS Event_Responses;

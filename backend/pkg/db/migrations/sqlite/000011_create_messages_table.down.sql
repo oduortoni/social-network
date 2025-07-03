@@ -1,2 +1,2 @@
--- Drop MESSAGES table
-DROP TABLE IF EXISTS MESSAGES;
+-- Drop Messages table
+DROP TABLE IF EXISTS Messages;

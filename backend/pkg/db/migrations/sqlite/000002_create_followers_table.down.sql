@@ -1,2 +1,2 @@
--- Drop FOLLOWERS table
-DROP TABLE IF EXISTS FOLLOWERS;
+-- Drop Followers table
+DROP TABLE IF EXISTS Followers;
