@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/tajjjjr/social-network/backend/pkg/db/sqlite"
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
 	"github.com/tajjjjr/social-network/backend/www/controllers"
 )
@@ -19,25 +23,32 @@ func corsMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Requested-With")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		
+
 		// Handle preflight requests
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		
+
 		next.ServeHTTP(w, r)
 	})
 }
 
 func main() {
+	// Initialize DB and run migrations
+	db, err := sqlite.Migration()
+	if err != nil {
+		panic(fmt.Sprintf("DB migration failed: %v", err))
+	}
+	defer db.Close()
+
 	port := utils.Port(Port) // Fixed variable shadowing
 	srvAddr := fmt.Sprintf("%s:%d", Host, port)
 	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
-	
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", controllers.Index)
-	
+
 	handler := corsMiddleware(mux)
 	http.ListenAndServe(srvAddr, handler)
 }
