@@ -56,7 +56,13 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// Clear previous sessions
-	DeleteUserSessions(userInDB.ID, db)
+	err = DeleteUserSessions(userInDB.ID, db)
+	if err != nil {
+		serverresponse.Message = "Failed to delete previous sessions"
+		statusCode = http.StatusInternalServerError
+		respondJSON(w, statusCode, serverresponse)
+		return
+	}
 
 	// Create session
 	sessionID := uuid.New().String()
@@ -85,11 +91,10 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	respondJSON(w, statusCode, serverresponse)
 }
 
-func DeleteUserSessions(id int, db *sql.DB) {
-	_, err := db.Exec("DELETE FROM Sessions WHERE user_id = ?", id)
-	if err != nil {
-		panic(err)
-	}
+func DeleteUserSessions(id int, db *sql.DB) error {
+	_, err := db.Exec("DELETE FROM Sessions WHERE user_id = ?", id) 
+
+	return err
 }
 
 func StoreSession(id int, sessionID string, db *sql.DB) error {
