@@ -39,8 +39,8 @@ func main() {
 	})
 	mux.HandleFunc("/logout", authentication.LogoutHandler)
 	// Google Authentication
-	http.HandleFunc("/auth/google/login", authentication.RedirectToGoogleLogin)
-	http.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/auth/google/login", authentication.RedirectToGoogleLogin)
+	mux.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
 		authentication.HandleGoogleCallback(w, r, db)
 	})
 
