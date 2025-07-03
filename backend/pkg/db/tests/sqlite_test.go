@@ -12,4 +12,9 @@ func TestMigration(t *testing.T) {
 	os.Setenv("SQLITE_DB_PATH", testDBPath)
 	defer os.Remove(testDBPath)
 	defer os.Unsetenv("SQLITE_DB_PATH")
+
+
+	testDir := "/pkg/db/migrations/sqlite"
+	os.MkdirAll(testDir, 0755)
+	defer os.RemoveAll("pkg")
 }
