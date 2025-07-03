@@ -113,7 +113,8 @@ func HandleFacebookCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) 
 	DeleteUserSessions(userID, db)
 
 	sessionID := uuid.New().String()
-	if err := StoreSession(userID, sessionID, db); err != nil {
+	expiray:=time.Now().Add(24 * time.Hour)
+	if err := StoreSession(userID, sessionID, expiray, db); err != nil {
 		serverresponse.Message = "Failed to create session"
 		statusCode = http.StatusInternalServerError
 		respondJSON(w, statusCode, serverresponse)
@@ -125,7 +126,7 @@ func HandleFacebookCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) 
 		Name:     "session_id",
 		Value:    sessionID,
 		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
+		Expires:  expiray,
 		HttpOnly: true,
 		Secure:   false, // Change to true in production
 		SameSite: http.SameSiteStrictMode,
