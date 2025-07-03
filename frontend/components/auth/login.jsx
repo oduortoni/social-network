@@ -1,7 +1,10 @@
 import Head from 'next/head';
-import { FaFacebookF, FaGooglePlusG, FaLinkedinIn } from 'react-icons/fa';
+import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useState } from 'react';
 
 export function LoginForm() {
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
         <>
            <Head>
@@ -27,10 +30,18 @@ export function LoginForm() {
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
               />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--quaternary-text)]"
+                tabIndex={-1}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
               <a href="#" className="text-sm text-[var(--tertiary-text)] mt-2 mb-4">
                 Forgot your password?
               </a>
