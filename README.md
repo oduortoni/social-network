@@ -18,8 +18,8 @@ A Facebook-like social network with features like profiles, posts, groups, real-
 
 ### Authentication
 
-*   **POST /api/login**
-    *   Description: Authenticates a user and returns a session token.
+*   **POST /login**
+    *   Description: Authenticates a user and creates a session.
     *   Request Body:
         ```json
         {
@@ -27,29 +27,50 @@ A Facebook-like social network with features like profiles, posts, groups, real-
           "password": "password123"
         }
         ```
-    *   Response:
+    * if successful, Response:
         ```json
         {
-          "token": "your-session-token"
+          "message": "Login successful"
         }
         ```
 
-*   **POST /api/register**
+*   **POST /register**
     *   Description: Registers a new user.
     *   Request Body:
         ```json
         {
-          "username": "newuser",
-          "email": "newuser@example.com",
-          "password": "password123"
+          "email": "user@example.com",
+          "password": "password123",
+          "firstname": "John",
+          "lastname": "Doe",
+          "dateofbirth": "1990-01-15",
+          "nickname": "Johnny",
+          "aboutme": "I'm a new user",
+          "isprofilepublic": true,
+          "avatar": "url-to-avatar"
         }
         ```
-    *   Response:
+    *   if successful, Response:
         ```json
-        {
-          "id": 123,
-          "username": "newuser",
-          "email": "newuser@example.com"
+        { 
+          "message": "Registration successful"
+        }
+        ```
+* **POST /logout**
+    *   Description: Invalidates the user's current session.
+    *   if successful, Response:
+        ```json
+        { 
+          "message": "Logout successful"
+        }
+        ```   
+
+ * **POST /checksession**
+    *   Description: Checks if a session is valid.
+    *   if successful, Response:
+        ```json
+        { 
+          "message": "Valid session"
         }
         ```
 
