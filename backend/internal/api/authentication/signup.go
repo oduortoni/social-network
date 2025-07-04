@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -65,8 +64,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		defer file.Close()
 		userAvatar, err = UploadAvatarImage(file, header)
 		if err != nil {
-			fmt.Println(err)
-			serverresponse.Message = "Failed to upload image"
+			serverresponse.Message = userAvatar
 			statusCode = http.StatusInternalServerError
 			respondJSON(w, statusCode, serverresponse)
 			return
