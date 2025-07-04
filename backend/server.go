@@ -48,6 +48,11 @@ func main() {
 	mux.HandleFunc("/auth/facebook/callback", func(w http.ResponseWriter, r *http.Request) {
 		authentication.HandleFacebookCallback(w, r, db)
 	})
+	// twitter 	Authentication
+	mux.HandleFunc("/auth/github/login", authentication.RedirectToGitHubLogin)
+	mux.HandleFunc("/auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
+		authentication.HandleGitHubCallback(w, r, db)
+	})
 
 	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
 	http.ListenAndServe(srvAddr, controllers.CORSMiddleware(mux))

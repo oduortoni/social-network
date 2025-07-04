@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaGoogle, FaFacebookF, FaXTwitter } from 'react-icons/fa6'; // or 'react-icons/fa'
+import { FaGoogle, FaFacebookF, FaXTwitter, FaGithub } from 'react-icons/fa6'; // or 'react-icons/fa'
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -199,11 +199,11 @@ const ContactForm = () => {
         </button>
 
         <button
-          onClick={() => redirectToOAuth("twitter")}
+          onClick={() => redirectToOAuth("/github/login")}
           className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 shadow-sm"
         >
-          <FaXTwitter />
-          X
+          <FaGithub />
+          GitHub
         </button>
       </div>
     </main>
