@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	Facebook_ClientID     = os.Getenv("FACEBOOK _CLIENTID")
-	Facebook_ClientSecret = os.Getenv("Facebook_clientsectret")
+	Facebook_ClientID     = os.Getenv("FACEBOOK_CLIENT_ID")
+	Facebook_ClientSecret = os.Getenv("FACEBOOK_CLIENT_SECRET")
 	Facebook_RedirectURI  = "http://localhost:9000/auth/facebook/callback"
 	Facebook_AuthURL      = "https://www.facebook.com/v18.0/dialog/oauth"
 	Facebook_TokenURL     = "https://graph.facebook.com/v18.0/oauth/access_token"

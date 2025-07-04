@@ -54,8 +54,8 @@ type GitHubUserInfo struct {
 
 // Initialize GitHub OAuth configuration
 var githubConfig = GitHubConfig{
-	ClientID:     os.Getenv("github-clientid"),
-	ClientSecret: os.Getenv("github-clientsecret"),
+	ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
+	ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
 	RedirectURI:  "http://localhost:9000/auth/github/callback",
 	AuthURL:      "https://github.com/login/oauth/authorize",
 	TokenURL:     "https://github.com/login/oauth/access_token",

@@ -155,6 +155,18 @@ NEXT_PORT=3000
 # development
 NEXT_PUBLIC_API_URL=http://localhost:9000
 
+# Authentication credentials (required for OAuth)
+FACEBOOK_CLIENT_ID=your_facebook_client_id
+FACEBOOK_CLIENT_SECRET=your_facebook_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Note: When making API calls from React, include credentials
+# Add this to your fetch options:
+# credentials: 'include'
+
 # production
 # NEXT_PUBLIC_API_URL=https://api.example.com
 ```

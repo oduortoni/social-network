@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	ClientID     = os.Getenv("CLIENT-ID")
-	ClientSecret = os.Getenv("CLIENT-SECRET") // client secret
+	ClientID     = os.Getenv("GOOGLE_CLIENT_ID")
+	ClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET") // client secret
 	RedirectURI  = "http://localhost:9000/auth/google/callback"
 	AuthURL      = "https://accounts.google.com/o/oauth2/auth"
 	TokenURL     = "https://oauth2.googleapis.com/token"
