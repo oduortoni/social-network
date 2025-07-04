@@ -3,8 +3,10 @@ package authentication
 import (
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -41,4 +43,39 @@ func UploadAvatarImage(imagereader multipart.File, imageheader *multipart.FileHe
 	}
 
 	return filepath, nil
+}
+
+func DownloadAndSavePicture(profileImage string) (string, error) {
+	if profileImage == "" || strings.Contains(profileImage, "default-user") {
+		return "No profile Image", nil
+	}
+
+	if _, err := os.Stat("./UserAvatars"); os.IsNotExist(err) {
+		if err := os.MkdirAll("./UserAvatars", 0755); err != nil {
+			return "", err
+		}
+	}
+
+	// Send GET request to image URL
+	resp, err := http.Get(profileImage)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Create the file locally
+	savePath := filepath.Join("./UserAvatars", uuid.New().String())
+	outFile, err := os.Create(savePath)
+	if err != nil {
+		return "", err
+	}
+	defer outFile.Close()
+
+	// Copy the image bytes to the file
+	_, err = io.Copy(outFile, resp.Body)
+	if err != nil {
+
+		return "", err
+	}
+	return savePath, nil
 }
