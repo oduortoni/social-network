@@ -222,7 +222,7 @@ export function RegisterForm() {
                     onClick={handleRemoveAvatar}
                     className="mt-2 px-6 py-1 bg-[var(--primary-accent)] text-[var(--quaternary-text)] rounded-full hover:scale-95 transition-transform"
                   >
-                    Remove
+                    Remove Image
                   </button>
                 </div>
               )}
