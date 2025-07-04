@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-const (
-	Facebook_ClientID     = ""
-	Facebook_ClientSecret = ""
-	Facebook_RedirectURI  = "http://localhost:8080/auth/facebook/callback"
+var (
+	Facebook_ClientID     = os.Getenv("FACEBOOK _CLIENTID")
+	Facebook_ClientSecret = os.Getenv("Facebook_clientsectret")
+	Facebook_RedirectURI  = "http://localhost:9000/auth/facebook/callback"
 	Facebook_AuthURL      = "https://www.facebook.com/v18.0/dialog/oauth"
 	Facebook_TokenURL     = "https://graph.facebook.com/v18.0/oauth/access_token"
 	Facebook_UserInfoURL  = "https://graph.facebook.com/me?fields=id,name,email"
@@ -22,7 +23,7 @@ const (
 
 func RedirectToFacebookLogin(w http.ResponseWriter, r *http.Request) {
 	authURL := fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&scope=email&response_type=code",
-		AuthURL, ClientID, RedirectURI)
+		Facebook_AuthURL, Facebook_ClientID, Facebook_RedirectURI)
 	http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
 }
 
@@ -40,7 +41,7 @@ func HandleFacebookCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) 
 
 	// Step 1: Exchange code for access token
 	tokenResp, err := http.Get(fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
-		TokenURL, ClientID, RedirectURI, ClientSecret, code))
+		Facebook_TokenURL, Facebook_ClientID, Facebook_RedirectURI, Facebook_ClientSecret, code))
 	if err != nil {
 		serverresponse.Message = "Failed to load token"
 		statusCode = http.StatusInternalServerError
@@ -74,7 +75,7 @@ func HandleFacebookCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) 
 	}
 
 	// Step 2: Get user info
-	userInfoURL := fmt.Sprintf("%s&access_token=%s", UserInfoURL, accessToken)
+	userInfoURL := fmt.Sprintf("%s&access_token=%s", Facebook_UserInfoURL, accessToken)
 	userResp, err := http.Get(userInfoURL)
 	if err != nil {
 		serverresponse.Message = "Failed to fetch user info"
@@ -113,7 +114,7 @@ func HandleFacebookCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) 
 	DeleteUserSessions(userID, db)
 
 	sessionID := uuid.New().String()
-	expiray:=time.Now().Add(24 * time.Hour)
+	expiray := time.Now().Add(24 * time.Hour)
 	if err := StoreSession(userID, sessionID, expiray, db); err != nil {
 		serverresponse.Message = "Failed to create session"
 		statusCode = http.StatusInternalServerError

@@ -191,7 +191,7 @@ const ContactForm = () => {
         </button>
 
         <button
-          onClick={() => redirectToOAuth("facebook")}
+          onClick={() => redirectToOAuth("/facebook/login")}
           className="flex items-center gap-2 bg-[#1877f2] text-white px-4 py-2 rounded hover:bg-[#155dc3] shadow-sm"
         >
           <FaFacebookF />
