@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	ClientID     = os.Getenv("client-id")
-	ClientSecret = os.Getenv("client-secret") // client secret
+	ClientID     = os.Getenv("CLIENT-ID")
+	ClientSecret = os.Getenv("CLIENT-SECRET") // client secret
 	RedirectURI  = "http://localhost:9000/auth/google/callback"
 	AuthURL      = "https://accounts.google.com/o/oauth2/auth"
 	TokenURL     = "https://oauth2.googleapis.com/token"
@@ -26,8 +26,9 @@ var (
 )
 
 type GoogleUserInfo struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	Email   string `json:"email"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
 }
 
 func RedirectToGoogleLogin(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +183,11 @@ func SaveGoogleUser(userInfo GoogleUserInfo, db *sql.DB) (int, error) {
 				Nickname:        newUsername,
 				AboutMe:         "",
 				IsProfilePublic: false,
-				Avatar:          "no profile photo",
+				Avatar:          userInfo.Picture,
+			}
+			user.Avatar, err = DownloadAndSavePicture(userInfo.Picture)
+			if err != nil {
+				return -1, err
 			}
 
 			// Insert the new user into the database (password is empty for Google login)
