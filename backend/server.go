@@ -37,7 +37,10 @@ func main() {
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		authentication.SigninHandler(w, r, db)
 	})
-	mux.HandleFunc("/logout", authentication.LogoutHandler)
+	// Logout
+	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		authentication.LogoutHandler(w, r, db)
+	})
 	// Google Authentication
 	mux.HandleFunc("/auth/google/login", authentication.RedirectToGoogleLogin)
 	mux.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +55,10 @@ func main() {
 	mux.HandleFunc("/auth/github/login", authentication.RedirectToGitHubLogin)
 	mux.HandleFunc("/auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
 		authentication.HandleGitHubCallback(w, r, db)
+	})
+	// Check session
+	mux.HandleFunc("/checksession", func(w http.ResponseWriter, r *http.Request) {
+		authentication.CheckSessionHandler(w, r, db)
 	})
 
 	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
