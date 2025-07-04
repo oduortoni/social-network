@@ -92,16 +92,6 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	respondJSON(w, statusCode, serverresponse)
 }
 
-func DeleteUserSessions(id int, db *sql.DB) error {
-	_, err := db.Exec("DELETE FROM Sessions WHERE user_id = ?", id)
-
-	return err
-}
-
-func StoreSession(id int, sessionID string, expiray time.Time, db *sql.DB) error {
-	_, err := db.Exec("INSERT INTO Sessions (user_id, id, created_at,expires_at) VALUES (?, ?, ?,?)", id, sessionID, time.Now(), expiray)
-	return err
-}
 
 func GetUserByEmail(email string, db *sql.DB) (User, error) {
 	var users User

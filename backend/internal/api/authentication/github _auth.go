@@ -119,7 +119,6 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	fmt.Println(githubUser)
 
 	// Step 5: Get GitHub user email
 	githubUserEmail, err := getGitHubEmail(accessToken)
