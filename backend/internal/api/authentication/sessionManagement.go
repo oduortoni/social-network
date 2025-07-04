@@ -14,8 +14,7 @@ func CheckSessionHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	var expiresAt time.Time
-	err = db.QueryRow("SELECT expires_at FROM Sessions WHERE id = ?", cookie.Value).Scan(&expiresAt)
+	expiresAt, err := GetSessionsExpiretime(cookie, db)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			respondJSON(w, http.StatusUnauthorized, Response{Message: "Invalid session"})
@@ -28,7 +27,7 @@ func CheckSessionHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// Check if session has expired
 	if time.Now().After(expiresAt) {
 		// Delete expired session
-		_, err := db.Exec("DELETE FROM Sessions WHERE id = ?", cookie.Value)
+		err = DeleteSession(cookie, db)
 		if err != nil {
 			respondJSON(w, http.StatusInternalServerError, Response{Message: "Failed to delete expired session"})
 			return
@@ -49,4 +48,16 @@ func DeleteUserSessions(id int, db *sql.DB) error {
 func StoreSession(id int, sessionID string, expiray time.Time, db *sql.DB) error {
 	_, err := db.Exec("INSERT INTO Sessions (user_id, id, created_at,expires_at) VALUES (?, ?, ?,?)", id, sessionID, time.Now(), expiray)
 	return err
+}
+
+func DeleteSession(cookie *http.Cookie, db *sql.DB) error {
+	_, err := db.Exec("DELETE FROM Sessions WHERE id = ?", cookie.Value)
+
+	return err
+}
+
+func GetSessionsExpiretime(cookie *http.Cookie, db *sql.DB) (time.Time, error) {
+	var expiresAt time.Time
+	err := db.QueryRow("SELECT expires_at FROM Sessions WHERE id = ?", cookie.Value).Scan(&expiresAt)
+	return expiresAt, err
 }

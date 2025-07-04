@@ -14,7 +14,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	_, err = db.Exec("DELETE FROM Sessions WHERE id = ?", cookie.Value)
+	err = DeleteSession(cookie, db)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, Response{Message: "Failed to delete session"})
 		return
@@ -28,3 +28,4 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	respondJSON(w, http.StatusOK, Response{Message: "Logout successful"})
 }
+
