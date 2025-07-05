@@ -7,19 +7,18 @@ on:
     branches: [development, main]
 
 jobs:
-  test-lint-build:
-    name: 🔧 Fullstack Lint, Test & Build
+  backend:
+    name: 🔧 Backend Lint & Test
     runs-on: ubuntu-latest
-
     steps:
       - name: 🧾 Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # === BACKEND ===
       - name: 🐹 Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: 1.21
+          cache: true # Enable Go modules caching
 
       - name: 📦 Install Go dependencies
         working-directory: ./backend
@@ -30,15 +29,24 @@ jobs:
         run: go test ./...
 
       - name: 🧹 Lint Go code
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
         with:
           version: v1.55.2
+          working-directory: ./backend
 
-      # === FRONTEND ===
+  frontend:
+    name: 🔧 Frontend Lint, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧾 Checkout repository
+        uses: actions/checkout@v4
+
       - name: ⬢ Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm' # Enable npm caching
+          cache-dependency-path: frontend/package-lock.json
 
       - name: 📦 Install frontend dependencies
         working-directory: ./frontend
@@ -55,7 +63,3 @@ jobs:
       - name: 🏗️ Verify frontend build
         working-directory: ./frontend
         run: npm run build
-
-      # === OPTIONAL: Docker Compose (only for build check, not deployment) ===
-      #- name: 🐳 Build containers (Docker Compose)
-      #  run: docker-compose build
