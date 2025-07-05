@@ -18,8 +18,8 @@ A Facebook-like social network with features like profiles, posts, groups, real-
 
 ### Authentication
 
-*   **POST /api/login**
-    *   Description: Authenticates a user and returns a session token.
+*   **POST /login**
+    *   Description: Authenticates a user and creates a session.
     *   Request Body:
         ```json
         {
@@ -27,29 +27,50 @@ A Facebook-like social network with features like profiles, posts, groups, real-
           "password": "password123"
         }
         ```
-    *   Response:
+    * if successful, Response:
         ```json
         {
-          "token": "your-session-token"
+          "message": "Login successful"
         }
         ```
 
-*   **POST /api/register**
+*   **POST /register**
     *   Description: Registers a new user.
     *   Request Body:
         ```json
         {
-          "username": "newuser",
-          "email": "newuser@example.com",
-          "password": "password123"
+          "email": "user@example.com",
+          "password": "password123",
+          "firstname": "John",
+          "lastname": "Doe",
+          "dateofbirth": "1990-01-15",
+          "nickname": "Johnny",
+          "aboutme": "I'm a new user",
+          "isprofilepublic": true,
+          "avatar": "url-to-avatar"
         }
         ```
-    *   Response:
+    *   if successful, Response:
         ```json
-        {
-          "id": 123,
-          "username": "newuser",
-          "email": "newuser@example.com"
+        { 
+          "message": "Registration successful"
+        }
+        ```
+* **POST /logout**
+    *   Description: Invalidates the user's current session.
+    *   if successful, Response:
+        ```json
+        { 
+          "message": "Logout successful"
+        }
+        ```   
+
+ * **POST /checksession**
+    *   Description: Checks if a session is valid.
+    *   if successful, Response:
+        ```json
+        { 
+          "message": "Valid session"
         }
         ```
 
@@ -111,6 +132,7 @@ To run this project, you will need:
 * A Go environment for the backend.
 * SQLite database.
 * Docker.
+* Docker Compose.
 
 ## Getting Started
 
@@ -132,6 +154,18 @@ NEXT_PORT=3000
 
 # development
 NEXT_PUBLIC_API_URL=http://localhost:9000
+
+# Authentication credentials (required for OAuth)
+FACEBOOK_CLIENT_ID=your_facebook_client_id
+FACEBOOK_CLIENT_SECRET=your_facebook_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Note: When making API calls from React, include credentials
+# Add this to your fetch options:
+# credentials: 'include'
 
 # production
 # NEXT_PUBLIC_API_URL=https://api.example.com
@@ -171,10 +205,14 @@ e.g  http://localhost:3000
 
 since we defined the frontend to run using NEXT_PORT=3000
 
-## docker intergration
-
+## Docker Integration
+TO start the docker containers
 ```bash
 docker-compose up --build
+```
+TO delete the docker containers
+```bash
+docker-compose down
 ```
 
 ## Contributors
