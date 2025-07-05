@@ -16,7 +16,9 @@ func TestMigration(t *testing.T) {
 	defer os.Unsetenv("SQLITE_DB_PATH")
 
 	testDir := "./pkg/db/migrations/sqlite"
-	os.MkdirAll(testDir, 0o755)
+	if err := os.MkdirAll(testDir, 0o755); err != nil {
+		t.Fatalf("Failed to create test directory: %v", err)
+	}
 	defer os.RemoveAll("pkg")
 
 	upMigration := `
