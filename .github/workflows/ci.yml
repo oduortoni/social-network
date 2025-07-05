@@ -63,3 +63,6 @@ jobs:
       - name: 🏗️ Verify frontend build
         working-directory: ./frontend
         run: npm run build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          NEXT_PUBLIC_API_URL: 'http://localhost:8080'
