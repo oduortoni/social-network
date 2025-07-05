@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
 	"github.com/tajjjjr/social-network/backend/pkg/db/sqlite"
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
 	"github.com/tajjjjr/social-network/backend/www/controllers"
@@ -16,24 +17,6 @@ var (
 	Port = 9000
 )
 
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Requested-With")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		// Handle preflight requests
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func main() {
 	// Initialize DB and run migrations
 	db, err := sqlite.Migration()
@@ -42,13 +25,42 @@ func main() {
 	}
 	defer db.Close()
 
-	port := utils.Port(Port) // Fixed variable shadowing
-	srvAddr := fmt.Sprintf("%s:%d", Host, port)
-	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
-
+	Port := utils.Port(Port)
+	srvAddr := fmt.Sprintf("%s:%d", Host, Port)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", controllers.Index)
 
-	handler := corsMiddleware(mux)
-	http.ListenAndServe(srvAddr, handler)
+	// Authentication Handlers
+	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		authentication.SignupHandler(w, r, db)
+	})
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		authentication.SigninHandler(w, r, db)
+	})
+	// Logout
+	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		authentication.LogoutHandler(w, r, db)
+	})
+	// Google Authentication
+	mux.HandleFunc("/auth/google/login", authentication.RedirectToGoogleLogin)
+	mux.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
+		authentication.HandleGoogleCallback(w, r, db)
+	})
+	// facebook Authentication
+	mux.HandleFunc("/auth/facebook/login", authentication.RedirectToFacebookLogin)
+	mux.HandleFunc("/auth/facebook/callback", func(w http.ResponseWriter, r *http.Request) {
+		authentication.HandleFacebookCallback(w, r, db)
+	})
+	// twitter 	Authentication
+	mux.HandleFunc("/auth/github/login", authentication.RedirectToGitHubLogin)
+	mux.HandleFunc("/auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
+		authentication.HandleGitHubCallback(w, r, db)
+	})
+	// Check session
+	mux.HandleFunc("/checksession", func(w http.ResponseWriter, r *http.Request) {
+		authentication.CheckSessionHandler(w, r, db)
+	})
+
+	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
+	http.ListenAndServe(srvAddr, controllers.CORSMiddleware(mux))
 }
