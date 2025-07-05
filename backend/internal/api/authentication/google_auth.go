@@ -131,7 +131,7 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// Step 5: Manage session
-	DeleteUserSessions(userID, db)
+	_ = DeleteUserSessions(userID, db)
 
 	sessionID := uuid.New().String()
 	expiray := time.Now().Add(24 * time.Hour)
