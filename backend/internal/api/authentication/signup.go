@@ -103,7 +103,6 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Success
 	serverresponse.Message = "Registration successful"
-	statusCode = http.StatusOK
 	respondJSON(w, statusCode, serverresponse)
 }
 

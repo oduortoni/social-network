@@ -88,7 +88,6 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Success response
 	serverresponse.Message = "Login successful"
-	statusCode = http.StatusOK
 	respondJSON(w, statusCode, serverresponse)
 }
 
