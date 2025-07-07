@@ -16,11 +16,15 @@ func NewPostHandler(ps service.PostServiceInterface) *PostHandler {
 }
 
 func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
-	var post models.Post
-	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	// Parse multipart form data
+	err := r.ParseMultipartForm(20 << 20) // 20 MB limit for multipart form
+	if err != nil {
+		http.Error(w, "Unable to parse form: " + err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	var post models.Post
+	post.Content = r.FormValue("content") // Assuming post content is sent as a form value
 
 	// Get user ID from context
 	userID, ok := r.Context().Value("userID").(int64)
@@ -30,7 +34,33 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 	post.UserID = userID
 
-	id, err := h.PostService.CreatePost(&post)
+	// Handle image upload
+	file, handler, err := r.FormFile("image")
+	var imageData []byte
+	var imageMimeType string
+
+	if err == nil { // No error means an image was provided
+		defer file.Close()
+
+		if handler.Size > 20*1024*1024 { // 20 MB limit
+			http.Error(w, "Image size exceeds 20MB limit", http.StatusBadRequest)
+			return
+		}
+
+		imageData = make([]byte, handler.Size)
+		_, err := file.Read(imageData)
+		if err != nil {
+			http.Error(w, "Failed to read image data: " + err.Error(), http.StatusInternalServerError)
+			return
+		}
+		imageMimeType = handler.Header.Get("Content-Type")
+	} else if err != http.ErrMissingFile {
+		// Other errors during FormFile processing
+		http.Error(w, "Error retrieving the file: " + err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	id, err := h.PostService.CreatePost(&post, imageData, imageMimeType)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -13,5 +13,5 @@ type AuthServiceInterface interface {
 
 // PostServiceInterface defines the interface for the post service.
 type PostServiceInterface interface {
-	CreatePost(post *models.Post) (int64, error)
+	CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
 }

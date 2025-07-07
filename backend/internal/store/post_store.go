@@ -21,7 +21,7 @@ func (s *PostStore) CreatePost(post *models.Post) (int64, error) {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(post.UserID, post.Content, post.ImageURL, post.Privacy, time.Now())
+	res, err := stmt.Exec(post.UserID, post.Content, post.Image, post.Privacy, time.Now())
 	if err != nil {
 		return 0, err
 	}
