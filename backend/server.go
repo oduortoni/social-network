@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -32,5 +33,7 @@ func main() {
 	router := api.NewRouter(db)
 
 	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
-	http.ListenAndServe(srvAddr, controllers.CORSMiddleware(router))
+	if err := http.ListenAndServe(srvAddr, controllers.CORSMiddleware(router)); err != nil {
+		log.Fatal(err)
+	}
 }

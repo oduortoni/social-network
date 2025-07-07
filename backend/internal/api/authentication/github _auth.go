@@ -148,7 +148,7 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// Step 8: Clear old sessions
-	DeleteUserSessions(userID, db)
+	_ = DeleteUserSessions(userID, db)
 
 	// Step 9: Generate new session
 	sessionID := uuid.New().String()
@@ -174,7 +174,6 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Step 11: Respond success
 	serverresponse.Message = "Login successful"
-	statusCode = http.StatusOK
 	respondJSON(w, statusCode, serverresponse)
 }
 
