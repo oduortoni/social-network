@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 type Profile_User struct {
@@ -72,7 +74,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// Hash the password
-	hashedPassword, err := HashPassword(password)
+	hashedPassword, err := utils.HashPassword(password)
 	if err != nil {
 		serverresponse.Message = "Failed to secure password"
 		statusCode = http.StatusInternalServerError

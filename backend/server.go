@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
+	"github.com/tajjjjr/social-network/backend/internal/api"
 	"github.com/tajjjjr/social-network/backend/pkg/db/sqlite"
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
 	"github.com/tajjjjr/social-network/backend/www/controllers"
@@ -27,40 +27,10 @@ func main() {
 
 	Port := utils.Port(Port)
 	srvAddr := fmt.Sprintf("%s:%d", Host, Port)
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", controllers.Index)
 
-	// Authentication Handlers
-	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
-		authentication.SignupHandler(w, r, db)
-	})
-	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		authentication.SigninHandler(w, r, db)
-	})
-	// Logout
-	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-		authentication.LogoutHandler(w, r, db)
-	})
-	// Google Authentication
-	mux.HandleFunc("/auth/google/login", authentication.RedirectToGoogleLogin)
-	mux.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleGoogleCallback(w, r, db)
-	})
-	// facebook Authentication
-	mux.HandleFunc("/auth/facebook/login", authentication.RedirectToFacebookLogin)
-	mux.HandleFunc("/auth/facebook/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleFacebookCallback(w, r, db)
-	})
-	// twitter 	Authentication
-	mux.HandleFunc("/auth/github/login", authentication.RedirectToGitHubLogin)
-	mux.HandleFunc("/auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleGitHubCallback(w, r, db)
-	})
-	// Check session
-	mux.HandleFunc("/checksession", func(w http.ResponseWriter, r *http.Request) {
-		authentication.CheckSessionHandler(w, r, db)
-	})
+	// Create a new router
+	router := api.NewRouter(db)
 
 	fmt.Printf("\n\n\n\t-----------[ server running on http://%s]-------------\n\n", srvAddr)
-	http.ListenAndServe(srvAddr, controllers.CORSMiddleware(mux))
+	http.ListenAndServe(srvAddr, controllers.CORSMiddleware(router))
 }

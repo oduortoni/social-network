@@ -6,6 +6,16 @@ import (
 	"time"
 )
 
+// GetUserIDFromSession retrieves the user ID associated with a given session ID.
+func GetUserIDFromSession(sessionID string, db *sql.DB) (int64, error) {
+	var userID int64
+	err := db.QueryRow("SELECT user_id FROM Sessions WHERE id = ?", sessionID).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
+}
+
 // CheckSessionHandler verifies if a session exists and is valid in the database
 func CheckSessionHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	cookie, err := r.Cookie("session_id")
