@@ -135,6 +135,5 @@ func HandleFacebookCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) 
 	http.SetCookie(w, &cookie)
 
 	serverresponse.Message = "Login successful"
-	statusCode = http.StatusOK
 	respondJSON(w, statusCode, serverresponse)
 }

@@ -174,7 +174,6 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Step 11: Respond success
 	serverresponse.Message = "Login successful"
-	statusCode = http.StatusOK
 	respondJSON(w, statusCode, serverresponse)
 }
 
