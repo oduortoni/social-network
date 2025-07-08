@@ -10,12 +10,12 @@ import (
 type Profile_User struct {
 	Email           string `json:"email"`
 	Password        string `json:"password"`
-	FirstName       string `json:"firstname"`
-	LastName        string `json:"lastname"`
-	DateOfBirth     string `json:"dateofbirth"`
+	FirstName       string `json:"firstName"`
+	LastName        string `json:"lastName"`
+	DateOfBirth     string `json:"dob"`
 	Nickname        string `json:"nickname"`
-	AboutMe         string `json:"aboutme"`
-	IsProfilePublic bool   `json:"isprofilepublic"`
+	AboutMe         string `json:"aboutMe"`
+	IsProfilePublic bool   `json:"profileVisibility"`
 	Avatar          string `json:"avatar"`
 }
 
@@ -34,12 +34,12 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// Extract form values
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	firstName := r.FormValue("first_name")
-	lastName := r.FormValue("last_name")
-	dateOfBirth := r.FormValue("date_of_birth")
+	firstName := r.FormValue("firstName")
+	lastName := r.FormValue("lastName")
+	dateOfBirth := r.FormValue("dob")
 	nickname := r.FormValue("nickname")
-	aboutMe := r.FormValue("about_me")
-	isProfilePublic := r.FormValue("is_profile_public")
+	aboutMe := r.FormValue("aboutMe")
+	isProfilePublic := r.FormValue("profileVisibility")
 
 	// Validate required fields
 	if email == "" || password == "" {
@@ -89,7 +89,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		DateOfBirth:     dateOfBirth,
 		Nickname:        nickname,
 		AboutMe:         aboutMe,
-		IsProfilePublic: isProfilePublic == "true",
+		IsProfilePublic: isProfilePublic == "public",
 		Avatar:          userAvatar,
 	}
 
