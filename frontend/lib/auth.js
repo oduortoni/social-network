@@ -103,3 +103,44 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       setFormError("Something went wrong. Please try again later.");
     }
   };
+
+  export const handleLoginFormSubmit = async (e, formData, setFormError) => {
+    e.preventDefault();
+
+    const { email, password } = formData;
+    const isValidEmail = /\S+@\S+\.\S+/.test(email);
+    if (!isValidEmail) {
+      setFormError("Please enter a valid email address.");
+      return;
+    }
+    var user={
+        email:email,
+        password:password
+    }
+
+    try {
+      // Send to your Go backend
+      const response = await fetch("http://localhost:9000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      });
+  
+      if (!response.ok) {
+        const error = await response.json();
+        setFormError(error.message);
+        return;
+      }
+  
+      const result = await response.json();
+
+      setFormError("Login successful!",result);
+
+    } catch (err) {
+      console.error("Registration error:", err);
+      setFormError("Something went wrong. Please try again later.");
+    }
+  
+  }
