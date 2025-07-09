@@ -5,7 +5,7 @@ import (
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	
+
 	// handle preflight (OPTIONS) requests
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)

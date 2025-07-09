@@ -12,8 +12,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-
-
 // Migration runs all .sql files in the migrations/sqlite directory to set up the database schema
 func Migration() (*sql.DB, error) {
 	db, err := CheckDB()

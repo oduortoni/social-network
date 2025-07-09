@@ -91,7 +91,6 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	respondJSON(w, statusCode, serverresponse)
 }
 
-
 func GetUserByEmail(email string, db *sql.DB) (User, error) {
 	var users User
 

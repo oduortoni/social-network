@@ -23,7 +23,7 @@ type PasswordManager struct {
 /*
 * NewPasswordManager
 * creates a new PasswordManager with the given config.
-*/
+ */
 func NewPasswordManager(config PasswordConfig) *PasswordManager {
 	// Set sensible defaults if not provided
 	if config.MinLength == 0 {
@@ -38,7 +38,7 @@ func NewPasswordManager(config PasswordConfig) *PasswordManager {
 /*
 * HashPassword
 * hashes the plain-text password after validating strength.
-*/
+ */
 func (pm *PasswordManager) HashPassword(password string) (string, error) {
 	if err := pm.ValidatePasswordStrength(password); err != nil {
 		return "", err
@@ -50,7 +50,7 @@ func (pm *PasswordManager) HashPassword(password string) (string, error) {
 /*
 * ComparePassword
 * compares the hashed password with a plain-text input.
-*/
+ */
 func (pm *PasswordManager) ComparePassword(hashed, plain string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain))
 }
@@ -58,7 +58,7 @@ func (pm *PasswordManager) ComparePassword(hashed, plain string) error {
 /*
 * ValidatePasswordStrength
 * checks if the password meets configured rules.
-*/
+ */
 func (pm *PasswordManager) ValidatePasswordStrength(password string) error {
 	if len(password) < pm.Config.MinLength {
 		return errors.New("password too short")
