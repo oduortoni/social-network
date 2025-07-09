@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -35,7 +36,7 @@ func GetAppliedMigrations(db *sql.DB) (map[string]bool, error) {
 	return applied, nil
 }
 
-func ApplyMigrationInTx(db *sql.DB, migrationDir, fileName string) error {
+func ApplyMigrationInTx(db *sql.DB, migrationDir, fileName string) (err error) {
 	path := filepath.Join(migrationDir, fileName)
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -46,19 +47,28 @@ func ApplyMigrationInTx(db *sql.DB, migrationDir, fileName string) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-
-	defer tx.Rollback()
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				log.Printf("failed to rollback transaction for %s: %v (original error: %v)", fileName, rollbackErr, err)
+			}
+		} else {
+			err = tx.Commit()
+		}
+	}()
 
 	// Apply the migration
-	if _, err := tx.Exec(string(content)); err != nil {
+	if _, err = tx.Exec(string(content)); err != nil {
 		return fmt.Errorf("migration execution failed: %w", err)
 	}
 
 	// Record the migration
-	if _, err := tx.Exec("INSERT INTO schema_migrations (version) VALUES (?)", fileName); err != nil {
+	if _, err = tx.Exec("INSERT INTO schema_migrations (version) VALUES (?)", fileName); err != nil {
 		return fmt.Errorf("failed to record migration: %w", err)
 	}
 
-	// Commit the transaction
-	return tx.Commit()
+	return nil
 }
