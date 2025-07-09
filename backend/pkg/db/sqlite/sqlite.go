@@ -25,7 +25,7 @@ func Migration() (*sql.DB, error) {
 	}
 
 	// 2. Get all applied migrations
-	appliedMigrations, err := getAppliedMigrations(db)
+	appliedMigrations, err := GetAppliedMigrations(db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get applied migrations: %w", err)
 	}
@@ -59,33 +59,10 @@ func Migration() (*sql.DB, error) {
 			continue
 		}
 
-		path := filepath.Join(migrationDir, file.Name())
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read migration file %s: %w", file.Name(), err)
-		}
-
 		log.Printf("Executing migration: %s", file.Name())
 
-		// Run migration in a transaction
-		tx, err := db.Begin()
-		if err != nil {
-			return nil, fmt.Errorf("failed to begin transaction for migration %s: %w", file.Name(), err)
-		}
-
-		if _, err := tx.Exec(string(content)); err != nil {
-			tx.Rollback()
-			return nil, fmt.Errorf("migration failed for %s: %w", file.Name(), err)
-		}
-
-		// Record the migration
-		if _, err := tx.Exec("INSERT INTO schema_migrations (version) VALUES (?)", file.Name()); err != nil {
-			tx.Rollback()
-			return nil, fmt.Errorf("failed to record migration %s: %w", file.Name(), err)
-		}
-
-		if err := tx.Commit(); err != nil {
-			return nil, fmt.Errorf("failed to commit transaction for migration %s: %w", file.Name(), err)
+		if err := ApplyMigrationInTx(db, migrationDir, file.Name()); err != nil {
+			return nil, fmt.Errorf("failed to apply migration %s: %w", file.Name(), err)
 		}
 
 		log.Printf("Migrated: %s", file.Name())
@@ -96,27 +73,4 @@ func Migration() (*sql.DB, error) {
 		log.Printf("Database is up to date. No new migrations to apply.")
 	}
 	return db, nil
-}
-
-func ensureSchemaVersionTable(db *sql.DB) error {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY);`)
-	return err
-}
-
-func getAppliedMigrations(db *sql.DB) (map[string]bool, error) {
-	rows, err := db.Query("SELECT version FROM schema_migrations")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	applied := make(map[string]bool)
-	for rows.Next() {
-		var version string
-		if err := rows.Scan(&version); err != nil {
-			return nil, err
-		}
-		applied[version] = true
-	}
-	return applied, nil
 }
