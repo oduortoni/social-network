@@ -1,16 +1,29 @@
 import Head from 'next/head';
 import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useState } from 'react';
+import { handleLoginFormSubmit } from '../../lib/auth';
 
 export function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
+   const [formError, setFormError] = useState("");
+   const [formData, setFormData] = useState({
+     email: '',
+     password: '',
+   });
 
+   const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+   }
     return (
         <>
            <Head>
             <title>Social Network - Login</title>
           </Head>
-          <form className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
+          <form onSubmit={e => handleLoginFormSubmit(e, formData, setFormError)} className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
               <h1 className="font-bold text-2xl text-[var(--tertiary-text)]">Sign in</h1>
               <div className="my-5 flex space-x-3">
                 <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--primary-background)]">
@@ -24,8 +37,16 @@ export function LoginForm() {
                 </a>
               </div>
               <span className="text-xs mb-2 text-[var(--tertiary-text)]">or use your account</span>
+              {formError && (
+                <div className="font-bold text-base text-[var(--warning-color)]">
+                  {formError}
+                </div>
+              )}
               <input
                 type="email"
+                name='email'
+                onChange={handleChange}
+                required
                 placeholder="Email"
                 className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none"
               />
@@ -33,6 +54,9 @@ export function LoginForm() {
               <div className="relative w-full">
                 <input
                   type={showPassword ? "text" : "password"}
+                  name='password'
+                  onChange={handleChange}
+                  required
                   placeholder="Password"
                   className="bg-[var(--tertiary-background)] text-[var(--quaternary-text)] p-3 my-2 w-full outline-none pr-10"
                 />

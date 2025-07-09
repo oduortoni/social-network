@@ -37,7 +37,6 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		respondJSON(w, statusCode, serverresponse)
 		return
 	}
-
 	// Get user from database
 	userInDB, err := GetUserByEmail(req.Email, db)
 	if err != nil {
