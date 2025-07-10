@@ -52,10 +52,10 @@ func (s *PostService) CreatePost(post *models.Post, imageData []byte, imageMimeT
 		// Generate a unique filename
 		uuid := uuid.New()
 		imageFileName := fmt.Sprintf("%s%s", uuid.String(), extension)
-		imagePath := filepath.Join("UserAvatars", imageFileName)
+		imagePath := filepath.Join("PostImages", imageFileName)
 
 		// Create the directory if it doesn't exist
-		err = os.MkdirAll("UserAvatars", os.ModePerm)
+		err = os.MkdirAll("PostImages", os.ModePerm)
 		if err != nil {
 			return 0, fmt.Errorf("failed to create directory: %w", err)
 		}
