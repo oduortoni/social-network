@@ -1,15 +1,17 @@
 import Head from 'next/head';
 import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useState } from 'react';
-import { handleLoginFormSubmit } from '../../lib/auth';
+import { validateLoginFormSubmit } from '../../lib/auth';
+import { useRouter } from 'next/navigation';
 
 export function LoginForm() {
-    const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
    const [formError, setFormError] = useState("");
    const [formData, setFormData] = useState({
      email: '',
      password: '',
    });
+   const router = useRouter();
 
    const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,6 +20,16 @@ export function LoginForm() {
       [name]: value
     });
    }
+
+const handleLoginFormSubmit = async (e) => {
+  e.preventDefault();
+  const result = await validateLoginFormSubmit(e, formData, setFormError);
+  console.log(result);
+  if(result){
+    router.push('/dashboard');
+  }
+}
+
     return (
         <>
            <Head>

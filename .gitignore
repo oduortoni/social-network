@@ -42,3 +42,5 @@ push.sh
 # Docker
 .docker/
 docker-compose.override.yml
+backend/social_network.db
+backend/*.db

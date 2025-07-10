@@ -30,6 +30,10 @@ func main() {
 	srvAddr := fmt.Sprintf("%s:%d", Host, Port)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", controllers.Index)
+	mux.HandleFunc("/dashboard", controllers.Dashboard)
+	mux.HandleFunc("/api/me", func(w http.ResponseWriter, r *http.Request) {
+		controllers.Me(w, r, db)
+	})
 
 	// Authentication Handlers
 	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
