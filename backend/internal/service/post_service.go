@@ -127,6 +127,10 @@ func GetSupportedFormats() []ImageFormat {
 	formats := make([]ImageFormat, 0, len(imageSignatures) -1 )
 	formatSet := make(map[ImageFormat]bool)
 
+	// Add WebP
+	formats = append(formats, WebP)
+	formatSet[WebP] = true
+
 	// Add other formats (deduplicate)
 	for _, sig := range imageSignatures {
 		if !formatSet[sig.Format] {
