@@ -19,8 +19,10 @@ export default function Dashboard() {
   // }, [router]);
 
   return (
-    <div style="text-align: center; margin-top: 50px;">
-      <h1 style="font-size: 30px; font-weight: bold; color: #fff;">Welcome to your Dashboard!</h1>
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff' }}>
+        Welcome to your Dashboard!
+      </h1>
     </div>
-  );
+  );  
 }
