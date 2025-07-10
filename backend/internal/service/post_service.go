@@ -13,46 +13,128 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/store"
 )
 
-// Define magic numbers for common image formats
-var imageMagicNumbers = map[string][]byte{
-	"jpeg": {0xFF, 0xD8, 0xFF},
-	"png":  {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
-	"gif":  {0x47, 0x49, 0x46, 0x38}, // GIF87a or GIF89a
-	"webp": {0x52, 0x49, 0x46, 0x46}, // RIFF (WebP files start with RIFF, followed by file size and WEBP)
+type ImageFormat string
+
+const (
+	JPEG ImageFormat = "jpeg"
+	PNG  ImageFormat = "png"
+	GIF  ImageFormat = "gif"
+	WebP ImageFormat = "webp"
+	BMP  ImageFormat = "bmp"
+	TIFF ImageFormat = "tiff"
+)
+
+type ImageSignature struct {
+	Magic []byte
+	MinLength int
+	Format ImageFormat
+}
+
+// Define image signatures with proper magic numbers
+var imageSignatures = []ImageSignature{
+	// JPEG - FF D8 FF
+	{Magic: []byte{0xFF, 0xD8, 0xFF}, MinLength: 3, Format: JPEG},
+	
+	// PNG - 89 50 4E 47 0D 0A 1A 0A
+	{Magic: []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}, MinLength: 8, Format: PNG},
+	
+	// GIF87a - 47 49 46 38 37 61
+	{Magic: []byte{0x47, 0x49, 0x46, 0x38, 0x37, 0x61}, MinLength: 6, Format: GIF},
+	
+	// GIF89a - 47 49 46 38 39 61
+	{Magic: []byte{0x47, 0x49, 0x46, 0x38, 0x39, 0x61}, MinLength: 6, Format: GIF},
+	
+	// BMP - 42 4D
+	{Magic: []byte{0x42, 0x4D}, MinLength: 2, Format: BMP},
+	
+	// TIFF (little endian) - 49 49 2A 00
+	{Magic: []byte{0x49, 0x49, 0x2A, 0x00}, MinLength: 4, Format: TIFF},
+	
+	// TIFF (big endian) - 4D 4D 00 2A
+	{Magic: []byte{0x4D, 0x4D, 0x00, 0x2A}, MinLength: 4, Format: TIFF},
+}
+
+var webpSignature = struct {
+	RiffMagic []byte
+	WebpMagic []byte
+	MinLength int
+} {
+	RiffMagic: []byte{0x52, 0x49, 0x46, 0x46}, // "RIFF"
+	WebpMagic: []byte{0x57, 0x45, 0x42, 0x50}, // "WEBP"
+	MinLength: 12,
+}
+
+func calculateMaxBufferSize() int {
+	maxSize := webpSignature.MinLength
+	for _, sig := range imageSignatures {
+		if sig.MinLength > maxSize {
+			maxSize = sig.MinLength
+		}
+	}
+	return maxSize
+}
+
+func DetectImageFormat(reader io.Reader) (ImageFormat, error) {
+	bufferSize := calculateMaxBufferSize()
+	buffer := make([]byte, bufferSize)
+	n, err := io.ReadAtLeast(reader, buffer, 2)
+	if err != nil {
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+			return "", errors.New("file too small to determine format")
+		}
+		return	"", err
+	}
+
+	// Check webP first
+	if n >= webpSignature.MinLength {
+		if bytes.Equal(buffer[0:4], webpSignature.RiffMagic) && bytes.Equal(buffer[8:12], webpSignature.WebpMagic) {
+			return WebP, nil
+		}
+	}
+
+	// Check other formats
+	for _, sig := range imageSignatures {
+		if n >= sig.MinLength && bytes.Equal(buffer[0:sig.MinLength], sig.Magic) {
+			return sig.Format, nil
+		}
+	}
+	return "", errors.New("unsupported image format or invalid file signature")
 }
 
 // checkImageSignature reads the first few bytes and validates against known image magic numbers.
 func checkImageSignature(reader io.Reader) error {
-	// Read enough bytes to cover the longest magic number (PNG: 8 bytes)
-	buffer := make([]byte, 8)
-	n, err := io.ReadAtLeast(reader, buffer, 4) // Read at least 4 bytes (for GIF/WebP)
-	if err != nil && !errors.Is(err, io.EOF) {
-		return err
-	}
+	_, err := DetectImageFormat(reader)
+	return  err
+}
 
-	// Check for JPEG
-	if n >= 3 && bytes.Equal(buffer[0:3], imageMagicNumbers["jpeg"]) {
-		return nil
-	}
-	// Check for PNG
-	if n >= 8 && bytes.Equal(buffer[0:8], imageMagicNumbers["png"]) {
-		return nil
-	}
-	// Check for GIF
-	if n >= 4 && bytes.Equal(buffer[0:4], imageMagicNumbers["gif"]) {
-		return nil
-	}
-	// Check for WebP (RIFF header, then check for "WEBP" at offset 8)
-	if n >= 4 && bytes.Equal(buffer[0:4], imageMagicNumbers["webp"]) {
-		// For WebP, we need to read more to confirm "WEBP"
-		// Since we only read 8 bytes, we can't fully validate WEBP here without more reads.
-		// For simplicity and to avoid re-reading, we'll assume RIFF is enough for now,
-		// but a more robust check would involve reading bytes 8-11 for "WEBP".
-		// For this implementation, we'll just check the RIFF header.
-		return nil
-	}
+// CheckImageSignature validates if the file is a supported image format (backward compatibility)
+func CheckImageSignature(reader io.Reader) error {
+	_, err := DetectImageFormat(reader)
+	return err
+}
 
-	return errors.New("unsupported image format or invalid file signature")
+// IsImageFormat checks if the file matches a specific image format
+func IsImageFormat(reader io.Reader, expectedFormat ImageFormat) (bool, error) {
+	detectedFormat, err := DetectImageFormat(reader)
+	if err != nil {
+		return false, err
+	}
+	return detectedFormat == expectedFormat, nil
+}
+
+// GetSupportedFormats returns a list of all supported image formats
+func GetSupportedFormats() []ImageFormat {
+	formats := make([]ImageFormat, 0, len(imageSignatures) -1 )
+	formatSet := make(map[ImageFormat]bool)
+
+	// Add other formats (deduplicate)
+	for _, sig := range imageSignatures {
+		if !formatSet[sig.Format] {
+			formats = append(formats, sig.Format)
+			formatSet[sig.Format] = true
+		}
+	}
+	return formats
 }
 
 type PostService struct {
@@ -65,35 +147,38 @@ func NewPostService(ps *store.PostStore) *PostService {
 
 func (s *PostService) CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error) {
 	if len(imageData) > 0 {
-		// Perform image signature check
-		if err := checkImageSignature(bytes.NewReader(imageData)); err != nil {
+		// Perform image signature check and get detected format
+		detectedFormat, err := DetectImageFormat(bytes.NewReader(imageData))
+		if err != nil {
 			return 0, fmt.Errorf("image signature check failed: %w", err)
 		}
 
-		// Determine file extension from MIME type
-		extension := ".bin" // Default to .bin if MIME type is unknown
-		switch imageMimeType {
-		case "image/jpeg":
+		// Determine file extension from detected format (more reliable than MIME type)
+		var extension string
+		switch detectedFormat {
+		case JPEG:
 			extension = ".jpg"
-		case "image/png":
+		case PNG:
 			extension = ".png"
-		case "image/gif":
+		case GIF:
 			extension = ".gif"
-		case "image/webp":
+		case WebP:
 			extension = ".webp"
-		case "image/svg+xml":
-			extension = ".svg"
-		case "image/bmp":
+		case BMP:
 			extension = ".bmp"
+		case TIFF:
+			extension = ".tiff"
+		default:
+			return 0, fmt.Errorf("unsupported image format: %s", detectedFormat)
 		}
 
 		// Generate a unique filename
 		uuid := uuid.New()
 		imageFileName := fmt.Sprintf("%s%s", uuid.String(), extension)
-		imagePath := filepath.Join("UserAvatars", imageFileName) // Save in UserAvatars directory
+		imagePath := filepath.Join("UserAvatars", imageFileName)
 
 		// Create the directory if it doesn't exist
-		err := os.MkdirAll("UserAvatars", os.ModePerm)
+		err = os.MkdirAll("UserAvatars", os.ModePerm)
 		if err != nil {
 			return 0, fmt.Errorf("failed to create directory: %w", err)
 		}
