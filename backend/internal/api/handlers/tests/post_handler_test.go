@@ -46,7 +46,7 @@ func TestCreatePost(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = io.Copy(fw, bytes.NewReader(make([]byte, 10*1024*1024))) // 10MB dummy image
+		_, err = io.Copy(fw, bytes.NewReader([]byte{0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46})) // 10MB dummy image
 		if err != nil {
 			t.Fatal(err)
 		}
