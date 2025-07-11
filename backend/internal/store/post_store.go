@@ -28,3 +28,14 @@ func (s *PostStore) CreatePost(post *models.Post) (int64, error) {
 
 	return res.LastInsertId()
 }
+
+func (s *PostStore) GetPostByID(id int64) (*models.Post, error) {
+	row := s.DB.QueryRow("SELECT id, user_id, content, image, privacy, created_at FROM POSTS WHERE id = ?", id)
+
+	var post models.Post
+	err := row.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &post, nil
+}

@@ -3,6 +3,8 @@ package tests
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -18,10 +20,15 @@ import (
 // MockPostService is a mock implementation of the PostService for testing.
 type MockPostService struct {
 	CreatePostFunc func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
+	GetPostByIDFunc func(id int64) (*models.Post, error)
 }
 
 func (s *MockPostService) CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error) {
 	return s.CreatePostFunc(post, imageData, imageMimeType)
+}
+
+func (s *MockPostService) GetPostByID(id int64) (*models.Post, error) {
+	return s.GetPostByIDFunc(id)
 }
 
 func TestCreatePost(t *testing.T) {
@@ -175,6 +182,84 @@ func TestCreatePost(t *testing.T) {
 		}
 		if !strings.Contains(rr.Body.String(), "Unauthorized") {
 			t.Errorf("handler returned unexpected error message: %s", rr.Body.String())
+		}
+	})
+}
+
+func TestGetPostByID(t *testing.T) {
+	// Test case 1: Successful retrieval
+	t.Run("Successful retrieval", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			GetPostByIDFunc: func(id int64) (*models.Post, error) {
+				if id != 1 {
+					t.Errorf("unexpected post ID: got %v want %v", id, 1)
+				}
+				return &models.Post{ID: 1, Content: "Test Post"}, nil
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("GET", "/posts/1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "1")
+
+		rr := httptest.NewRecorder()
+		postHandler.GetPostByID(rr, req)
+
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
+
+		var post models.Post
+		if err := json.NewDecoder(rr.Body).Decode(&post); err != nil {
+			t.Fatal(err)
+		}
+
+		if post.ID != 1 || post.Content != "Test Post" {
+			t.Errorf("handler returned unexpected body: got %v", rr.Body.String())
+		}
+	})
+
+	// Test case 2: Post not found
+	t.Run("Post not found", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			GetPostByIDFunc: func(id int64) (*models.Post, error) {
+				return nil, sql.ErrNoRows
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("GET", "/posts/2", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "2")
+
+		rr := httptest.NewRecorder()
+		postHandler.GetPostByID(rr, req)
+
+		if status := rr.Code; status != http.StatusNotFound {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
+		}
+	})
+
+	// Test case 3: Invalid post ID
+	t.Run("Invalid post ID", func(t *testing.T) {
+		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
+
+		req, err := http.NewRequest("GET", "/posts/invalid", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "invalid")
+
+		rr := httptest.NewRecorder()
+		postHandler.GetPostByID(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 		}
 	})
 }
