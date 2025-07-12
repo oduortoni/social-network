@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 // Function to handle form input changes
 export const handleRegistrationFormChange = (e) => {
@@ -104,14 +105,13 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
     }
   };
 
-  export const handleLoginFormSubmit = async (e, formData, setFormError) => {
+  export const validateLoginFormSubmit = async (e, formData, setFormError) => {
     e.preventDefault();
-
     const { email, password } = formData;
     const isValidEmail = /\S+@\S+\.\S+/.test(email);
     if (!isValidEmail) {
       setFormError("Please enter a valid email address.");
-      return;
+      return false;
     }
     var user={
         email:email,
@@ -131,16 +131,19 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       if (!response.ok) {
         const error = await response.json();
         setFormError(error.message);
-        return;
+        return false;
       }
   
       const result = await response.json();
 
-      setFormError("Login successful!",result);
+      console.log(result);
 
+      setFormError("Login successful!",result);
+      return true;
     } catch (err) {
       console.error("Registration error:", err);
       setFormError("Something went wrong. Please try again later.");
+      return false;
     }
   
   }

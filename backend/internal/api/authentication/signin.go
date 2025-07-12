@@ -16,9 +16,17 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type SigninResponse struct {
+	Message string `json:"message"`
+	Data    map[string]interface{} `json:"data"`
+}
+
 func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var req User
-	var serverresponse Response
+	var serverresponse SigninResponse = SigninResponse{
+		Message: "Login successful",
+		Data:    map[string]any{},
+	}
 	statusCode := http.StatusOK
 
 	// Read request body
@@ -87,6 +95,9 @@ func SigninHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Success response
 	serverresponse.Message = "Login successful"
+	serverresponse.Data = map[string]any{
+		"redirect": "/dashboard",
+	}
 	respondJSON(w, statusCode, serverresponse)
 }
 
