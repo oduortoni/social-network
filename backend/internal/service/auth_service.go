@@ -26,7 +26,8 @@ func (s *AuthService) AuthenticateUser(email, password string) (*models.User, st
 		return nil, "", err
 	}
 
-	if !utils.CheckPasswordHash(password, user.Password) {
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	if err := passwordManager.ComparePassword(user.Password, password); err != nil {
 		return nil, "", nil // Invalid password
 	}
 

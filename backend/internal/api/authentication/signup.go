@@ -73,8 +73,8 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 	}
 
-	// Hash the password
-	hashedPassword, err := utils.HashPassword(password)
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	hashedPassword, err := passwordManager.HashPassword(password)
 	if err != nil {
 		serverresponse.Message = "Failed to secure password"
 		statusCode = http.StatusInternalServerError
