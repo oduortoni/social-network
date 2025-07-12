@@ -33,6 +33,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	var post models.Post
 	post.Content = r.FormValue("content") // Assuming post content is sent as a form value
+	post.Privacy = r.FormValue("privacy")
 
 	// Get user ID from context
 	userID, ok := r.Context().Value("userID").(int64)
