@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+
 	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
+	"github.com/tajjjjr/social-network/backend/utils"
 
 	"fmt"
 )
@@ -26,7 +28,7 @@ func AuthMiddleware(db *sql.DB) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "userID", userID)
+			ctx := context.WithValue(r.Context(), utils.User_id, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
