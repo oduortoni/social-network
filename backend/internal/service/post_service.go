@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/store"
-	"github.com/tajjjjr/social-network/backend/internal/utils"
+	"github.com/tajjjjr/social-network/backend/utils"
 )
 
 type PostService struct {
