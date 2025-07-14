@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"time"
 	"context"
+	"strings"
+
+	"fmt"
 
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/models"
@@ -28,28 +31,62 @@ type LoginRequest struct {
 
 
 
-// handles user login, creates session, sets cookie, responds JSON
-func (auth *AuthHandler)Login(w http.ResponseWriter, r *http.Request) {
-	// Parse JSON body
-	creds := LoginRequest{}
+func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var creds LoginRequest
+	var err error
 
-	err := json.NewDecoder(r.Body).Decode(&creds)
-	if err != nil {
-		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid request body"})
-		return
+	// Check Content-Type header to determine how to parse the request
+	contentType := r.Header.Get("Content-Type")
+	fmt.Println("Content-Type:", contentType)
+	
+	if strings.Contains(contentType, "application/json") {
+		// Parse JSON body
+		err = json.NewDecoder(r.Body).Decode(&creds)
+		if err != nil {
+			models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid JSON request body"})
+			return
+		}
+	} else if strings.Contains(contentType, "application/x-www-form-urlencoded") || strings.Contains(contentType, "multipart/form-data") {
+		// Parse form data
+		err = r.ParseForm()
+		if err != nil {
+			models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid form data"})
+			return
+		}
+		
+		// Extract form values
+		creds.Email = r.FormValue("email")
+		creds.Password = r.FormValue("password")
+	} else {
+		// Default to trying JSON first, then form data
+		err = json.NewDecoder(r.Body).Decode(&creds)
+		if err != nil {
+			// If JSON fails, try to parse as form data
+			if parseErr := r.ParseForm(); parseErr != nil {
+				models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid request body format"})
+				return
+			}
+			creds.Email = r.FormValue("email")
+			creds.Password = r.FormValue("password")
+		}
 	}
 
+	fmt.Println("Login credentials:", creds)
+	
 	authUser, sessionID, err := auth.AuthService.AuthenticateUser(creds.Email, creds.Password)
 	if authUser == nil {
-		if sessionID == service.EXPIRED_SESSION {				
+		if sessionID == service.EXPIRED_SESSION {
 			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to create session"})
 		} else if sessionID == service.INVALID_PASSWORD {
-					models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid password"})
-		} else if sessionID == service.INVALID_EMAIL{
-					models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid email"})
-		} 
+			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid password"})
+		} else if sessionID == service.INVALID_EMAIL {
+			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid email"})
+		}
+		return
 	}
-
+	
+	fmt.Println("Authenticated user:", authUser)
+	
 	cookie := &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
@@ -59,8 +96,9 @@ func (auth *AuthHandler)Login(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		SameSite: http.SameSiteLaxMode,
 	}
+	
+	fmt.Println("Setting cookie:", cookie)
 	http.SetCookie(w, cookie)
-
 	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged in successfully"})
 }
 

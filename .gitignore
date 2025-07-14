@@ -42,3 +42,7 @@ push.sh
 # Docker
 .docker/
 docker-compose.override.yml
+
+
+# database
+backend/*.db

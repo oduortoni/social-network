@@ -104,43 +104,53 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
     }
   };
 
-  export const handleLoginFormSubmit = async (e, formData, setFormError) => {
-    e.preventDefault();
-
-    const { email, password } = formData;
-    const isValidEmail = /\S+@\S+\.\S+/.test(email);
-    if (!isValidEmail) {
-      setFormError("Please enter a valid email address.");
-      return;
-    }
-    var user={
-        email:email,
-        password:password
-    }
-
-    try {
-      // Send to your Go backend
-      const response = await fetch("http://localhost:9000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user),
-      });
+export const handleLoginFormSubmit = async (e, formData, setFormError) => {
+  e.preventDefault();
+  const { email, password } = formData;
   
-      if (!response.ok) {
-        const error = await response.json();
-        setFormError(error.message);
-        return;
-      }
+  // Add proper email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isValidEmail = emailRegex.test(email);
   
-      const result = await response.json();
-
-      setFormError("Login successful!",result);
-
-    } catch (err) {
-      console.error("Registration error:", err);
-      setFormError("Something went wrong. Please try again later.");
-    }
-  
+  if (!isValidEmail) {
+    setFormError("Please enter a valid email address.");
+    return { success: false, error: "Invalid email" };
   }
+
+  const user = {
+    email: email,
+    password: password
+  };
+
+  try {
+    // Send to your Go backend - include credentials for cookies
+    const response = await fetch("http://localhost:9000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Important for cookie-based auth
+      body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Login error:", error);
+      setFormError(error.message || "Login failed");
+      return { success: false, error: error.message || "Login failed" };
+    }
+
+    const result = await response.json();
+    console.log("Login successful:", result);
+    
+    // Clear any previous errors
+    setFormError("");
+    
+    return { success: true, data: result };
+    
+  } catch (err) {
+    console.error("Login error:", err);
+    setFormError("Something went wrong. Please try again later.");
+    return { success: false, error: "Something went wrong. Please try again later." };
+  }
+};

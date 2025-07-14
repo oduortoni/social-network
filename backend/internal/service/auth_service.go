@@ -4,6 +4,8 @@ import (
 	"time"
 	"net/http"
 
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/store"
@@ -33,8 +35,11 @@ func (s *AuthService) AuthenticateUser(email, password string) (*models.User, st
 		return nil, INVALID_EMAIL, err
 	}
 
+	fmt.Println("User found:", user)
+
 	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
 	if err := passwordManager.ComparePassword(user.Password, password); err != nil {
+		fmt.Println("Password mismatch for user:", user.Email)
 		return nil, INVALID_PASSWORD, err
 	}
 
@@ -42,6 +47,7 @@ func (s *AuthService) AuthenticateUser(email, password string) (*models.User, st
 	expiresAt := time.Now().Add(24 * time.Hour)
 
 	if err := s.AuthStore.CreateSession(user.ID, sessionID, expiresAt); err != nil {
+		fmt.Println("Failed to create session:", err)
 		return nil, EXPIRED_SESSION, err
 	}
 
