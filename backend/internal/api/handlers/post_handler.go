@@ -36,7 +36,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	post.Privacy = r.FormValue("privacy")
 
 	// Get user ID from context
-	userID, ok := r.Context().Value(User_id).(int64)
+	userID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -115,7 +115,7 @@ func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(User_id).(int64)
+	userID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return

@@ -15,6 +15,7 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
+	"github.com/tajjjjr/social-network/backend/utils"
 )
 
 // MockPostService is a mock implementation of the PostService for testing.
@@ -74,7 +75,7 @@ func TestCreatePost(t *testing.T) {
 		}
 		req.Header.Set("Content-Type", w.FormDataContentType())
 
-		ctx := context.WithValue(req.Context(), handlers.User_id, int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -113,7 +114,7 @@ func TestCreatePost(t *testing.T) {
 		}
 		req.Header.Set("Content-Type", w.FormDataContentType())
 
-		ctx := context.WithValue(req.Context(), handlers.User_id, int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -151,7 +152,7 @@ func TestCreatePost(t *testing.T) {
 		}
 		req.Header.Set("Content-Type", w.FormDataContentType())
 
-		ctx := context.WithValue(req.Context(), handlers.User_id, int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -290,7 +291,7 @@ func TestGetFeed(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		ctx := context.WithValue(req.Context(), handlers.User_id, int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()

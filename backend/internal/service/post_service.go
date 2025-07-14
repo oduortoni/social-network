@@ -12,8 +12,6 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/utils"
 )
 
-
-
 type PostService struct {
 	PostStore *store.PostStore
 }

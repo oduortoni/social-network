@@ -1,16 +1,17 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
-	"time"
-	"context"
 	"strings"
+	"time"
 
 	"fmt"
 
-	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/models"
+	"github.com/tajjjjr/social-network/backend/internal/service"
+	"github.com/tajjjjr/social-network/backend/internal/utils"
 )
 
 // AuthHandler handles HTTP requests for authentication.
@@ -29,12 +30,6 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-type UserID string
-
-var User_id UserID = "userID"
-
-
-
 func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var creds LoginRequest
 	var err error
@@ -42,7 +37,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Check Content-Type header to determine how to parse the request
 	contentType := r.Header.Get("Content-Type")
 	fmt.Println("Content-Type:", contentType)
-	
+
 	if strings.Contains(contentType, "application/json") {
 		// Parse JSON body
 		err = json.NewDecoder(r.Body).Decode(&creds)
@@ -57,7 +52,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid form data"})
 			return
 		}
-		
+
 		// Extract form values
 		creds.Email = r.FormValue("email")
 		creds.Password = r.FormValue("password")
@@ -76,7 +71,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Login credentials:", creds)
-	
+
 	authUser, sessionID, _ := auth.AuthService.AuthenticateUser(creds.Email, creds.Password)
 	if authUser == nil {
 		if sessionID == service.EXPIRED_SESSION {
@@ -88,9 +83,9 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	
+
 	fmt.Println("Authenticated user:", authUser)
-	
+
 	cookie := &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
@@ -100,7 +95,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		SameSite: http.SameSiteLaxMode,
 	}
-	
+
 	fmt.Println("Setting cookie:", cookie)
 	http.SetCookie(w, cookie)
 	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged in successfully"})
@@ -143,7 +138,7 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Add userID to request context for downstream handlers
-		ctx := context.WithValue(r.Context(), User_id, userID)
+		ctx := context.WithValue(r.Context(), utils.User_id, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
