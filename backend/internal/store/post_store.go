@@ -39,3 +39,28 @@ func (s *PostStore) GetPostByID(id int64) (*models.Post, error) {
 	}
 	return &post, nil
 }
+
+func (s *PostStore) GetFeed(userID int64) ([]*models.Post, error) {
+	rows, err := s.DB.Query(`
+		SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at
+		FROM POSTS p
+		INNER JOIN FOLLOWERS f ON p.user_id = f.followee_id
+		WHERE f.follower_id = ? AND f.is_accepted = 1
+		ORDER BY p.created_at DESC
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []*models.Post
+	for rows.Next() {
+		var post models.Post
+		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt); err != nil {
+			return nil, err
+		}
+		posts = append(posts, &post)
+	}
+
+	return posts, nil
+}

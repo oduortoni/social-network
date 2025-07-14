@@ -75,3 +75,7 @@ func (s *PostService) CreatePost(post *models.Post, imageData []byte, imageMimeT
 func (s *PostService) GetPostByID(id int64) (*models.Post, error) {
 	return s.PostStore.GetPostByID(id)
 }
+
+func (s *PostService) GetFeed(userID int64) ([]*models.Post, error) {
+	return s.PostStore.GetFeed(userID)
+}

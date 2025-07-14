@@ -113,3 +113,20 @@ func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
+
+func (h *PostHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(int64)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	posts, err := h.PostService.GetFeed(userID)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(posts)
+}

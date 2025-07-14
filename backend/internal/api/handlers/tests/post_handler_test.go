@@ -21,6 +21,7 @@ import (
 type MockPostService struct {
 	CreatePostFunc func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
 	GetPostByIDFunc func(id int64) (*models.Post, error)
+	GetFeedFunc    func(userID int64) ([]*models.Post, error)
 }
 
 func (s *MockPostService) CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error) {
@@ -29,6 +30,13 @@ func (s *MockPostService) CreatePost(post *models.Post, imageData []byte, imageM
 
 func (s *MockPostService) GetPostByID(id int64) (*models.Post, error) {
 	return s.GetPostByIDFunc(id)
+}
+
+func (s *MockPostService) GetFeed(userID int64) ([]*models.Post, error) {
+	if s.GetFeedFunc != nil {
+		return s.GetFeedFunc(userID)
+	}
+	return nil, fmt.Errorf("GetFeedFunc not implemented")
 }
 
 func TestCreatePost(t *testing.T) {
@@ -260,6 +268,62 @@ func TestGetPostByID(t *testing.T) {
 
 		if status := rr.Code; status != http.StatusBadRequest {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+		}
+	})
+}
+
+func TestGetFeed(t *testing.T) {
+	// Test case 1: Successful retrieval
+	t.Run("Successful retrieval", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			GetFeedFunc: func(userID int64) ([]*models.Post, error) {
+				if userID != 1 {
+					t.Errorf("unexpected user ID: got %v want %v", userID, 1)
+				}
+				return []*models.Post{{ID: 1, Content: "Test Post"}}, nil
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("GET", "/feed", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ctx := context.WithValue(req.Context(), "userID", int64(1))
+		req = req.WithContext(ctx)
+
+		rr := httptest.NewRecorder()
+		postHandler.GetFeed(rr, req)
+
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
+
+		var posts []*models.Post
+		if err := json.NewDecoder(rr.Body).Decode(&posts); err != nil {
+			t.Fatal(err)
+		}
+
+		if len(posts) != 1 || posts[0].ID != 1 || posts[0].Content != "Test Post" {
+			t.Errorf("handler returned unexpected body: got %v", rr.Body.String())
+		}
+	})
+
+	// Test case 2: Unauthorized
+	t.Run("Unauthorized", func(t *testing.T) {
+		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
+
+		req, err := http.NewRequest("GET", "/feed", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+		postHandler.GetFeed(rr, req)
+
+		if status := rr.Code; status != http.StatusUnauthorized {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
 		}
 	})
 }

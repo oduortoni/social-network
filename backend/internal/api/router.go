@@ -53,6 +53,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	// Mount handlers
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))
 	mux.Handle("GET /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPostByID)))
+	mux.Handle("GET /feed", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetFeed)))
 
 	return mux
 }
