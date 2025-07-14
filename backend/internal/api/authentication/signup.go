@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tajjjjr/social-network/backend/pkg/utils"
+	"github.com/tajjjjr/social-network/backend/utils"
 )
 
 type Profile_User struct {

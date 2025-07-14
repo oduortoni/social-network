@@ -95,10 +95,10 @@ func DetectImageFormat(reader io.Reader) (ImageFormat, error) {
 }
 
 // checkImageSignature reads the first few bytes and validates against known image magic numbers.
-func checkImageSignature(reader io.Reader) error {
-	_, err := DetectImageFormat(reader)
-	return err
-}
+// func checkImageSignature(reader io.Reader) error {
+// 	_, err := DetectImageFormat(reader)
+// 	return err
+// }
 
 // CheckImageSignature validates if the file is a supported image format (backward compatibility)
 func CheckImageSignature(reader io.Reader) error {

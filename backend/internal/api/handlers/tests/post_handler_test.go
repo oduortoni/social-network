@@ -15,13 +15,14 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
+	"github.com/tajjjjr/social-network/backend/utils"
 )
 
 // MockPostService is a mock implementation of the PostService for testing.
 type MockPostService struct {
-	CreatePostFunc func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
+	CreatePostFunc  func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
 	GetPostByIDFunc func(id int64) (*models.Post, error)
-	GetFeedFunc    func(userID int64) ([]*models.Post, error)
+	GetFeedFunc     func(userID int64) ([]*models.Post, error)
 }
 
 func (s *MockPostService) CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error) {
@@ -55,9 +56,9 @@ func TestCreatePost(t *testing.T) {
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
 		fw, err := w.CreatePart(map[string][]string{
-				"Content-Disposition": []string{fmt.Sprintf(`form-data; name="%s"; filename="%s"`, "image", "test_image.jpeg")},
-				"Content-Type":        []string{"image/jpeg"},
-			})
+			"Content-Disposition": []string{fmt.Sprintf(`form-data; name="%s"; filename="%s"`, "image", "test_image.jpeg")},
+			"Content-Type":        []string{"image/jpeg"},
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -74,7 +75,7 @@ func TestCreatePost(t *testing.T) {
 		}
 		req.Header.Set("Content-Type", w.FormDataContentType())
 
-		ctx := context.WithValue(req.Context(), "userID", int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -113,7 +114,7 @@ func TestCreatePost(t *testing.T) {
 		}
 		req.Header.Set("Content-Type", w.FormDataContentType())
 
-		ctx := context.WithValue(req.Context(), "userID", int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -151,7 +152,7 @@ func TestCreatePost(t *testing.T) {
 		}
 		req.Header.Set("Content-Type", w.FormDataContentType())
 
-		ctx := context.WithValue(req.Context(), "userID", int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -290,7 +291,7 @@ func TestGetFeed(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		ctx := context.WithValue(req.Context(), "userID", int64(1))
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()

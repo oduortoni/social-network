@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
@@ -14,10 +15,23 @@ import (
 // MockAuthService is a mock implementation of the AuthService for testing.
 type MockAuthService struct {
 	AuthenticateUserFunc func(email, password string) (*models.User, string, error)
+	DeleteSessionFunc    func(sessionID string) (int, error)
+	GetUserIDBySessionFunc func(sessionID string) (int, error)
 }
 
 func (s *MockAuthService) AuthenticateUser(email, password string) (*models.User, string, error) {
 	return s.AuthenticateUserFunc(email, password)
+}
+
+func (s *MockAuthService) DeleteSession(sessionID string) (int, error) {
+	if s.DeleteSessionFunc != nil {
+		return s.DeleteSessionFunc(sessionID)
+	}
+	return 0, nil
+}
+
+func (s *MockAuthService) GetUserIDBySession(sessionID string) (int, error) {
+	return s.GetUserIDBySessionFunc(sessionID)
 }
 
 func TestLogin(t *testing.T) {
@@ -38,6 +52,7 @@ func TestLogin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	req.Header.Set("Content-Type", "application/json")
 
 	// Create a new recorder
 	rr := httptest.NewRecorder()
@@ -52,13 +67,42 @@ func TestLogin(t *testing.T) {
 	}
 
 	// Check the response body
-	var user models.User
-	if err := json.NewDecoder(rr.Body).Decode(&user); err != nil {
+	var resp models.Response
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
 
-	if user.Email != "test@test.com" {
+	expectedMessage := "Logged in successfully"
+	if resp.Message != expectedMessage {
 		t.Errorf("handler returned unexpected body: got %v want %v",
-			user.Email, "test@test.com")
+			resp.Message, expectedMessage)
+	}
+
+	// Check for session cookie
+	cookies := rr.Result().Cookies()
+	found := false
+	for _, cookie := range cookies {
+		if cookie.Name == "session_id" {
+			found = true
+			if cookie.Value != "session123" {
+				t.Errorf("cookie session_id has wrong value: got %q, want %q", cookie.Value, "session123")
+			}
+			if cookie.Path != "/" {
+				t.Errorf("cookie session_id has wrong path: got %q, want %q", cookie.Path, "/")
+			}
+			if !cookie.HttpOnly {
+				t.Error("cookie session_id is not http-only")
+			}
+			if cookie.SameSite != http.SameSiteLaxMode {
+				t.Errorf("cookie session_id has wrong same-site policy: got %v, want %v", cookie.SameSite, http.SameSiteLaxMode)
+			}
+			if time.Until(cookie.Expires) > 7*24*time.Hour {
+				t.Error("cookie session_id has wrong expiration")
+			}
+		}
+	}
+
+	if !found {
+		t.Error("session_id cookie not set")
 	}
 }

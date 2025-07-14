@@ -31,6 +31,7 @@ func NewRouter(db *sql.DB) http.Handler {
 		authentication.SignupHandler(w, r, db)
 	})
 	mux.HandleFunc("POST /login", authHandler.Login)
+	
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
 		authentication.LogoutHandler(w, r, db)
 	})
@@ -54,6 +55,8 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))
 	mux.Handle("GET /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPostByID)))
 	mux.Handle("GET /feed", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetFeed)))
+
+	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 
 	return mux
 }
