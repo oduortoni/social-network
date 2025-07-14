@@ -40,12 +40,15 @@ func NewMeHandler(db *sql.DB) http.HandlerFunc {
 		).Scan(&user.ID, &user.Email, &user.Password)
 		if errUser != nil {
 			fmt.Println("Error retrieving user:", errUser)
-			json.NewEncoder(w).Encode(map[string]string{"message": "This is the /me endpoint", "error": "User not found"})
+			_ = json.NewEncoder(w).Encode(map[string]string{"message": "This is the /me endpoint", "error": "User not found"})
 			return
 		}
 
 		fmt.Println("User:", user)
 
-		json.NewEncoder(w).Encode(user)
+		err = json.NewEncoder(w).Encode(user)
+		if err != nil {
+			fmt.Println("Error encoding json to the client side from new me handler")
+		}
 	}
 }

@@ -29,6 +29,10 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type UserID string
+
+var User_id UserID = "userID"
+
 
 
 func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +77,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Login credentials:", creds)
 	
-	authUser, sessionID, err := auth.AuthService.AuthenticateUser(creds.Email, creds.Password)
+	authUser, sessionID, _ := auth.AuthService.AuthenticateUser(creds.Email, creds.Password)
 	if authUser == nil {
 		if sessionID == service.EXPIRED_SESSION {
 			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to create session"})
@@ -139,7 +143,7 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Add userID to request context for downstream handlers
-		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx := context.WithValue(r.Context(), User_id, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
