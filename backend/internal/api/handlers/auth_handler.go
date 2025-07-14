@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+	"context"
 
 	"github.com/tajjjjr/social-network/backend/internal/service"
+	"github.com/tajjjjr/social-network/backend/internal/models"
 )
 
 // AuthHandler handles HTTP requests for authentication.
@@ -24,33 +26,82 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-// Login handles user login.
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
-	user, sessionID, err := h.AuthService.AuthenticateUser(req.Email, req.Password)
+
+// handles user login, creates session, sets cookie, responds JSON
+func (auth *AuthHandler)Login(w http.ResponseWriter, r *http.Request) {
+	// Parse JSON body
+	creds := LoginRequest{}
+
+	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid request body"})
 		return
 	}
 
-	if user == nil {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-		return
+	authUser, sessionID, err := auth.AuthService.AuthenticateUser(creds.Email, creds.Password)
+	if authUser == nil {
+		if sessionID == service.EXPIRED_SESSION {				
+			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to create session"})
+		} else if sessionID == service.INVALID_PASSWORD {
+					models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid password"})
+		} else if sessionID == service.INVALID_EMAIL{
+					models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid email"})
+		} 
 	}
 
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
-		Expires:  time.Now().Add(24 * time.Hour),
+		Path:     "/",
 		HttpOnly: true,
-	})
+		Secure:   false, // set true in production with HTTPS
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, cookie)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged in successfully"})
+}
+
+// LogoutHandler deletes session and clears cookie
+func (auth *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_id")
+	if err == nil {
+		_, _ = auth.AuthService.DeleteSession(cookie.Value)
+
+		// Clear cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   false, // set true in production
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
+
+	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged out successfully"})
+}
+
+// AuthMiddleware verifies session cookie, loads user ID into context
+func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("session_id")
+		if err != nil {
+			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Authentication required"})
+			return
+		}
+
+		userID, err := auth.AuthService.GetUserIDBySession(cookie.Value)
+		if err != nil {
+			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid or expired session"})
+			return
+		}
+
+		// Add userID to request context for downstream handlers
+		ctx := context.WithValue(r.Context(), "userID", userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

@@ -9,6 +9,8 @@ import (
 // AuthServiceInterface defines the interface for the auth service.
 type AuthServiceInterface interface {
 	AuthenticateUser(email, password string) (*models.User, string, error)
+	DeleteSession(sessionID string) (int, error)
+	GetUserIDBySession(sessionID string) (int, error)
 }
 
 // PostServiceInterface defines the interface for the post service.
