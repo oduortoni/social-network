@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 )
 
 var (
@@ -184,7 +186,7 @@ func SaveGoogleUser(userInfo GoogleUserInfo, db *sql.DB) (int, error) {
 				IsProfilePublic: false,
 				Avatar:          userInfo.Picture,
 			}
-			user.Avatar, err = DownloadAndSavePicture(userInfo.Picture)
+			user.Avatar, err = handlers.DownloadAndSavePicture(userInfo.Picture)
 			if err != nil {
 				return -1, err
 			}

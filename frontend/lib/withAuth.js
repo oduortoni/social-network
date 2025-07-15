@@ -20,11 +20,11 @@ const withAuth = (WrappedComponent) => {
             setUser(userData);
             setIsAuthenticated(true);
           } else {
-            window.location.href = '/login';
+            window.location.href = '/';
           }
         } catch (error) {
           console.error('Auth check failed:', error);
-          window.location.href = '/login';
+          window.location.href = '/';
         } finally {
           setLoading(false);
         }

@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
 
 // User represents a user in the database.
 type User struct {
@@ -15,4 +19,13 @@ type User struct {
 	AboutMe         *string    `json:"about_me,omitempty"`
 	IsProfilePublic bool       `json:"is_profile_public"`
 	CreatedAt       time.Time  `json:"created_at"`
+}
+
+// String returns a pretty-printed multiline JSON-style representation of the User.
+func (user User) String() string {
+	data, err := json.MarshalIndent(user, "", "\t")
+	if err != nil {
+		return fmt.Sprintf("User{error: %v}", err)
+	}
+	return string(data)
 }

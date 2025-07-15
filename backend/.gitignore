@@ -1,0 +1,47 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go build artifacts
+/dist
+/build
+*.o
+*.a
+
+# Dependency management
+/vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Go modules cache (not needed usually but safe)
+go.sum
+
+# Database files
+*.db
+
+# User uploads
+attachments/
+
+# If you want to keep the attachments folder but not its contents:
+attachments/*
+!attachments/.gitkeep
+
+# Environment files
+.env
+.env.*
