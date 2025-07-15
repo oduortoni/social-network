@@ -102,7 +102,7 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       console.error("Registration error:", err);
       setFormError("Something went wrong. Please try again later.");
     }
-  };
+};
 
 export const handleLoginFormSubmit = async (e, formData, setFormError) => {
   e.preventDefault();
