@@ -8,6 +8,8 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
+
+	"fmt"
 )
 
 func NewRouter(db *sql.DB) http.Handler {

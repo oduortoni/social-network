@@ -154,3 +154,20 @@ export const handleLoginFormSubmit = async (e, formData, setFormError) => {
     return { success: false, error: "Something went wrong. Please try again later." };
   }
 };
+
+export const handleLogout = async () => {
+  try {
+    const response = await fetch("http://localhost:9000/logout", {
+      method: "POST",
+      credentials: "include", 
+    });
+
+    if (!response.ok) {
+      throw new Error("Logout failed");
+    }
+
+    window.location.href = "/";
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
