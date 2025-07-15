@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 )
 
 type Profile_User struct {
@@ -64,7 +65,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	file, header, err := r.FormFile("avatar")
 	if err == nil && file != nil {
 		defer file.Close()
-		userAvatar, err = UploadAvatarImage(file, header)
+		userAvatar, err = handlers.UploadAvatarImage(file, header)
 		if err != nil {
 			serverresponse.Message = userAvatar
 			statusCode = http.StatusInternalServerError

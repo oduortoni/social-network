@@ -36,11 +36,11 @@ go.sum
 *.db
 
 # User uploads
-UserAvatars/
+attachments/
 
-# If you want to keep the UserAvatars folder but not its contents:
-# UserAvatars/*
-# !UserAvatars/.gitkeep
+# If you want to keep the attachments folder but not its contents:
+attachments/*
+!attachments/.gitkeep
 
 # Environment files
 .env

@@ -35,9 +35,9 @@ func NewMeHandler(db *sql.DB) http.HandlerFunc {
 
 		var user models.User
 		errUser := db.QueryRow(
-			"SELECT id, email, password FROM Users WHERE id = ?",
+			"SELECT id, email, avatar, password FROM Users WHERE id = ?",
 			userID,
-		).Scan(&user.ID, &user.Email, &user.Password)
+		).Scan(&user.ID, &user.Email, &user.Avatar, &user.Password)
 		if errUser != nil {
 			fmt.Println("Error retrieving user:", errUser)
 			_ = json.NewEncoder(w).Encode(map[string]string{"message": "This is the /me endpoint", "error": "User not found"})
@@ -52,3 +52,4 @@ func NewMeHandler(db *sql.DB) http.HandlerFunc {
 		}
 	}
 }
+
