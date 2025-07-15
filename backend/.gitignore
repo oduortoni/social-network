@@ -1,0 +1,47 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go build artifacts
+/dist
+/build
+*.o
+*.a
+
+# Dependency management
+/vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Go modules cache (not needed usually but safe)
+go.sum
+
+# Database files
+*.db
+
+# User uploads
+UserAvatars/
+
+# If you want to keep the UserAvatars folder but not its contents:
+# UserAvatars/*
+# !UserAvatars/.gitkeep
+
+# Environment files
+.env
+.env.*
