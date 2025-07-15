@@ -16,6 +16,7 @@ import (
 )
 
 func Avatar(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Avatar request received")
 	avatar := r.URL.Query().Get("avatar")
 	if avatar == "" {
 		fmt.Println("Avatar URL is empty")

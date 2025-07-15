@@ -8,8 +8,6 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
-
-	"fmt"
 )
 
 func NewRouter(db *sql.DB) http.Handler {
@@ -59,7 +57,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("GET /feed", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetFeed)))
 
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
-	mux.Handle("GET /avatar", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.Avatar)))
+	mux.Handle("GET /avatar", http.HandlerFunc(handlers.Avatar))
 
 	return mux
 }

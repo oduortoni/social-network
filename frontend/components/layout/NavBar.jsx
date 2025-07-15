@@ -16,7 +16,7 @@ const NavBar = ({ avatar }) => {
     <nav className="w-full bg-white shadow-sm p-4 flex justify-between items-center">
       <div className="flex items-center">
         <img
-          src={avatar ? `/api/avatar?avatar=${avatar}` : '/default.png'}
+          src={avatar ? `http://localhost:9000/avatar?avatar=${avatar}` : '/default.png'}
           alt="User Avatar"
           className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
           onError={handleImageError}
