@@ -90,8 +90,8 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       });
   
       if (!response.ok) {
-        const error = await response.text();
-        setFormError("Registration failed: " + error);
+        const error = await response.json();
+        setFormError("Registration failed: " + error.message);
         return;
       }
   
