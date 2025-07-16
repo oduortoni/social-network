@@ -41,7 +41,36 @@ export function RegisterForm() {
     };
     
     // Functions to toggle form processes
-    const nextStep = () => setStep((prev) => prev + 1);
+    const nextStep = () => {
+      let error = "";
+      if (step === 1) {
+        const password = formData.password;
+        const passwordRequirements =
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+        if (!formData.email || !formData.password || !formData.confirmPassword) {
+          error = "Please fill in all required fields.";
+        } else if (formData.password !== formData.confirmPassword) {
+          error = "Passwords do not match.";
+        } else if (!passwordRequirements.test(password)) {
+          error =
+            "Password must be at least 8 characters, contain uppercase and lowercase letters, a number, and a special character.";
+        }
+      } else if (step === 2) {
+        if (!formData.firstName || !formData.lastName || !formData.dob) {
+          error = "Please fill in all required fields.";
+        }
+      } else if (step === 3) {
+        if (!formData.profileVisibility) {
+          error = "Please select your profile visibility.";
+        }
+      }
+      if (error) {
+        setFormError(error);
+        return;
+      }
+      setFormError("");
+      setStep((prev) => prev + 1);
+    };
     const prevStep = () => setStep((prev) => prev - 1);
     const handleRemoveAvatar = () => {
       setFormData({ ...formData, avatar: null });
@@ -128,7 +157,7 @@ export function RegisterForm() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--quaternary-text)]"
                   tabIndex={-1}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
             </>
@@ -160,6 +189,7 @@ export function RegisterForm() {
                 onChange={handleChange}
                 required
                 />
+              <div className="w-full text-left text-xs text-[var(--tertiary-text)] mb-2">Date of Birth</div>
             </>
           )}
 
