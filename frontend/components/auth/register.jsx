@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaArrowLeft, FaArrowRight, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { handleRegistrationFormSubmit } from '../../lib/auth';
+import { handleRegistrationFormSubmit, validateStepFour, validateStepOne, validateStepTwo } from '../../lib/auth';
 
 export function RegisterForm() {
     // State to manage registrationform data
@@ -41,28 +41,29 @@ export function RegisterForm() {
     };
     
     // Functions to toggle form processes
-    const nextStep = () => {
+     const nextStep = async() => {
       let error = "";
-      if (step === 1) {
-        const password = formData.password;
-        const passwordRequirements =
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
-        if (!formData.email || !formData.password || !formData.confirmPassword) {
-          error = "Please fill in all required fields.";
-        } else if (formData.password !== formData.confirmPassword) {
-          error = "Passwords do not match.";
-        } else if (!passwordRequirements.test(password)) {
-          error =
-            "Password must be at least 8 characters, contain uppercase and lowercase letters, a number, and a special character.";
+      switch (step) {
+        case 1: {
+          const { status, errorMessage } = await validateStepOne(formData.email, formData.password, formData.confirmPassword);
+          if (status === "failed") {
+            error = errorMessage;
+          }
+          break;
         }
-      } else if (step === 2) {
-        if (!formData.firstName || !formData.lastName || !formData.dob) {
-          error = "Please fill in all required fields.";
-        }
-      } else if (step === 3) {
-        if (!formData.profileVisibility) {
-          error = "Please select your profile visibility.";
-        }
+        case 2:
+          const {status,errorMessage}=validateStepTwo(formData.firstName,formData.lastName,formData.dob)
+            if (status === "failed") {
+            error = errorMessage;
+          }
+          break;
+        case 3:
+          if (!formData.profileVisibility) {
+            error = "Please select your profile visibility.";
+          }
+          break;
+        default:
+          break;
       }
       if (error) {
         setFormError(error);
@@ -76,7 +77,7 @@ export function RegisterForm() {
       setFormData({ ...formData, avatar: null });
       setAvatarPreview(null);
     };
-    
+  
     return (
         <>
          <Head>
