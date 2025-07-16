@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"net/http"
+
 	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
@@ -27,11 +28,14 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 
 	// Authentication Handlers
+	mux.HandleFunc("POST /validate/step1", func(w http.ResponseWriter, r *http.Request) {
+		authentication.ValidateAccountStepOne(w, r, db)
+	})
 	mux.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
 		authentication.SignupHandler(w, r, db)
 	})
 	mux.HandleFunc("POST /login", authHandler.Login)
-	
+
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
 		authentication.LogoutHandler(w, r, db)
 	})
