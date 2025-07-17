@@ -27,7 +27,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	statusCode := http.StatusOK
 
 	// Parse multipart form (limit: 10MB)
-	if err := r.ParseMultipartForm(1 << 20); err != nil {
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		serverresponse.Message = "Failed to parse form"
 		statusCode = http.StatusBadRequest
 		respondJSON(w, statusCode, serverresponse)
