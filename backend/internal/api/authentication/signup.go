@@ -103,7 +103,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 func UserExists(email string, db *sql.DB) bool {
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ? OR nickname = ?", email).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ?", email).Scan(&count)
 	if err != nil {
 		log.Println(err)
 		return false // return error if something goes wrong
