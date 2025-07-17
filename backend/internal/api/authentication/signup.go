@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"database/sql"
+	"html"
 	"log"
 	"net/http"
 	"time"
@@ -44,10 +45,33 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	aboutMe := r.FormValue("aboutMe")
 	isProfilePublic := r.FormValue("profileVisibility")
 
+	// Sanitize user input to prevent XSS attacks
+	email = html.EscapeString(email)
+	firstName = html.EscapeString(firstName)
+	lastName = html.EscapeString(lastName)
+	dateOfBirth = html.EscapeString(dateOfBirth)
+	nickname = html.EscapeString(nickname)
+	aboutMe = html.EscapeString(aboutMe)
+
 	// Check if user already exists
 	if UserExists(email, db) {
 		serverresponse.Message = "Email or nickname already taken"
 		statusCode = http.StatusConflict
+		respondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// validate email
+	IsEmailValid, err := ValidateEmail(email)
+	if err != nil {
+		serverresponse.Message = "Regex error in validating Email"
+		statusCode = http.StatusInternalServerError
+		respondJSON(w, statusCode, serverresponse)
+		return
+	}
+	if !IsEmailValid {
+		serverresponse.Message = "Invalid Email format"
+		statusCode = http.StatusBadRequest
 		respondJSON(w, statusCode, serverresponse)
 		return
 	}
