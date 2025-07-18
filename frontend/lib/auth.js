@@ -30,38 +30,8 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       aboutMe
     } = formData;
   
-    const requiredFields = [email, password, confirmPassword, firstName, lastName, dob];
-    if (requiredFields.some((field) => !field || (typeof field === "string" && !field.trim()))) {
-      setFormError("Please fill in all required fields.");
-      return;
-    }
   
-    // Validate email format
-    const isValidEmail = /\S+@\S+\.\S+/.test(email);
-    if (!isValidEmail) {
-      setFormError("Please enter a valid email address.");
-      return;
-    }
-  
-    // Validate password match
-    if (password !== confirmPassword) {
-      setFormError("Passwords do not match.");
-      return;
-    }
-  
-    // Validate password length
-    if (password.length < 6) {
-      setFormError("Password must be at least 6 characters.");
-      return;
-    }
-  
-    // Validate DOB is not in the future
-    const dateOfBirth = new Date(dob);
-    if (dateOfBirth > new Date()) {
-      setFormError("Date of birth cannot be in the future.");
-      return;
-    }
-  
+    
     // Validate avatar type if uploaded
     if (avatar) {
       const allowedTypes = ["image/png", "image/jpeg", "image/gif"];
@@ -90,8 +60,8 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       });
   
       if (!response.ok) {
-        const error = await response.text();
-        setFormError("Registration failed: " + error);
+        const error = await response.json();
+        setFormError("Registration failed: " + error.message);
         return;
       }
   
@@ -171,3 +141,62 @@ export const handleLogout = async () => {
     console.error("Logout error:", error);
   }
 };
+
+
+export const validateStepOne = async (userEmail, userPassword, confirmPassword) => {
+  try {
+    const response = await fetch("http://localhost:9000/validate/step1", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        password: userPassword,
+        confirm_password: confirmPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        status: "failed",
+        errorMessage: errorData.message,
+      };
+    }
+
+    return {
+      status: "success",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      status: "error",
+      errorMessage: "Something went wrong. Please try again.",
+    };
+  }
+};
+
+
+export const validateStepTwo=(userFirstName,UserLastName,UserDateOfBirth)=>{  
+
+  //check if user filled firstname, last name and date_of_birth
+  if (!userFirstName || !UserLastName || !UserDateOfBirth){
+       return {
+        status:"failed",
+        errorMessage:"Please fill in all required fields."
+       }
+  }
+
+  // Validate DOB is not in the future
+    const dateOfBirth = new Date(UserDateOfBirth);
+    if (dateOfBirth > new Date()) {
+      return {
+        status:"failed",
+        errorMessage:"Date of birth cannot be in the future."
+      }
+    }
+   return {
+    status:"success"
+   }
+}

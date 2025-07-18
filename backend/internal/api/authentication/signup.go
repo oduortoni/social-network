@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tajjjjr/social-network/backend/utils"
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
+	"github.com/tajjjjr/social-network/backend/utils"
 )
 
 type Profile_User struct {
@@ -44,16 +44,8 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	aboutMe := r.FormValue("aboutMe")
 	isProfilePublic := r.FormValue("profileVisibility")
 
-	// Validate required fields
-	if email == "" || password == "" {
-		serverresponse.Message = "Missing required fields"
-		statusCode = http.StatusBadRequest
-		respondJSON(w, statusCode, serverresponse)
-		return
-	}
-
 	// Check if user already exists
-	if UserExists(email, nickname, db) {
+	if UserExists(email, db) {
 		serverresponse.Message = "Email or nickname already taken"
 		statusCode = http.StatusConflict
 		respondJSON(w, statusCode, serverresponse)
@@ -109,9 +101,9 @@ func SignupHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	respondJSON(w, statusCode, serverresponse)
 }
 
-func UserExists(email, nickname string, db *sql.DB) bool {
+func UserExists(email string, db *sql.DB) bool {
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ? OR nickname = ?", email, nickname).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ?", email).Scan(&count)
 	if err != nil {
 		log.Println(err)
 		return false // return error if something goes wrong
