@@ -1,4 +1,3 @@
--- Create Post_Visibility table
 CREATE TABLE IF NOT EXISTS Post_Visibility (
     post_id INTEGER NOT NULL,
     viewer_id INTEGER NOT NULL,
