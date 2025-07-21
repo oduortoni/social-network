@@ -44,7 +44,7 @@ The WebSocket implementation follows a clean architecture pattern with dependenc
 ## Package Structure
 
 ```
-backend/pkg/ws/
+backend/internal/websocket/
 ├── ws.go                    # Core WebSocket manager and client implementation
 ├── session_resolver.go     # Session-based authentication
 ├── groups.go              # Group membership management

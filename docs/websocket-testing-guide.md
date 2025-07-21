@@ -9,7 +9,7 @@ This guide covers testing strategies for the WebSocket implementation, including
 The WebSocket package includes comprehensive tests:
 
 ```
-backend/pkg/ws/
+backend/internal/websocket/
 ├── ws_test.go                    # Unit tests for core functionality
 ├── integration_test.go           # Integration tests with database
 └── websocket_routes_test.go      # Route and endpoint testing
