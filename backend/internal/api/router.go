@@ -9,7 +9,7 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
-	"github.com/tajjjjr/social-network/backend/pkg/ws"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 )
 
 func NewRouter(db *sql.DB) http.Handler {
