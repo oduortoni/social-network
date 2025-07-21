@@ -8,28 +8,43 @@ This documentation covers the complete social network backend implementation, wi
 
 The WebSocket system provides real-time messaging, notifications, and live updates throughout the application.
 
-### 📚 Documentation Index
+### Documentation Index
 
+#### Backend WebSocket Documentation
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[WebSocket Implementation](websocket-implementation.md)** | Complete overview of the WebSocket system architecture | All developers |
-| **[Integration Guide](websocket-integration-guide.md)** | How to add real-time features to your components | Feature developers |
-| **[API Reference](websocket-api-reference.md)** | Complete API documentation and message formats | Frontend & API developers |
-| **[Testing Guide](websocket-testing-guide.md)** | Testing strategies and examples | QA & developers |
-| **[Extension Guide](websocket-extension-guide.md)** | How to extend the WebSocket system | Senior developers |
+| **[WebSocket Implementation](websocket-implementation.md)** | Complete overview of the backend WebSocket system architecture | Backend developers |
+| **[Backend Integration Guide](websocket-integration-guide.md)** | How to add real-time features to backend components | Backend developers |
+| **[API Reference](websocket-api-reference.md)** | Complete API documentation and message formats | All developers |
+| **[Backend Testing Guide](websocket-testing-guide.md)** | Backend testing strategies and examples | Backend QA & developers |
+| **[Extension Guide](websocket-extension-guide.md)** | How to extend the backend WebSocket system | Senior backend developers |
 
-### 🚀 Quick Start
+#### Frontend WebSocket Documentation
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[Frontend Implementation](frontend-websocket-implementation.md)** | Complete overview of the frontend WebSocket integration | Frontend developers |
+| **[Frontend Integration Guide](frontend-websocket-integration-guide.md)** | How to add real-time features to React components | Frontend developers |
+| **[Frontend Testing Guide](frontend-websocket-testing-guide.md)** | Frontend testing strategies and React component testing | Frontend QA & developers |
 
-1. **For Frontend Developers**: Start with [API Reference](websocket-api-reference.md) to understand message formats
-2. **For Backend Developers**: Read [Integration Guide](websocket-integration-guide.md) to add real-time features
-3. **For Testing**: Follow [Testing Guide](websocket-testing-guide.md) for comprehensive testing strategies
-4. **For Architecture**: Review [WebSocket Implementation](websocket-implementation.md) for system overview
+### Quick Start
 
-### 🔧 Common Use Cases
+#### For Frontend Developers
+1. **Start with**: [Frontend Implementation](frontend-websocket-implementation.md) to understand React integration
+2. **Integration**: [Frontend Integration Guide](frontend-websocket-integration-guide.md) to add real-time features
+3. **Testing**: [Frontend Testing Guide](frontend-websocket-testing-guide.md) for React component testing
+4. **API Reference**: [API Reference](websocket-api-reference.md) for message formats
 
-#### Adding Real-time Notifications
+#### For Backend Developers
+1. **Start with**: [WebSocket Implementation](websocket-implementation.md) for system architecture
+2. **Integration**: [Backend Integration Guide](websocket-integration-guide.md) to add real-time features
+3. **Testing**: [Backend Testing Guide](websocket-testing-guide.md) for Go testing strategies
+4. **Extension**: [Extension Guide](websocket-extension-guide.md) for advanced features
+
+### Common Use Cases
+
+#### Backend: Adding Real-time Notifications
 ```go
-// Quick example - see Integration Guide for details
+// Quick example - see Backend Integration Guide for details
 notifier := ws.NewDBNotificationSender(wsManager)
 notifier.SendNotification(userID, map[string]interface{}{
     "type":      "notification",
@@ -39,7 +54,7 @@ notifier.SendNotification(userID, map[string]interface{}{
 })
 ```
 
-#### Checking User Online Status
+#### Backend: Checking User Online Status
 ```go
 if wsManager.IsOnline(userID) {
     // Send real-time notification
@@ -48,25 +63,38 @@ if wsManager.IsOnline(userID) {
 }
 ```
 
-#### Broadcasting to Groups
-```go
-wsManager.BroadcastToGroup(senderID, groupID, messageData)
+#### Frontend: React Component Integration
+```javascript
+// Quick example - see Frontend Integration Guide for details
+import { wsService } from '../lib/websocket';
+
+const MyComponent = () => {
+  useEffect(() => {
+    wsService.onMessage('notification', handleNotification);
+    wsService.connect();
+    return () => wsService.disconnect();
+  }, []);
+
+  const sendMessage = () => {
+    wsService.sendMessage('private', 'Hello!', recipientId);
+  };
+};
 ```
 
-### 📋 Implementation Status
+### Implementation Status
 
-| Feature | Status | Documentation |
-|---------|--------|---------------|
-| **Real-time Messaging** | ✅ Complete | [API Reference](websocket-api-reference.md) |
-| **Notifications** | ✅ Complete | [Integration Guide](websocket-integration-guide.md) |
-| **Group Chat** | ✅ Complete | [WebSocket Implementation](websocket-implementation.md) |
-| **HTTP API** | ✅ Complete | [API Reference](websocket-api-reference.md) |
-| **Testing Suite** | ✅ Complete | [Testing Guide](websocket-testing-guide.md) |
-| **Friend System** | 🔄 In Progress | [Integration Guide](websocket-integration-guide.md#friend-system-integration) |
-| **Posts/Feed** | ⏳ Planned | [Integration Guide](websocket-integration-guide.md#posts-system-integration) |
-| **Events** | ⏳ Planned | [Integration Guide](websocket-integration-guide.md#group-events-integration) |
+| Feature | Backend Status | Frontend Status | Documentation |
+|---------|----------------|-----------------|---------------|
+| **Real-time Messaging** | ✅ Complete | ✅ Complete | [API Reference](websocket-api-reference.md) |
+| **Notifications** | ✅ Complete | ✅ Complete | [Backend](websocket-integration-guide.md) \| [Frontend](frontend-websocket-integration-guide.md) |
+| **Group Chat** | ✅ Complete | ✅ Complete | [Backend](websocket-implementation.md) \| [Frontend](frontend-websocket-implementation.md) |
+| **HTTP API** | ✅ Complete | ✅ Complete | [API Reference](websocket-api-reference.md) |
+| **Testing Suite** | ✅ Complete | ✅ Complete | [Backend](websocket-testing-guide.md) \| [Frontend](frontend-websocket-testing-guide.md) |
+| **Friend System** | 🔄 In Progress | 🔄 In Progress | [Backend](websocket-integration-guide.md#friend-system-integration) \| [Frontend](frontend-websocket-integration-guide.md#friend-system-integration) |
+| **Posts/Feed** | ⏳ Planned | ⏳ Planned | [Backend](websocket-integration-guide.md#posts-system-integration) \| [Frontend](frontend-websocket-integration-guide.md#posts-feed-system-integration) |
+| **Events** | ⏳ Planned | ⏳ Planned | [Backend](websocket-integration-guide.md#group-events-integration) \| [Frontend](frontend-websocket-integration-guide.md#group-events-integration) |
 
-### 🏗️ Architecture Overview
+### Architecture Overview
 
 ```
 Frontend (React/Next.js)
@@ -80,14 +108,14 @@ Backend WebSocket Manager
 Database (SQLite)
 ```
 
-### 🔗 Related Systems
+### Related Systems
 
 - **Authentication**: Session-based authentication via cookies
 - **Database**: SQLite with comprehensive schema for social features
 - **HTTP API**: RESTful endpoints for data retrieval and management
 - **Frontend**: Next.js application with real-time WebSocket integration
 
-### 📞 Support
+### Support
 
 For questions about the WebSocket implementation:
 
@@ -95,22 +123,16 @@ For questions about the WebSocket implementation:
 2. **Review the tests** - See [Testing Guide](websocket-testing-guide.md) for examples
 3. **Look at integration examples** - [Integration Guide](websocket-integration-guide.md) has real-world patterns
 
-### 🔄 Development Workflow
+### Development Workflow
 
+#### Backend Development
 1. **Planning**: Review [WebSocket Implementation](websocket-implementation.md) for architecture
-2. **Development**: Follow [Integration Guide](websocket-integration-guide.md) for implementation
-3. **Testing**: Use [Testing Guide](websocket-testing-guide.md) for validation
+2. **Development**: Follow [Backend Integration Guide](websocket-integration-guide.md) for implementation
+3. **Testing**: Use [Backend Testing Guide](websocket-testing-guide.md) for validation
 4. **Extension**: Reference [Extension Guide](websocket-extension-guide.md) for advanced features
 
----
-
-## Other Documentation
-
-- **Database Schema**: See `backend-file-structure.md` for complete database design
-- **API Endpoints**: Full REST API documentation (coming soon)
-- **Frontend Components**: React component documentation (coming soon)
-- **Deployment Guide**: Production deployment instructions (coming soon)
-
----
-
-*This documentation was created for the social network WebSocket implementation. Last updated: 2024*
+#### Frontend Development
+1. **Planning**: Review [Frontend Implementation](frontend-websocket-implementation.md) for React architecture
+2. **Development**: Follow [Frontend Integration Guide](frontend-websocket-integration-guide.md) for React components
+3. **Testing**: Use [Frontend Testing Guide](frontend-websocket-testing-guide.md) for component testing
+4. **API Integration**: Reference [API Reference](websocket-api-reference.md) for message formats
