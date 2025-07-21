@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { FaFacebookF, FaGooglePlusG, FaLinkedinIn, FaArrowLeft, FaArrowRight, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { handleRegistrationFormSubmit } from '../../lib/auth';
+import { handleRegistrationFormSubmit, validateStepFour, validateStepOne, validateStepTwo } from '../../lib/auth';
 
 export function RegisterForm() {
     // State to manage registrationform data
@@ -41,13 +41,43 @@ export function RegisterForm() {
     };
     
     // Functions to toggle form processes
-    const nextStep = () => setStep((prev) => prev + 1);
+     const nextStep = async() => {
+      let error = "";
+      switch (step) {
+        case 1: {
+          const { status, errorMessage } = await validateStepOne(formData.email, formData.password, formData.confirmPassword);
+          if (status === "failed") {
+            error = errorMessage;
+          }
+          break;
+        }
+        case 2:
+          const {status,errorMessage}=validateStepTwo(formData.firstName,formData.lastName,formData.dob)
+            if (status === "failed") {
+            error = errorMessage;
+          }
+          break;
+        case 3:
+          if (!formData.profileVisibility) {
+            error = "Please select your profile visibility.";
+          }
+          break;
+        default:
+          break;
+      }
+      if (error) {
+        setFormError(error);
+        return;
+      }
+      setFormError("");
+      setStep((prev) => prev + 1);
+    };
     const prevStep = () => setStep((prev) => prev - 1);
     const handleRemoveAvatar = () => {
       setFormData({ ...formData, avatar: null });
       setAvatarPreview(null);
     };
-    
+  
     return (
         <>
          <Head>
@@ -128,7 +158,7 @@ export function RegisterForm() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--quaternary-text)]"
                   tabIndex={-1}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
             </>
@@ -160,6 +190,7 @@ export function RegisterForm() {
                 onChange={handleChange}
                 required
                 />
+              <div className="w-full text-left text-xs text-[var(--tertiary-text)] mb-2">Date of Birth</div>
             </>
           )}
 

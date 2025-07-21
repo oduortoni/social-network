@@ -32,6 +32,11 @@ func NewPasswordManager(config PasswordConfig) *PasswordManager {
 	if config.BcryptCost == 0 {
 		config.BcryptCost = bcrypt.DefaultCost
 	}
+	config.RequireLower=true;
+	config.RequireSpecial=true;
+	config.RequireUpper=true;
+	config.RequireNumber=true;
+
 	return &PasswordManager{Config: config}
 }
 
@@ -61,7 +66,7 @@ func (pm *PasswordManager) ComparePassword(hashed, plain string) error {
  */
 func (pm *PasswordManager) ValidatePasswordStrength(password string) error {
 	if len(password) < pm.Config.MinLength {
-		return errors.New("password too short")
+		return errors.New("password must be at least 8 characters")
 	}
 	if pm.Config.RequireUpper && !regexp.MustCompile(`[A-Z]`).MatchString(password) {
 		return errors.New("password must contain an uppercase letter")
