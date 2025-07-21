@@ -8,6 +8,7 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
+	"github.com/tajjjjr/social-network/backend/pkg/ws"
 )
 
 func NewRouter(db *sql.DB) http.Handler {
@@ -58,6 +59,27 @@ func NewRouter(db *sql.DB) http.Handler {
 
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 	mux.Handle("GET /avatar", http.HandlerFunc(handlers.Avatar))
+
+
+	// create the websocket handler
+	wsManager := ws.NewManager(
+		ws.NewDBSessionResolver(db),
+		ws.NewDBGroupMemberFetcher(db),
+		ws.NewDBMessagePersister(db),
+	)
+	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(wsManager.HandleConnection)))
+
+	// Chat history handlers (paginated HTTP access to messages)
+	notifier := ws.NewDBNotificationSender(wsManager)
+	chatHandler := ws.NewChatHandler(
+		db,
+		ws.NewDBSessionResolver(db),
+		ws.NewDBMessagePersister(db),
+		notifier,
+
+	)
+	mux.Handle("GET /api/messages/private", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetPrivateMessages)))
+	mux.Handle("GET /api/messages/group", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetGroupMessages)))
 
 	return mux
 }
