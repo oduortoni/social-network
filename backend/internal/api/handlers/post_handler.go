@@ -92,6 +92,82 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(post)
 }
 
+func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
+	// Parse multipart form data
+	err := r.ParseMultipartForm(20 << 20) // 20 MB limit for multipart form
+	if err != nil {
+		http.Error(w, "Unable to parse form: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var comment models.Comment
+	comment.Content = r.FormValue("content") // Assuming post content is sent as a form value
+
+	postIDStr := r.PathValue("postId")
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+	comment.PostID = postID
+
+	// Get user ID from context
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	comment.UserID = userID
+
+	// Handle image upload
+	file, handler, err := r.FormFile("image")
+	var imageData []byte
+	var imageMimeType string
+
+	if err == nil { // No error means an image was provided
+		defer file.Close()
+
+		if handler.Size > 20*1024*1024 { // 20 MB limit
+			http.Error(w, "Image size exceeds 20MB limit", http.StatusBadRequest)
+			return
+		}
+
+		// Create a TeeReader to read from the file and also pass to checkImageSignature
+		var buf bytes.Buffer
+		teeReader := io.TeeReader(file, &buf)
+
+		// Perform image signature check
+		if _, err := utils.DetectImageFormat(teeReader); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Read the entire image data from the buffer and the remaining file content
+		imageData, err = io.ReadAll(io.MultiReader(&buf, file))
+		if err != nil {
+			http.Error(w, "Failed to read image data: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		imageMimeType = handler.Header.Get("Content-Type")
+	} else if err != http.ErrMissingFile {
+		// Other errors during FormFile processing
+		http.Error(w, "Error retrieving the file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	id, err := h.PostService.CreateComment(&comment, imageData, imageMimeType)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	comment.ID = id
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(comment)
+}
+
 func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.PathValue("postId")
 	postID, err := strconv.ParseInt(postIDStr, 10, 64)
