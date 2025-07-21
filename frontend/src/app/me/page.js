@@ -4,7 +4,13 @@ import withAuth from '../../../lib/withAuth';
 import NavBar from '../../../components/layout/NavBar';
 import ChatInterface from '../../../components/chat/ChatInterface';
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+};
 const Me = ({ user }) => {
+  console.log(user);
   return (
     <div className="min-h-screen bg-gray-100">
       <NavBar avatar={user?.avatar} />
@@ -14,9 +20,21 @@ const Me = ({ user }) => {
         <div className="mb-8">
           <div className="bg-white shadow-md rounded-2xl p-8 text-center">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Welcome back, <span className="text-indigo-600">{user?.name || user?.email}</span>!
+              Welcome back, <span className="text-indigo-600">{user?.first_name || user?.email}</span>!
             </h1>
             <p className="text-gray-600">Your personal dashboard and social hub</p>
+            <div className="mt-8">
+              <p className="text-sm text-gray-500">Joined on {formatDate(user?.created_at)}</p>
+              <p className="text-sm text-gray-500">Profile: {user?.is_profile_public ? "Public" : "Private"}</p>
+            </div>
+            <div className="mt-8">
+              <p className="text-sm text-gray-500">Nickname: {user?.nickname}</p>
+              <p className="text-sm text-gray-500">First name: {user?.first_name}</p>
+              <p className="text-sm text-gray-500">Last name: {user?.last_name}</p>
+              <p className="text-sm text-gray-500">Email: {user?.email}</p>
+              <p className="text-sm text-gray-500">Date of birth: {formatDate(user?.date_of_birth)}</p>
+              <p className="text-sm text-gray-500">About: {user?.about_me}</p>
+            </div>
           </div>
         </div>
 

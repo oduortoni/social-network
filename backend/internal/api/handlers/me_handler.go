@@ -35,16 +35,14 @@ func NewMeHandler(db *sql.DB) http.HandlerFunc {
 
 		var user models.User
 		errUser := db.QueryRow(
-			"SELECT id, email, avatar, password FROM Users WHERE id = ?",
+			"SELECT id, email, avatar, first_name, last_name, date_of_birth, nickname, about_me, is_profile_public, created_at FROM Users WHERE id = ?",
 			userID,
-		).Scan(&user.ID, &user.Email, &user.Avatar, &user.Password)
+		).Scan(&user.ID, &user.Email, &user.Avatar, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Nickname, &user.AboutMe, &user.IsProfilePublic, &user.CreatedAt)
 		if errUser != nil {
 			fmt.Println("Error retrieving user:", errUser)
 			_ = json.NewEncoder(w).Encode(map[string]string{"message": "This is the /me endpoint", "error": "User not found"})
 			return
 		}
-
-		fmt.Println("User:", user)
 
 		err = json.NewEncoder(w).Encode(user)
 		if err != nil {
