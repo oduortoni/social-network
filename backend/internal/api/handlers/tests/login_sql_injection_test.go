@@ -1,4 +1,4 @@
-package test
+package tests
 
 import (
 	"bytes"
@@ -91,23 +91,23 @@ var loginSQLInjectionPayloads = []string{
 	"' or 1=1--",
 	"') or '1'='1--",
 	"') or ('1'='1--",
-	
+
 	// Union-based injection
 	"' UNION SELECT 1,2,3--",
 	"' UNION SELECT null,null,null--",
 	"' UNION SELECT email,password,id FROM Users--",
 	"test@example.com' UNION SELECT 1,'admin','password123'--",
-	
+
 	// Boolean-based blind injection
 	"test@example.com' AND 1=1--",
 	"test@example.com' AND 1=2--",
 	"test@example.com' AND (SELECT COUNT(*) FROM Users)>0--",
-	
+
 	// Stacked queries (dangerous)
 	"test@example.com'; DROP TABLE Users;--",
 	"test@example.com'; INSERT INTO Users (email,password) VALUES ('hacker','hacked');--",
 	"test@example.com'; UPDATE Users SET password='hacked' WHERE email='test@example.com';--",
-	
+
 	// Special characters and escape attempts
 	"test@example.com\\",
 	"test@example.com\"",
@@ -121,9 +121,9 @@ var loginSQLInjectionPayloads = []string{
 func TestLoginSQLInjection_JSON(t *testing.T) {
 	db := setupLoginTestDB(t)
 	defer db.Close()
-	
+
 	createLoginTestUser(t, db)
-	
+
 	authStore := store.NewAuthStore(db)
 	authService := service.NewAuthService(authStore)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -135,32 +135,32 @@ func TestLoginSQLInjection_JSON(t *testing.T) {
 				"email":    payload,
 				"password": "TestPassword123!",
 			}
-			
+
 			jsonData, _ := json.Marshal(loginData)
 			req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(jsonData))
 			req.Header.Set("Content-Type", "application/json")
-			
+
 			w := httptest.NewRecorder()
 			authHandler.Login(w, req)
-			
+
 			// Should not return 200 (successful login) for injection attempts
 			if w.Code == http.StatusOK {
 				t.Errorf("SQL injection payload succeeded: %s (Response: %s)", payload, w.Body.String())
 			}
-			
+
 			// Test with malicious password
 			loginData = map[string]string{
 				"email":    "test@example.com",
 				"password": payload,
 			}
-			
+
 			jsonData, _ = json.Marshal(loginData)
 			req = httptest.NewRequest("POST", "/login", bytes.NewBuffer(jsonData))
 			req.Header.Set("Content-Type", "application/json")
-			
+
 			w = httptest.NewRecorder()
 			authHandler.Login(w, req)
-			
+
 			// Should not return 200 (successful login) for injection attempts
 			if w.Code == http.StatusOK {
 				t.Errorf("SQL injection payload succeeded in password field: %s (Response: %s)", payload, w.Body.String())
@@ -172,9 +172,9 @@ func TestLoginSQLInjection_JSON(t *testing.T) {
 func TestLoginSQLInjection_FormData(t *testing.T) {
 	db := setupLoginTestDB(t)
 	defer db.Close()
-	
+
 	createLoginTestUser(t, db)
-	
+
 	authStore := store.NewAuthStore(db)
 	authService := service.NewAuthService(authStore)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -185,29 +185,29 @@ func TestLoginSQLInjection_FormData(t *testing.T) {
 			formData := url.Values{}
 			formData.Set("email", payload)
 			formData.Set("password", "TestPassword123!")
-			
+
 			req := httptest.NewRequest("POST", "/login", strings.NewReader(formData.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			
+
 			w := httptest.NewRecorder()
 			authHandler.Login(w, req)
-			
+
 			// Should not return 200 (successful login) for injection attempts
 			if w.Code == http.StatusOK {
 				t.Errorf("SQL injection payload succeeded: %s (Response: %s)", payload, w.Body.String())
 			}
-			
+
 			// Test with malicious password
 			formData = url.Values{}
 			formData.Set("email", "test@example.com")
 			formData.Set("password", payload)
-			
+
 			req = httptest.NewRequest("POST", "/login", strings.NewReader(formData.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			
+
 			w = httptest.NewRecorder()
 			authHandler.Login(w, req)
-			
+
 			// Should not return 200 (successful login) for injection attempts
 			if w.Code == http.StatusOK {
 				t.Errorf("SQL injection payload succeeded in password field: %s (Response: %s)", payload, w.Body.String())
@@ -219,9 +219,9 @@ func TestLoginSQLInjection_FormData(t *testing.T) {
 func TestLoginValidCredentials(t *testing.T) {
 	db := setupLoginTestDB(t)
 	defer db.Close()
-	
+
 	createLoginTestUser(t, db)
-	
+
 	authStore := store.NewAuthStore(db)
 	authService := service.NewAuthService(authStore)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -231,18 +231,18 @@ func TestLoginValidCredentials(t *testing.T) {
 		"email":    "test@example.com",
 		"password": "TestPassword123!",
 	}
-	
+
 	jsonData, _ := json.Marshal(loginData)
 	req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	w := httptest.NewRecorder()
 	authHandler.Login(w, req)
-	
+
 	if w.Code != http.StatusOK {
 		t.Errorf("Valid login failed. Expected 200, got %d. Response: %s", w.Code, w.Body.String())
 	}
-	
+
 	// Check if session cookie is set
 	cookies := w.Result().Cookies()
 	sessionCookieFound := false
@@ -252,7 +252,7 @@ func TestLoginValidCredentials(t *testing.T) {
 			break
 		}
 	}
-	
+
 	if !sessionCookieFound {
 		t.Error("Session cookie not set after valid login")
 	}
@@ -261,9 +261,9 @@ func TestLoginValidCredentials(t *testing.T) {
 func TestLoginDatabaseIntegrityAfterInjectionAttempts(t *testing.T) {
 	db := setupLoginTestDB(t)
 	defer db.Close()
-	
+
 	createLoginTestUser(t, db)
-	
+
 	authStore := store.NewAuthStore(db)
 	authService := service.NewAuthService(authStore)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -287,14 +287,14 @@ func TestLoginDatabaseIntegrityAfterInjectionAttempts(t *testing.T) {
 			"email":    payload,
 			"password": "TestPassword123!",
 		}
-		
+
 		jsonData, _ := json.Marshal(loginData)
 		req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(jsonData))
 		req.Header.Set("Content-Type", "application/json")
-		
+
 		w := httptest.NewRecorder()
 		authHandler.Login(w, req)
-		
+
 		// Should not succeed
 		if w.Code == http.StatusOK {
 			t.Errorf("Dangerous SQL injection payload succeeded: %s", payload)
@@ -317,14 +317,14 @@ func TestLoginDatabaseIntegrityAfterInjectionAttempts(t *testing.T) {
 		"email":    "test@example.com",
 		"password": "TestPassword123!",
 	}
-	
+
 	jsonData, _ := json.Marshal(loginData)
 	req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	w := httptest.NewRecorder()
 	authHandler.Login(w, req)
-	
+
 	if w.Code != http.StatusOK {
 		t.Error("Original test user can no longer login after injection attempts")
 	}

@@ -14,8 +14,8 @@ import (
 
 // MockAuthService is a mock implementation of the AuthService for testing.
 type MockAuthService struct {
-	AuthenticateUserFunc func(email, password string) (*models.User, string, error)
-	DeleteSessionFunc    func(sessionID string) (int, error)
+	AuthenticateUserFunc   func(email, password string) (*models.User, string, error)
+	DeleteSessionFunc      func(sessionID string) (int, error)
 	GetUserIDBySessionFunc func(sessionID string) (int, error)
 }
 
@@ -104,5 +104,41 @@ func TestLogin(t *testing.T) {
 
 	if !found {
 		t.Error("session_id cookie not set")
+	}
+}
+
+func TestLogin_SessionFixation_NotPrevented(t *testing.T) {
+	mockAuthService := &MockAuthService{
+		AuthenticateUserFunc: func(email, password string) (*models.User, string, error) {
+			return &models.User{ID: 1, Email: "test@test.com"}, "new-session-id", nil
+		},
+	}
+	authHandler := handlers.NewAuthHandler(mockAuthService)
+
+	loginReq := handlers.LoginRequest{Email: "test@test.com", Password: "password"}
+	body, _ := json.Marshal(loginReq)
+	req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	preSessionID := "fixed-session-id"
+	req.AddCookie(&http.Cookie{Name: "session_id", Value: preSessionID})
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	authHandler.Login(rr, req)
+
+	cookies := rr.Result().Cookies()
+	found := false
+	for _, cookie := range cookies {
+		if cookie.Name == "session_id" {
+			found = true
+			if cookie.Value == preSessionID {
+				t.Error("Session fixation detected: session_id was not regenerated on login")
+			}
+		}
+	}
+	if !found {
+		t.Error("session_id cookie not set after login")
 	}
 }
