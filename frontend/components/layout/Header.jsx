@@ -22,12 +22,17 @@ const Header = () => {
       
       {/* Logo and Search Bar */}
       <div className="flex items-center gap-4">
-        <div className="bg-white rounded-full p-1">
-          <div className="w-6 h-6 bg-[#010c66] rounded-full"></div>
+        <div className="bg-white rounded-full p-1 cursor-pointer">
+          <div className="w-6 h-6 rounded-full" style={{ backgroundColor: 'var(--primary-background)' }}></div>
         </div>
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <input type="text" placeholder="# Explore" className="bg-[#101b70] rounded-full py-1.5 pl-10 pr-4 text-sm focus:outline-none" />
+          <input
+            type="text"
+            placeholder="Search for people, communities ..."
+            className="rounded-full py-1.5 pl-10 pr-4 text-sm focus:outline-none"
+            style={{ backgroundColor: 'var(--secondary-background)', color: 'var(--primary-text)' }}
+          />
         </div>
       </div>
       
@@ -35,25 +40,25 @@ const Header = () => {
       <div className="flex items-center gap-6">
         {/* Home Icon */}
         <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Home click */ }}>
-          <HomeIcon className="w-6 h-6 text-[#ffd700]" />
-          <span className="text-xs text-white mt-1">Home</span>
+          <HomeIcon className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
+          <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Home</span>
         </div>
         {/* Notifications Icon */}
         <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Notifications click */ }}>
-          <BellIcon className="w-6 h-6 text-white" />
-          <span className="text-xs text-white mt-1">Notifications</span>
+          <BellIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
+          <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Notifications</span>
         </div>
         
         {/* Groups Icon */}
         <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Groups click */ }}>
-          <UsersIcon className="w-6 h-6 text-white" />
-          <span className="text-xs text-white mt-1">Groups</span>
+          <UsersIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
+          <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Groups</span>
         </div>
         
         {/* Chats Icon */}
         <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Chats click */ }}>
-          <MessageCircleIcon className="w-6 h-6 text-white" />
-          <span className="text-xs text-white mt-1">Chats</span>
+          <MessageCircleIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
+          <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Chats</span>
         </div>
       </div>
       
@@ -70,7 +75,8 @@ const Header = () => {
         {dropdownOpen && (
           <div className="absolute right-0 mt-2 w-40 bg-white rounded shadow-lg z-10">
             <button
-              className="flex items-center gap-2 px-4 py-2 w-full text-left text-[#010c66] bg-white rounded transition-colors cursor-pointer hover:bg-blue-100"
+              className="flex items-center gap-2 px-4 py-2 w-full text-left bg-white rounded transition-colors cursor-pointer hover:bg-blue-100"
+              style={{ color: 'var(--primary-background)' }}
               onClick={handleLogout}
             >
               <LogOutIcon className="w-4 h-4" />

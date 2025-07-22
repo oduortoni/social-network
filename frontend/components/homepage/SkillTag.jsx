@@ -1,7 +1,16 @@
 import React from 'react';
 const SkillTag = ({ label }) => {
-  return <div className="bg-[#010c66] border border-[#3f3fd3]/30 px-3 py-1 rounded-lg text-xs">
+  return (
+    <div
+      className="px-3 py-1 rounded-lg text-xs border"
+      style={{
+        backgroundColor: 'var(--primary-background)',
+        borderColor: 'var(--tertiary-text)',
+        color: 'var(--primary-text)',
+      }}
+    >
       {label}
-    </div>;
+    </div>
+  );
 };
 export default SkillTag;
