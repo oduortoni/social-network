@@ -1,10 +1,9 @@
 package service
 
 import (
-	"time"
-	"net/http"
-
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/tajjjjr/social-network/backend/internal/models"
@@ -18,9 +17,9 @@ type AuthService struct {
 }
 
 const (
-	EXPIRED_SESSION = "Session expired"
+	EXPIRED_SESSION  = "Session expired"
 	INVALID_PASSWORD = "Invalid password"
-	INVALID_EMAIL    = "Invalid email"
+	INVALID_EMAIL    = "User does not exist"
 )
 
 // NewAuthService creates a new AuthService.
