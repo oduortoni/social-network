@@ -21,6 +21,9 @@ func NewPostService(ps *store.PostStore) *PostService {
 }
 
 func (s *PostService) CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error) {
+	if post.Content == "" {
+		return 0, fmt.Errorf("post content is required")
+	}
 	if len(imageData) > 0 {
 		// Perform image signature check and get detected format
 		imagePath, err := s.saveImage(imageData, "posts")
