@@ -157,7 +157,7 @@ func TestLogin_IncorrectCredentials(t *testing.T) {
 			email:    "nonexistent@test.com",
 			password: "password",
 			mockFunc: func(email, password string) (*models.User, string, error) {
-				return nil, "Invalid email", errors.New("user not found")
+				return nil, "User does not exist", errors.New("user not found")
 			},
 		},
 		{
@@ -173,7 +173,7 @@ func TestLogin_IncorrectCredentials(t *testing.T) {
 			email:    "",
 			password: "password",
 			mockFunc: func(email, password string) (*models.User, string, error) {
-				return nil, "Invalid email", errors.New("empty email")
+				return nil, "User does not exist", errors.New("empty email")
 			},
 		},
 		{
