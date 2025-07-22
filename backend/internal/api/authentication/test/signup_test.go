@@ -6,11 +6,13 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
+	"github.com/tajjjjr/social-network/backend/utils"
 )
 
 // createTestDB creates a temporary in-memory SQLite DB for testing
@@ -153,5 +155,178 @@ func TestUserExists_UserExists(t *testing.T) {
 	exists := authentication.UserExists("existing@example.com", db)
 	if !exists {
 		t.Error("expected user to exist")
+	}
+}
+
+// Test registration with missing required fields
+func TestSignupHandler_MissingFields(t *testing.T) {
+	db := createTestDB(t)
+	defer db.Close()
+
+	testCases := []struct {
+		name   string
+		fields map[string]string
+	}{
+		{
+			name: "Missing email",
+			fields: map[string]string{
+				"password":          "Password1!",
+				"firstName":         "John",
+				"lastName":          "Doe",
+				"dob":               "2000-01-01",
+				"nickname":          "johndoe",
+				"aboutMe":           "Hello",
+				"profileVisibility": "public",
+			},
+		},
+		{
+			name: "Missing password",
+			fields: map[string]string{
+				"email":             "test@example.com",
+				"firstName":         "John",
+				"lastName":          "Doe",
+				"dob":               "2000-01-01",
+				"nickname":          "johndoe",
+				"aboutMe":           "Hello",
+				"profileVisibility": "public",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			body, contentType, err := createMultipartForm(tc.fields)
+			if err != nil {
+				t.Fatalf("Failed to create multipart form: %v", err)
+			}
+
+			req := httptest.NewRequest("POST", "/register", body)
+			req.Header.Set("Content-Type", contentType)
+			w := httptest.NewRecorder()
+			authentication.SignupHandler(w, req, db)
+			resp := w.Result()
+
+			// Should return bad request for missing required fields (email/password)
+			if resp.StatusCode != http.StatusBadRequest && resp.StatusCode != http.StatusInternalServerError {
+				t.Errorf("expected status %d or %d for missing field, got %d",
+					http.StatusBadRequest, http.StatusInternalServerError, resp.StatusCode)
+			}
+		})
+	}
+}
+
+// Test registration with invalid email formats
+func TestSignupHandler_InvalidEmailFormat(t *testing.T) {
+	db := createTestDB(t)
+	defer db.Close()
+
+	invalidEmails := []string{
+		"invalid-email",
+		"@example.com",
+		"test@",
+		"test.example.com",
+		"test@.com",
+		"test@example.",
+		"",
+		"   ",
+	}
+
+	for _, email := range invalidEmails {
+		t.Run("InvalidEmail_"+email, func(t *testing.T) {
+			fields := map[string]string{
+				"email":             email,
+				"password":          "Password1!",
+				"firstName":         "John",
+				"lastName":          "Doe",
+				"dob":               "2000-01-01",
+				"nickname":          "johndoe",
+				"aboutMe":           "Hello",
+				"profileVisibility": "public",
+			}
+
+			body, contentType, err := createMultipartForm(fields)
+			if err != nil {
+				t.Fatalf("Failed to create multipart form: %v", err)
+			}
+
+			req := httptest.NewRequest("POST", "/register", body)
+			req.Header.Set("Content-Type", contentType)
+			w := httptest.NewRecorder()
+			authentication.SignupHandler(w, req, db)
+			resp := w.Result()
+
+			// Should return bad request for invalid email format
+			if resp.StatusCode != http.StatusBadRequest {
+				t.Errorf("expected status %d for invalid email '%s', got %d",
+					http.StatusBadRequest, email, resp.StatusCode)
+			}
+		})
+	}
+}
+
+// Test password hashing and storage in the users table
+func TestSignupHandler_PasswordHashing(t *testing.T) {
+	db := createTestDB(t)
+	defer db.Close()
+
+	// Test data
+	email := "test.password@example.com"
+	password := "SecurePassword123!"
+
+	fields := map[string]string{
+		"email":             email,
+		"password":          password,
+		"firstName":         "John",
+		"lastName":          "Doe",
+		"dob":               "2000-01-01",
+		"nickname":          "johndoe",
+		"aboutMe":           "Hello",
+		"profileVisibility": "public",
+	}
+
+	body, contentType, err := createMultipartForm(fields)
+	if err != nil {
+		t.Fatalf("Failed to create multipart form: %v", err)
+	}
+
+	req := httptest.NewRequest("POST", "/register", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+	authentication.SignupHandler(w, req, db)
+	resp := w.Result()
+
+	// Verify successful registration
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	// Retrieve the stored password from the database
+	var storedPassword string
+	err = db.QueryRow("SELECT password FROM Users WHERE email = ?", email).Scan(&storedPassword)
+	if err != nil {
+		t.Fatalf("Failed to retrieve user from database: %v", err)
+	}
+
+	// Verify the password is not stored in plain text
+	if storedPassword == password {
+		t.Error("Password is stored in plain text, should be hashed")
+	}
+
+	// Verify the password is properly hashed (should start with bcrypt identifier $2a$ or similar)
+	if !strings.HasPrefix(storedPassword, "$2") {
+		t.Errorf("Password does not appear to be hashed with bcrypt: %s", storedPassword)
+	}
+
+	// Verify we can validate the password against the hash
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	err = passwordManager.ComparePassword(storedPassword, password)
+	if err != nil {
+		t.Errorf("Failed to validate password against hash: %v", err)
+	}
+
+	// Verify wrong password fails validation
+	err = passwordManager.ComparePassword(storedPassword, "WrongPassword123!")
+	if err == nil {
+		t.Error("Wrong password validated successfully, should have failed")
 	}
 }
