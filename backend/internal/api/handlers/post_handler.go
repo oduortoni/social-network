@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -12,8 +13,6 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/utils"
 )
-
-
 
 type PostHandler struct {
 	PostService service.PostServiceInterface
@@ -43,39 +42,10 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 	post.UserID = userID
 
-	// Handle image upload
-	file, handler, err := r.FormFile("image")
-	var imageData []byte
-	var imageMimeType string
-
-	if err == nil { // No error means an image was provided
-		defer file.Close()
-
-		if handler.Size > 20*1024*1024 { // 20 MB limit
-			http.Error(w, "Image size exceeds 20MB limit", http.StatusBadRequest)
-			return
-		}
-
-		// Create a TeeReader to read from the file and also pass to checkImageSignature
-		var buf bytes.Buffer
-		teeReader := io.TeeReader(file, &buf)
-
-		// Perform image signature check
-		if _, err := utils.DetectImageFormat(teeReader); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		// Read the entire image data from the buffer and the remaining file content
-		imageData, err = io.ReadAll(io.MultiReader(&buf, file))
-		if err != nil {
-			http.Error(w, "Failed to read image data: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		imageMimeType = handler.Header.Get("Content-Type")
-	} else if err != http.ErrMissingFile {
-		// Other errors during FormFile processing
-		http.Error(w, "Error retrieving the file: "+err.Error(), http.StatusInternalServerError)
+	// Handle optional image upload using the helper
+	imageData, imageMimeType, status, err := handleImageUpload(r)
+	if err != nil {
+		http.Error(w, err.Error(), status)
 		return
 	}
 
@@ -119,39 +89,10 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 	comment.UserID = userID
 
-	// Handle image upload
-	file, handler, err := r.FormFile("image")
-	var imageData []byte
-	var imageMimeType string
-
-	if err == nil { // No error means an image was provided
-		defer file.Close()
-
-		if handler.Size > 20*1024*1024 { // 20 MB limit
-			http.Error(w, "Image size exceeds 20MB limit", http.StatusBadRequest)
-			return
-		}
-
-		// Create a TeeReader to read from the file and also pass to checkImageSignature
-		var buf bytes.Buffer
-		teeReader := io.TeeReader(file, &buf)
-
-		// Perform image signature check
-		if _, err := utils.DetectImageFormat(teeReader); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		// Read the entire image data from the buffer and the remaining file content
-		imageData, err = io.ReadAll(io.MultiReader(&buf, file))
-		if err != nil {
-			http.Error(w, "Failed to read image data: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		imageMimeType = handler.Header.Get("Content-Type")
-	} else if err != http.ErrMissingFile {
-		// Other errors during FormFile processing
-		http.Error(w, "Error retrieving the file: "+err.Error(), http.StatusInternalServerError)
+	// Handle optional image upload using the helper
+	imageData, imageMimeType, status, err := handleImageUpload(r)
+	if err != nil {
+		http.Error(w, err.Error(), status)
 		return
 	}
 
@@ -205,4 +146,42 @@ func (h *PostHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(posts)
+}
+
+// handleImageUpload processes an optional image from a multipart form.
+// It returns the image data, its MIME type, an appropriate HTTP status code for errors, and any error encountered.
+func handleImageUpload(r *http.Request) (imageData []byte, imageMimeType string, status int, err error) {
+	file, handler, err := r.FormFile("image")
+	if err != nil {
+		if err == http.ErrMissingFile {
+			return nil, "", 0, nil // No image provided, not an error
+		}
+		// Other errors during FormFile processing
+		return nil, "", http.StatusInternalServerError, fmt.Errorf("error retrieving the file: %w", err)
+	}
+	defer file.Close()
+
+	// 20 MB limit
+	const maxImageSize = 20 << 20
+	if handler.Size > maxImageSize {
+		return nil, "", http.StatusBadRequest, fmt.Errorf("image size exceeds 20MB limit")
+	}
+
+	// Use a TeeReader to read from the file for both signature check and full read
+	var buf bytes.Buffer
+	teeReader := io.TeeReader(file, &buf)
+
+	// Perform image signature check
+	if _, err := utils.DetectImageFormat(teeReader); err != nil {
+		return nil, "", http.StatusBadRequest, err
+	}
+
+	// Read the entire image data from the buffer and the remaining file content
+	imageData, err = io.ReadAll(io.MultiReader(&buf, file))
+	if err != nil {
+		return nil, "", http.StatusInternalServerError, fmt.Errorf("failed to read image data: %w", err)
+	}
+	imageMimeType = handler.Header.Get("Content-Type")
+
+	return imageData, imageMimeType, 0, nil
 }
