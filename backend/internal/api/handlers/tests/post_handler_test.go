@@ -132,7 +132,7 @@ func TestCreatePost(t *testing.T) {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 		}
 
-		if !strings.Contains(rr.Body.String(), "Image size exceeds 20MB limit") {
+		if !strings.Contains(rr.Body.String(), "image size exceeds 20MB limit") {
 			t.Errorf("handler returned unexpected error message: %s", rr.Body.String())
 		}
 	})
