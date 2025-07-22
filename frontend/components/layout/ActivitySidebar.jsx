@@ -60,9 +60,9 @@ const ActivitySidebar = () => {
 
   return (
     <div className="w-72">
-      <div className="bg-[#101b70] rounded-xl p-4">
-        <h3 className="font-bold mb-4">Recent activity</h3>
-        <div className="flex flex-col gap-4">
+    <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>        
+      <h3 className="font-bold mb-4">Recent activity</h3>
+        <div className="flex flex-col gap-4 cursor-pointer">
           {activities.map((activity, idx) => (
             <ActivityItem key={idx} {...activity} />
           ))}
