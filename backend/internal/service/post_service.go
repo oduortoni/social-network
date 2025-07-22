@@ -33,6 +33,53 @@ func (s *PostService) CreatePost(post *models.Post, imageData []byte, imageMimeT
 	return s.PostStore.CreatePost(post)
 }
 
+func (s *PostService) CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error) {
+	if comment.Content == "" {
+		return 0, fmt.Errorf("comment content is required")
+	}
+	if len(imageData) > 0 {
+		// Perform image signature check and get detected format
+		detectedFormat, err := utils.DetectImageFormat(bytes.NewReader(imageData))
+		if err != nil {
+			return 0, fmt.Errorf("image signature check failed: %w", err)
+		}
+
+		// Determine file extension from detected format (more reliable than MIME type)
+		var extension string
+		switch detectedFormat {
+		case utils.JPEG:
+			extension = ".jpg"
+		case utils.PNG:
+			extension = ".png"
+		case utils.GIF:
+			extension = ".gif"
+		default:
+			return 0, fmt.Errorf("unsupported image format: %s", detectedFormat)
+		}
+
+		// Generate a unique filename
+		uuid := uuid.New()
+		imageFileName := fmt.Sprintf("%s%s", uuid.String(), extension)
+		imagePath := filepath.Join("backend/uploads/comments", imageFileName)
+
+		// Create the directory if it doesn't exist
+		err = os.MkdirAll("backend/uploads/comments", os.ModePerm)
+		if err != nil {
+			return 0, fmt.Errorf("failed to create directory: %w", err)
+		}
+
+		// Save the image file
+		err = os.WriteFile(imagePath, imageData, 0644)
+		if err != nil {
+			return 0, fmt.Errorf("failed to save image: %w", err)
+		}
+
+		comment.Image = imagePath
+	}
+
+	return s.PostStore.CreateComment(comment)
+}
+
 func (s *PostService) GetPostByID(id int64) (*models.Post, error) {
 	return s.PostStore.GetPostByID(id)
 }
