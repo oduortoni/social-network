@@ -20,9 +20,9 @@ The entire authentication system has been comprehensively tested including regis
 - `backend/internal/api/authentication/test/signup_test.go` - Registration tests
 - `backend/internal/api/authentication/test/signup_sql_injection_test.go` - Registration security tests
 - `backend/internal/api/handlers/tests/auth_handler_test.go` - Login functionality tests
-- `backend/internal/api/handlers/tests/login_sql_injection_test.go` - Login security tests
-- `backend/internal/api/handlers/tests/login_session_persistence_test.go` - Session management tests
-- `backend/internal/api/handlers/tests/login_edge_case_test.go` - Edge cases and concurrent access tests
+- `backend/internal/api/handlers/tests/auth_handler_sql_injection_test.go` - Login security tests
+- `backend/internal/api/handlers/tests/auth_handler_session_persistence_test.go` - Session management tests
+- `backend/internal/api/handlers/tests/auth_handler_edge_case_test.go` - Edge cases and concurrent access tests
 
 ---
 
