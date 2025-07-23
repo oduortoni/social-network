@@ -10,6 +10,8 @@ type AuthServiceInterface interface {
 	DeleteSession(sessionID string) (int, error)
 	GetUserIDBySession(sessionID string) (int, error)
 	CreateUser(user *models.User) (*models.User, error)
+	ValidateEmail(email string) (bool, error)
+	UserExists(email string) (bool, error)
 }
 
 // PostServiceInterface defines the interface for the post service.
