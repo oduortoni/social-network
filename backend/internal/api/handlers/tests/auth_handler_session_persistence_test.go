@@ -20,6 +20,9 @@ func TestSessionPersistence_ValidSession(t *testing.T) {
 			}
 			return 0, errors.New("invalid session")
 		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
@@ -60,6 +63,9 @@ func TestSessionPersistence_InvalidSession(t *testing.T) {
 	mockAuthService := &MockAuthService{
 		GetUserIDBySessionFunc: func(sessionID string) (int, error) {
 			return 0, errors.New("invalid session")
+		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
 		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
@@ -102,6 +108,9 @@ func TestSessionPersistence_NoSession(t *testing.T) {
 		GetUserIDBySessionFunc: func(sessionID string) (int, error) {
 			return 0, errors.New("no session")
 		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
@@ -142,6 +151,9 @@ func TestLogout_ValidSession(t *testing.T) {
 				return http.StatusOK, nil
 			}
 			return 0, errors.New("session not found")
+		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
 		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
@@ -193,6 +205,9 @@ func TestLogout_NoSession(t *testing.T) {
 	mockAuthService := &MockAuthService{
 		DeleteSessionFunc: func(sessionID string) (int, error) {
 			return http.StatusOK, nil
+		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
 		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)

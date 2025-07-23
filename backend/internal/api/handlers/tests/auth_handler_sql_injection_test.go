@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -327,5 +328,214 @@ func TestLoginDatabaseIntegrityAfterInjectionAttempts(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Error("Original test user can no longer login after injection attempts")
+	}
+}
+
+func setupSignupTestDB(t *testing.T) *sql.DB {
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("Failed to create test database: %v", err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE Users (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			email TEXT UNIQUE NOT NULL,
+			password TEXT NOT NULL,
+			first_name TEXT,
+			last_name TEXT,
+			date_of_birth TEXT,
+			nickname TEXT,
+			about_me TEXT,
+			is_profile_public BOOLEAN,
+			avatar TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		t.Fatalf("Failed to create Users table: %v", err)
+	}
+
+	return db
+}
+
+// Helper to create multipart form body for signup
+func createSignupMultipartForm(fields map[string]string) (*bytes.Buffer, string, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	for key, val := range fields {
+		_ = writer.WriteField(key, val)
+	}
+	err := writer.Close()
+	return body, writer.FormDataContentType(), err
+}
+
+func TestSignupHandler_SQLInjectionAttempt(t *testing.T) {
+	db := setupSignupTestDB(t)
+	defer db.Close()
+
+	authStore := store.NewAuthStore(db)
+	authService := service.NewAuthService(authStore)
+	authHandler := handlers.NewAuthHandler(authService)
+
+	fields := map[string]string{
+		"email":             "' OR 1=1;--",
+		"password":          "Password1!",
+		"firstName":         "John",
+		"lastName":          "Doe",
+		"dob":               "2000-01-01",
+		"nickname":          "hacker",
+		"aboutMe":           "<script>alert(1)</script>",
+		"profileVisibility": "public",
+	}
+	body, contentType, _ := createSignupMultipartForm(fields)
+	req := httptest.NewRequest("POST", "/signup", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+	authHandler.Signup(w, req)
+	resp := w.Result()
+	if resp.StatusCode == http.StatusOK {
+		t.Error("SQL injection attempt should not succeed")
+	}
+}
+
+func TestSignupHandler_XSSPrevention(t *testing.T) {
+	db := setupSignupTestDB(t)
+	defer db.Close()
+
+	authStore := store.NewAuthStore(db)
+	authService := service.NewAuthService(authStore)
+	authHandler := handlers.NewAuthHandler(authService)
+
+	fields := map[string]string{
+		"email":             "test@example.com",
+		"password":          "Password1!",
+		"firstName":         "<script>alert('xss')</script>",
+		"lastName":          "<img src=x onerror=alert(1)>",
+		"dob":               "2000-01-01",
+		"nickname":          "&lt;script&gt;",
+		"aboutMe":           "Hello <b>world</b> & <script>alert('xss')</script>",
+		"profileVisibility": "public",
+	}
+	body, contentType, err := createSignupMultipartForm(fields)
+	if err != nil {
+		t.Fatalf("Failed to create multipart form: %v", err)
+	}
+
+	req := httptest.NewRequest("POST", "/signup", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+	authHandler.Signup(w, req)
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	var firstName, lastName, nickname, aboutMe string
+	err = db.QueryRow("SELECT first_name, last_name, nickname, about_me FROM Users WHERE email = ?", "test@example.com").
+		Scan(&firstName, &lastName, &nickname, &aboutMe)
+	if err != nil {
+		t.Fatalf("Failed to query user: %v", err)
+	}
+
+	expectedFirstName := "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
+	expectedLastName := "&lt;img src=x onerror=alert(1)&gt;"
+	expectedNickname := "&amp;lt;script&amp;gt;"
+	expectedAboutMe := "Hello &lt;b&gt;world&lt;/b&gt; &amp; &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
+
+	if firstName != expectedFirstName {
+		t.Errorf("first_name not properly escaped. Expected: %s, Got: %s", expectedFirstName, firstName)
+	}
+	if lastName != expectedLastName {
+		t.Errorf("last_name not properly escaped. Expected: %s, Got: %s", expectedLastName, lastName)
+	}
+	if nickname != expectedNickname {
+		t.Errorf("nickname not properly escaped. Expected: %s, Got: %s", expectedNickname, nickname)
+	}
+	if aboutMe != expectedAboutMe {
+		t.Errorf("about_me not properly escaped. Expected: %s, Got: %s", expectedAboutMe, aboutMe)
+	}
+}
+
+func TestSignupHandler_SQLInjectionVariants(t *testing.T) {
+	db := setupSignupTestDB(t)
+	defer db.Close()
+
+	authStore := store.NewAuthStore(db)
+	authService := service.NewAuthService(authStore)
+	authHandler := handlers.NewAuthHandler(authService)
+
+	injections := []string{
+		"' OR '1'='1",
+		"' OR 1=1--",
+		"' OR 1=1#",
+		"admin'--",
+		"' UNION SELECT 1,2,3--",
+		"' UNION SELECT email,password,id FROM Users--",
+		"test@example.com' AND 1=1--",
+		"test@example.com' AND (SELECT COUNT(*) FROM Users)>0--",
+		"test@example.com'; DROP TABLE Users;--",
+		"test@example.com'; INSERT INTO Users (email,password) VALUES ('hacker','hacked');--",
+		"test@example.com'; UPDATE Users SET password='hacked' WHERE email='test@example.com';--",
+		"test@example.com' AND sqlite_version()--",
+		"test@example.com' OR 1=1 LIMIT 1--",
+		"test@example.com' OR 1=1 LIMIT 1;--",
+		"test@example.com' OR 1=1;--",
+		"test@example.com' OR 1=1#",
+		"test@example.com' OR 1=1/*",
+		"test@example.com' OR 1=1-- -",
+		"test@example.com' OR 1=1--+",
+		"test@example.com' OR 1=1--%0A",
+		"test@example.com' OR 1=1--%0D%0A",
+		"test@example.com' OR 1=1--%23",
+		"test@example.com' OR 1=1--%3B",
+		"test@example.com' OR 1=1--%2F%2A",
+		"test@example.com' OR 1=1--%2D%2D",
+		"test@example.com' OR 1=1--%20",
+		"test@example.com' OR 1=1--%09",
+		"test@example.com' OR 1=1--%0B",
+		"test@example.com' OR 1=1--%0C",
+		"test@example.com' OR 1=1--%0D",
+		"test@example.com' OR 1=1--%0A%0D",
+		"test@example.com' OR 1=1--%0D%0A",
+		"test@example.com' OR 1=1--%0A%0A",
+		"test@example.com' OR 1=1--%0D%0D",
+		"test@example.com' OR 1=1--%0A%0A%0A",
+		"test@example.com' OR 1=1--%0D%0D%0D",
+		"test@example.com' OR 1=1--%0A%0D%0A%0D",
+		"test@example.com' OR 1=1--%0D%0A%0D%0A",
+		"test@example.com' OR 1=1--%0A%0A%0A%0A",
+		"test@example.com' OR 1=1--%0D%0D%0D%0D",
+		"test@example.com' OR 1=1--%0A%0D%0A%0D%0A",
+		"test@example.com' OR 1=1--%0D%0A%0D%0A%0D%0A",
+		"test@example.com' OR 1=1--%0A%0A%0A%0A%0A",
+		"test@example.com' OR 1=1--%0D%0D%0D%0D%0D",
+		"test@example.com' OR 1=1--%0A%0D%0A%0D%0A%0D%0A",
+		"test@example.com' OR 1=1--%0D%0A%0D%0A%0D%0A%0D%0A",
+		"test@example.com' OR 1=1--%0A%0A%0A%0A%0A%0A",
+		"test@example.com' OR 1=1--%0D%0D%0D%0D%0D%0D",
+		"test@example.com' OR 1=1--%0A%0D%0A%0D%0A%0D%0A%0D%0A%0D%0A",
+		"test@example.com' OR 1=1--%0D%0A%0D%0A%0D%0A%0D%0A%0D%0A",
+	}
+	for _, inj := range injections {
+		fields := map[string]string{
+			"email":             inj,
+			"password":          "Password1!",
+			"firstName":         "John",
+			"lastName":          "Doe",
+			"dob":               "2000-01-01",
+			"nickname":          "hacker",
+			"aboutMe":           "test",
+			"profileVisibility": "public",
+		}
+		body, contentType, _ := createSignupMultipartForm(fields)
+		req := httptest.NewRequest("POST", "/signup", body)
+		req.Header.Set("Content-Type", contentType)
+		w := httptest.NewRecorder()
+		authHandler.Signup(w, req)
+		resp := w.Result()
+		if resp.StatusCode == http.StatusOK {
+			t.Errorf("SQL injection variant '%s' should not succeed", inj)
+		}
 	}
 }
