@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -27,6 +29,19 @@ func NewAuthHandler(as service.AuthServiceInterface) *AuthHandler {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// SignupRequest represents the request body for a signup request.
+type SignupRequest struct {
+	Email           string `json:"email"`
+	Password        string `json:"password"`
+	FirstName       string `json:"firstName"`
+	LastName        string `json:"lastName"`
+	DateOfBirth     string `json:"dob"`
+	Nickname        string `json:"nickname"`
+	AboutMe         string `json:"aboutMe"`
+	IsProfilePublic bool   `json:"profileVisibility"`
+	Avatar          string `json:"avatar"`
 }
 
 func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +115,78 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged in successfully"})
 }
 
+// Signup handles user registration
+func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
+	// Parse multipart form (limit: 10MB)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Failed to parse form"})
+		return
+	}
+
+	// Extract form values
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	firstName := r.FormValue("firstName")
+	lastName := r.FormValue("lastName")
+	dateOfBirth := r.FormValue("dob")
+	nickname := r.FormValue("nickname")
+	aboutMe := r.FormValue("aboutMe")
+	isProfilePublic := r.FormValue("profileVisibility")
+
+	// Sanitize user input to prevent XSS attacks
+	email = html.EscapeString(email)
+	firstName = html.EscapeString(firstName)
+	lastName = html.EscapeString(lastName)
+	dateOfBirth = html.EscapeString(dateOfBirth)
+	nickname = html.EscapeString(nickname)
+	aboutMe = html.EscapeString(aboutMe)
+
+	// Validate email format
+	if !validateEmail(email) {
+		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid email format"})
+		return
+	}
+
+	// Handle avatar upload
+	userAvatar := "no profile photo"
+	file, header, err := r.FormFile("avatar")
+	if err == nil && file != nil {
+		defer file.Close()
+		userAvatar, err = UploadAvatarImage(file, header)
+		if err != nil {
+			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: userAvatar})
+			return
+		}
+	}
+
+	// Create user model
+	user := &models.User{
+		Email:           email,
+		Password:        password, // Will be hashed in service layer
+		FirstName:       &firstName,
+		LastName:        &lastName,
+		DateOfBirth:     &dateOfBirth,
+		Nickname:        &nickname,
+		AboutMe:         &aboutMe,
+		IsProfilePublic: isProfilePublic == "public",
+		Avatar:          &userAvatar,
+	}
+
+	// Create user through service
+	createdUser, err := auth.AuthService.CreateUser(user)
+	if err != nil {
+		if strings.Contains(err.Error(), "already exists") {
+			models.RespondJSON(w, http.StatusConflict, models.Response{Message: "Email or nickname already taken"})
+		} else {
+			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to create user"})
+		}
+		return
+	}
+
+	fmt.Println("User created successfully:", createdUser.ID)
+	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Registration successful"})
+}
+
 // LogoutHandler deletes session and clears cookie
 func (auth *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
@@ -140,4 +227,14 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), utils.User_id, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// validateEmail validates email format using regex
+func validateEmail(email string) bool {
+	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re, err := regexp.Compile(emailPattern)
+	if err != nil {
+		return false
+	}
+	return re.MatchString(email)
 }
