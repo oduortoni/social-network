@@ -67,3 +67,35 @@ func (s *AuthService) GetUserIDBySession(sessionID string) (int, error) {
 	}
 	return userID, nil
 }
+
+// CreateUser creates a new user with validation and password hashing
+func (s *AuthService) CreateUser(user *models.User) (*models.User, error) {
+	// Check if user already exists
+	exists, err := s.AuthStore.UserExists(user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	if exists {
+		return nil, fmt.Errorf("user with email %s already exists", user.Email)
+	}
+
+	// Hash the password
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	hashedPassword, err := passwordManager.HashPassword(user.Password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+	user.Password = hashedPassword
+
+	// Set created time
+	user.CreatedAt = time.Now()
+
+	// Create user in database
+	userID, err := s.AuthStore.CreateUser(user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	user.ID = userID
+	return user, nil
+}
