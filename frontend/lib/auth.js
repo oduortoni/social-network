@@ -105,7 +105,7 @@ export const handleLoginFormSubmit = async (e, formData, setFormError) => {
 
     if (!response.ok) {
       const error = await response.json();
-      console.error("Login error:", error);
+     // console.error("Login error:", error);
       setFormError(error.message || "Login failed");
       return { success: false, error: error.message || "Login failed" };
     }
