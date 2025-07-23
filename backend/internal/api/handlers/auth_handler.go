@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html"
+	"io"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -42,6 +43,13 @@ type SignupRequest struct {
 	AboutMe         string `json:"aboutMe"`
 	IsProfilePublic bool   `json:"profileVisibility"`
 	Avatar          string `json:"avatar"`
+}
+
+// StepOneCredintial represents the user's credentials on step One of registration.
+type StepOneCredintial struct {
+	Email           string `json:"email"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirm_password"`
 }
 
 func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -142,7 +150,12 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	aboutMe = html.EscapeString(aboutMe)
 
 	// Validate email format
-	if !validateEmail(email) {
+	IsEmailValid, err := auth.AuthService.ValidateEmail(email)
+	if err != nil {
+		models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Regex error in validating Email"})
+		return
+	}
+	if !IsEmailValid {
 		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid email format"})
 		return
 	}
@@ -229,12 +242,74 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// validateEmail validates email format using regex
-func validateEmail(email string) bool {
-	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	re, err := regexp.Compile(emailPattern)
+// ValidateAccountStepOne validates Account Crediential for Step One
+func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	var serverresponse models.Response
+	statusCode := http.StatusOK
+	var AccountCrediential StepOneCredintial
+
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return false
+		serverresponse.Message = "Failed to read request body"
+		statusCode = http.StatusInternalServerError
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
 	}
-	return re.MatchString(email)
+	if err := json.Unmarshal(body, &AccountCrediential); err != nil {
+		serverresponse.Message = "Failed to parse request body"
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// Validate required fields
+	if AccountCrediential.Email == "" || AccountCrediential.Password == "" || AccountCrediential.ConfirmPassword == "" {
+		serverresponse.Message = "Missing required fields"
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// validate email
+	IsEmailValid, err := auth.AuthService.ValidateEmail(AccountCrediential.Email)
+	if err != nil {
+		serverresponse.Message = "Regex error in validating Email"
+		statusCode = http.StatusInternalServerError
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+	if !IsEmailValid {
+		serverresponse.Message = "Invalid Email format"
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// password is same as confirm passwod
+	if AccountCrediential.Password != AccountCrediential.ConfirmPassword {
+		serverresponse.Message = "Passwords do not match."
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// Check if user already exists
+	if UserExists, err := auth.AuthService.UserExists(AccountCrediential.Email); err != nil || UserExists {
+		serverresponse.Message = "Email already exists"
+		statusCode = http.StatusConflict
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+	// validate password
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	_, err = passwordManager.HashPassword(AccountCrediential.Password)
+	if err != nil {
+		serverresponse.Message = err.Error()
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	serverresponse.Message = "Ok"
+	models.RespondJSON(w, statusCode, serverresponse)
 }
