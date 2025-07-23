@@ -31,9 +31,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.HandleFunc("POST /validate/step1", func(w http.ResponseWriter, r *http.Request) {
 		authentication.ValidateAccountStepOne(w, r, db)
 	})
-	mux.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
-		authentication.SignupHandler(w, r, db)
-	})
+	mux.HandleFunc("POST /register", authHandler.Signup)
 	mux.HandleFunc("POST /login", authHandler.Login)
 
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
