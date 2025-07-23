@@ -80,3 +80,43 @@ func (s *AuthStore) DeleteSession(sessionID string) error {
 	_, err := s.DB.Exec("DELETE FROM Sessions WHERE id = ?", sessionID)
 	return err
 }
+
+// CreateUser creates a new user in the database
+func (s *AuthStore) CreateUser(user *models.User) (int64, error) {
+	stmt, err := s.DB.Prepare(`
+		INSERT INTO Users (email, password, first_name, last_name, date_of_birth, nickname, about_me, is_profile_public, avatar, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(
+		user.Email,
+		user.Password,
+		user.FirstName,
+		user.LastName,
+		user.DateOfBirth,
+		user.Nickname,
+		user.AboutMe,
+		user.IsProfilePublic,
+		user.Avatar,
+		user.CreatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.LastInsertId()
+}
+
+// UserExists checks if a user with the given email already exists
+func (s *AuthStore) UserExists(email string) (bool, error) {
+	var count int
+	err := s.DB.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ?", email).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
