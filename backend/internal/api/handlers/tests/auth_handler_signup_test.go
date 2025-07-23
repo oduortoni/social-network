@@ -13,6 +13,7 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // createMultipartForm creates a multipart form request body for testing
@@ -38,6 +39,12 @@ func TestSignup_Success(t *testing.T) {
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			user.ID = 1
 			return user, nil
+		},
+		ValidateEmailFunc: func(email string) (bool, error) {
+			return true, nil
+		},
+		UserExistsFunc: func(email string) (bool, error) {
+			return false, nil
 		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
@@ -82,6 +89,12 @@ func TestSignup_UserAlreadyExists(t *testing.T) {
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return nil, errors.New("user with email test@example.com already exists")
 		},
+		ValidateEmailFunc: func(email string) (bool, error) {
+			return true, nil
+		},
+		UserExistsFunc: func(email string) (bool, error) {
+			return true, nil // User already exists
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
@@ -124,6 +137,13 @@ func TestSignup_InvalidEmail(t *testing.T) {
 	mockAuthService := &MockAuthService{
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return user, nil
+		},
+		ValidateEmailFunc: func(email string) (bool, error) {
+			// Return false for invalid emails to trigger the validation error
+			return false, nil
+		},
+		UserExistsFunc: func(email string) (bool, error) {
+			return false, nil
 		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
@@ -185,6 +205,12 @@ func TestSignup_InvalidFormData(t *testing.T) {
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return user, nil
 		},
+		ValidateEmailFunc: func(email string) (bool, error) {
+			return true, nil
+		},
+		UserExistsFunc: func(email string) (bool, error) {
+			return false, nil
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
@@ -213,6 +239,12 @@ func TestSignup_ServiceError(t *testing.T) {
 	mockAuthService := &MockAuthService{
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return nil, errors.New("database connection failed")
+		},
+		ValidateEmailFunc: func(email string) (bool, error) {
+			return true, nil
+		},
+		UserExistsFunc: func(email string) (bool, error) {
+			return false, nil
 		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
@@ -268,6 +300,12 @@ func TestSignup_XSSPrevention(t *testing.T) {
 			user.ID = 1
 			return user, nil
 		},
+		ValidateEmailFunc: func(email string) (bool, error) {
+			return true, nil
+		},
+		UserExistsFunc: func(email string) (bool, error) {
+			return false, nil
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
@@ -318,6 +356,12 @@ func TestSignup_ProfileVisibility(t *testing.T) {
 					}
 					user.ID = 1
 					return user, nil
+				},
+				ValidateEmailFunc: func(email string) (bool, error) {
+					return true, nil
+				},
+				UserExistsFunc: func(email string) (bool, error) {
+					return false, nil
 				},
 			}
 			authHandler := handlers.NewAuthHandler(mockAuthService)
@@ -400,6 +444,12 @@ func TestSignup_MissingFields(t *testing.T) {
 					user.ID = 1
 					return user, nil
 				},
+				ValidateEmailFunc: func(email string) (bool, error) {
+					return true, nil
+				},
+				UserExistsFunc: func(email string) (bool, error) {
+					return false, nil
+				},
 			}
 			authHandler := handlers.NewAuthHandler(mockAuthService)
 
@@ -426,6 +476,9 @@ func TestSignup_MissingFields(t *testing.T) {
 
 // Test password hashing and storage in the users table via handlers.Signup
 func TestSignup_PasswordHashing(t *testing.T) {
+	email := "test.password@example.com"
+	password := "SecurePassword123!"
+
 	// Mock AuthService that stores the password for inspection
 	var storedPassword string
 	mockAuthService := &MockAuthService{
@@ -433,15 +486,27 @@ func TestSignup_PasswordHashing(t *testing.T) {
 			if user.Password == "" {
 				t.Fatal("Password should not be empty")
 			}
+			// Simulate password hashing like the real service does
+			if user.Password == password {
+				// Hash the password using bcrypt (simulating the real service)
+				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+				if err != nil {
+					return nil, err
+				}
+				user.Password = string(hashedPassword)
+			}
 			storedPassword = user.Password
 			user.ID = 1
 			return user, nil
 		},
+		ValidateEmailFunc: func(email string) (bool, error) {
+			return true, nil
+		},
+		UserExistsFunc: func(email string) (bool, error) {
+			return false, nil
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
-
-	email := "test.password@example.com"
-	password := "SecurePassword123!"
 
 	fields := map[string]string{
 		"email":             email,
