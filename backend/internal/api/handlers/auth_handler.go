@@ -25,34 +25,8 @@ func NewAuthHandler(as service.AuthServiceInterface) *AuthHandler {
 	return &AuthHandler{AuthService: as}
 }
 
-// LoginRequest represents the request body for a login request.
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-// SignupRequest represents the request body for a signup request.
-type SignupRequest struct {
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	FirstName       string `json:"firstName"`
-	LastName        string `json:"lastName"`
-	DateOfBirth     string `json:"dob"`
-	Nickname        string `json:"nickname"`
-	AboutMe         string `json:"aboutMe"`
-	IsProfilePublic bool   `json:"profileVisibility"`
-	Avatar          string `json:"avatar"`
-}
-
-// StepOneCredintial represents the user's credentials on step One of registration.
-type StepOneCredintial struct {
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirm_password"`
-}
-
 func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var creds LoginRequest
+	var creds models.LoginRequest
 	var err error
 
 	// Check Content-Type header to determine how to parse the request
@@ -245,7 +219,7 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.Request) {
 	var serverresponse models.Response
 	statusCode := http.StatusOK
-	var AccountCrediential StepOneCredintial
+	var AccountCrediential models.StepOneCredintial
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

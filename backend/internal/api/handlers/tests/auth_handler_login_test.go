@@ -65,7 +65,7 @@ func TestLogin(t *testing.T) {
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
 	// Create a new request
-	loginReq := handlers.LoginRequest{Email: "test@test.com", Password: "password"}
+	loginReq := models.LoginRequest{Email: "test@test.com", Password: "password"}
 	body, _ := json.Marshal(loginReq)
 	req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 	if err != nil {
@@ -137,7 +137,7 @@ func TestLogin_SessionFixation_NotPrevented(t *testing.T) {
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
-	loginReq := handlers.LoginRequest{Email: "test@test.com", Password: "password"}
+	loginReq := models.LoginRequest{Email: "test@test.com", Password: "password"}
 	body, _ := json.Marshal(loginReq)
 	req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 	if err != nil {
@@ -217,7 +217,7 @@ func TestLogin_IncorrectCredentials(t *testing.T) {
 			}
 			authHandler := handlers.NewAuthHandler(mockAuthService)
 
-			loginReq := handlers.LoginRequest{Email: tc.email, Password: tc.password}
+			loginReq := models.LoginRequest{Email: tc.email, Password: tc.password}
 			body, _ := json.Marshal(loginReq)
 			req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 			if err != nil {
@@ -302,7 +302,7 @@ func TestLogin_SessionCookieProperties(t *testing.T) {
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
-	loginReq := handlers.LoginRequest{Email: "test@test.com", Password: "password"}
+	loginReq := models.LoginRequest{Email: "test@test.com", Password: "password"}
 	body, _ := json.Marshal(loginReq)
 	req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 	if err != nil {

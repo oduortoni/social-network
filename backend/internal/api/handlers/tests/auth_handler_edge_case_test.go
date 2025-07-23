@@ -207,7 +207,7 @@ func TestConcurrentLogins(t *testing.T) {
 			// Add small delay to reduce database contention
 			time.Sleep(time.Duration(index) * 10 * time.Millisecond)
 
-			loginReq := handlers.LoginRequest{
+			loginReq := models.LoginRequest{
 				Email:    "test@example.com",
 				Password: "TestPassword123!",
 			}
@@ -316,7 +316,7 @@ func TestSessionCleanup(t *testing.T) {
 	// Perform multiple logins for the same user
 	sessionIDs := make([]string, 3)
 	for i := 0; i < 3; i++ {
-		loginReq := handlers.LoginRequest{
+		loginReq := models.LoginRequest{
 			Email:    "test@example.com",
 			Password: "TestPassword123!",
 		}
