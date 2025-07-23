@@ -120,3 +120,12 @@ func (s *AuthStore) UserExists(email string) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func GetUserIDFromSession(sessionID string, db *sql.DB) (int64, error) {
+	var userID int64
+	err := db.QueryRow("SELECT user_id FROM Sessions WHERE id = ?", sessionID).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
+}
