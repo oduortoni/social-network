@@ -19,6 +19,8 @@ type MockAuthService struct {
 	DeleteSessionFunc      func(sessionID string) (int, error)
 	GetUserIDBySessionFunc func(sessionID string) (int, error)
 	CreateUserFunc         func(user *models.User) (*models.User, error)
+	ValidateEmailFunc      func(email string) (bool, error)
+	UserExistsFunc         func(email string) (bool, error)
 }
 
 func (s *MockAuthService) AuthenticateUser(email, password string) (*models.User, string, error) {
@@ -38,6 +40,14 @@ func (s *MockAuthService) GetUserIDBySession(sessionID string) (int, error) {
 
 func (s *MockAuthService) CreateUser(user *models.User) (*models.User, error) {
 	return s.CreateUserFunc(user)
+}
+
+func (s *MockAuthService) ValidateEmail(email string) (bool, error) {
+	return s.ValidateEmailFunc(email)
+}
+
+func (s *MockAuthService) UserExists(email string) (bool, error) {
+	return s.UserExistsFunc(email)
 }
 
 func TestLogin(t *testing.T) {
