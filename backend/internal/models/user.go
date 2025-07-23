@@ -21,12 +21,19 @@ type User struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
+// LoginRequest represents the request body for a login request.
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 // StepOneCredintial represents the user's credentials on step One of registration.
 type StepOneCredintial struct {
 	Email           string `json:"email"`
 	Password        string `json:"password"`
 	ConfirmPassword string `json:"confirm_password"`
 }
+
 
 // String returns a pretty-printed multiline JSON-style representation of the User.
 func (user User) String() string {
