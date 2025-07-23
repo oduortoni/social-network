@@ -65,14 +65,21 @@ A Facebook-like social network with features like profiles, posts, groups, real-
         }
         ```   
 
- * **POST /checksession**
-    *   Description: Checks if a session is valid.
+* **POST /validate/step1**
+    *   Description: (Optional) First step of account validation (if required by your flow).
+    *   Request Body: (see implementation)
+    *   Response: (see implementation)
+
+<!--
+* **POST /checksession**
+    *   Description: Checks if a session is valid. (Currently not active in backend)
     *   if successful, Response:
         ```json
         { 
           "message": "Valid session"
         }
         ```
+-->
 
 ### Users
 
