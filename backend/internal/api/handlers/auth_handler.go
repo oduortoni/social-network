@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -243,7 +242,7 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 }
 
 // ValidateAccountStepOne validates Account Crediential for Step One
-func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.Request) {
 	var serverresponse models.Response
 	statusCode := http.StatusOK
 	var AccountCrediential StepOneCredintial
