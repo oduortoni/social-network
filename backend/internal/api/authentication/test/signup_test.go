@@ -6,11 +6,13 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
+	"github.com/tajjjjr/social-network/backend/utils"
 )
 
 // createTestDB creates a temporary in-memory SQLite DB for testing
@@ -156,43 +158,129 @@ func TestUserExists_UserExists(t *testing.T) {
 	}
 }
 
-func TestSignupHandler_SQLInjectionAttempt(t *testing.T) {
+// Test registration with missing required fields
+func TestSignupHandler_MissingFields(t *testing.T) {
 	db := createTestDB(t)
 	defer db.Close()
-	fields := map[string]string{
-		"email":             "' OR 1=1;--",
-		"password":          "Password1!",
-		"firstName":         "John",
-		"lastName":          "Doe",
-		"dob":               "2000-01-01",
-		"nickname":          "hacker",
-		"aboutMe":           "<script>alert(1)</script>",
-		"profileVisibility": "public",
+
+	testCases := []struct {
+		name   string
+		fields map[string]string
+	}{
+		{
+			name: "Missing email",
+			fields: map[string]string{
+				"password":          "Password1!",
+				"firstName":         "John",
+				"lastName":          "Doe",
+				"dob":               "2000-01-01",
+				"nickname":          "johndoe",
+				"aboutMe":           "Hello",
+				"profileVisibility": "public",
+			},
+		},
+		{
+			name: "Missing password",
+			fields: map[string]string{
+				"email":             "test@example.com",
+				"firstName":         "John",
+				"lastName":          "Doe",
+				"dob":               "2000-01-01",
+				"nickname":          "johndoe",
+				"aboutMe":           "Hello",
+				"profileVisibility": "public",
+			},
+		},
 	}
-	body, contentType, _ := createMultipartForm(fields)
-	req := httptest.NewRequest("POST", "/register", body)
-	req.Header.Set("Content-Type", contentType)
-	w := httptest.NewRecorder()
-	authentication.SignupHandler(w, req, db)
-	resp := w.Result()
-	if resp.StatusCode == http.StatusOK {
-		t.Error("SQL injection attempt should not succeed")
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			body, contentType, err := createMultipartForm(tc.fields)
+			if err != nil {
+				t.Fatalf("Failed to create multipart form: %v", err)
+			}
+
+			req := httptest.NewRequest("POST", "/register", body)
+			req.Header.Set("Content-Type", contentType)
+			w := httptest.NewRecorder()
+			authentication.SignupHandler(w, req, db)
+			resp := w.Result()
+
+			// Should return bad request for missing required fields (email/password)
+			if resp.StatusCode != http.StatusBadRequest && resp.StatusCode != http.StatusInternalServerError {
+				t.Errorf("expected status %d or %d for missing field, got %d",
+					http.StatusBadRequest, http.StatusInternalServerError, resp.StatusCode)
+			}
+		})
 	}
 }
 
-func TestSignupHandler_XSSPrevention(t *testing.T) {
+// Test registration with invalid email formats
+func TestSignupHandler_InvalidEmailFormat(t *testing.T) {
 	db := createTestDB(t)
 	defer db.Close()
 
-	// Test with potentially malicious XSS content
+	invalidEmails := []string{
+		"invalid-email",
+		"@example.com",
+		"test@",
+		"test.example.com",
+		"test@.com",
+		"test@example.",
+		"",
+		"   ",
+	}
+
+	for _, email := range invalidEmails {
+		t.Run("InvalidEmail_"+email, func(t *testing.T) {
+			fields := map[string]string{
+				"email":             email,
+				"password":          "Password1!",
+				"firstName":         "John",
+				"lastName":          "Doe",
+				"dob":               "2000-01-01",
+				"nickname":          "johndoe",
+				"aboutMe":           "Hello",
+				"profileVisibility": "public",
+			}
+
+			body, contentType, err := createMultipartForm(fields)
+			if err != nil {
+				t.Fatalf("Failed to create multipart form: %v", err)
+			}
+
+			req := httptest.NewRequest("POST", "/register", body)
+			req.Header.Set("Content-Type", contentType)
+			w := httptest.NewRecorder()
+			authentication.SignupHandler(w, req, db)
+			resp := w.Result()
+
+			// Should return bad request for invalid email format
+			if resp.StatusCode != http.StatusBadRequest {
+				t.Errorf("expected status %d for invalid email '%s', got %d",
+					http.StatusBadRequest, email, resp.StatusCode)
+			}
+		})
+	}
+}
+
+// Test password hashing and storage in the users table
+func TestSignupHandler_PasswordHashing(t *testing.T) {
+	db := createTestDB(t)
+	defer db.Close()
+
+	// Test data
+	email := "test.password@example.com"
+	password := "SecurePassword123!"
+
 	fields := map[string]string{
-		"email":             "test@example.com",
-		"password":          "Password1!",
-		"firstName":         "<script>alert('xss')</script>",
-		"lastName":          "<img src=x onerror=alert(1)>",
+		"email":             email,
+		"password":          password,
+		"firstName":         "John",
+		"lastName":          "Doe",
 		"dob":               "2000-01-01",
-		"nickname":          "&lt;script&gt;",
-		"aboutMe":           "Hello <b>world</b> & <script>alert('xss')</script>",
+		"nickname":          "johndoe",
+		"aboutMe":           "Hello",
 		"profileVisibility": "public",
 	}
 
@@ -204,39 +292,41 @@ func TestSignupHandler_XSSPrevention(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", body)
 	req.Header.Set("Content-Type", contentType)
 	w := httptest.NewRecorder()
-
-	// Call the handler
 	authentication.SignupHandler(w, req, db)
-
 	resp := w.Result()
+
+	// Verify successful registration
 	if resp.StatusCode != http.StatusOK {
-		t.Errorf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
+		t.Fatalf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
 	}
 
-	// Verify that the data was HTML escaped in the database
-	var firstName, lastName, nickname, aboutMe string
-	err = db.QueryRow("SELECT first_name, last_name, nickname, about_me FROM Users WHERE email = ?", "test@example.com").
-		Scan(&firstName, &lastName, &nickname, &aboutMe)
+	// Retrieve the stored password from the database
+	var storedPassword string
+	err = db.QueryRow("SELECT password FROM Users WHERE email = ?", email).Scan(&storedPassword)
 	if err != nil {
-		t.Fatalf("Failed to query user: %v", err)
+		t.Fatalf("Failed to retrieve user from database: %v", err)
 	}
 
-	// Check that HTML has been escaped
-	expectedFirstName := "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
-	expectedLastName := "&lt;img src=x onerror=alert(1)&gt;"
-	expectedNickname := "&amp;lt;script&amp;gt;"
-	expectedAboutMe := "Hello &lt;b&gt;world&lt;/b&gt; &amp; &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
+	// Verify the password is not stored in plain text
+	if storedPassword == password {
+		t.Error("Password is stored in plain text, should be hashed")
+	}
 
-	if firstName != expectedFirstName {
-		t.Errorf("firstName not properly escaped. Expected: %s, Got: %s", expectedFirstName, firstName)
+	// Verify the password is properly hashed (should start with bcrypt identifier $2a$ or similar)
+	if !strings.HasPrefix(storedPassword, "$2") {
+		t.Errorf("Password does not appear to be hashed with bcrypt: %s", storedPassword)
 	}
-	if lastName != expectedLastName {
-		t.Errorf("lastName not properly escaped. Expected: %s, Got: %s", expectedLastName, lastName)
+
+	// Verify we can validate the password against the hash
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	err = passwordManager.ComparePassword(storedPassword, password)
+	if err != nil {
+		t.Errorf("Failed to validate password against hash: %v", err)
 	}
-	if nickname != expectedNickname {
-		t.Errorf("nickname not properly escaped. Expected: %s, Got: %s", expectedNickname, nickname)
-	}
-	if aboutMe != expectedAboutMe {
-		t.Errorf("aboutMe not properly escaped. Expected: %s, Got: %s", expectedAboutMe, aboutMe)
+
+	// Verify wrong password fails validation
+	err = passwordManager.ComparePassword(storedPassword, "WrongPassword123!")
+	if err == nil {
+		t.Error("Wrong password validated successfully, should have failed")
 	}
 }

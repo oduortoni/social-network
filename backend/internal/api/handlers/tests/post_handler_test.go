@@ -20,13 +20,21 @@ import (
 
 // MockPostService is a mock implementation of the PostService for testing.
 type MockPostService struct {
-	CreatePostFunc  func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
-	GetPostByIDFunc func(id int64) (*models.Post, error)
-	GetFeedFunc     func(userID int64) ([]*models.Post, error)
+	CreatePostFunc    func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
+	GetPostByIDFunc   func(id int64) (*models.Post, error)
+	GetFeedFunc       func(userID int64) ([]*models.Post, error)
+	CreateCommentFunc func(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
 }
 
 func (s *MockPostService) CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error) {
 	return s.CreatePostFunc(post, imageData, imageMimeType)
+}
+
+func (s *MockPostService) CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error) {
+	if s.CreateCommentFunc != nil {
+		return s.CreateCommentFunc(comment, imageData, imageMimeType)
+	}
+	return 0, fmt.Errorf("CreateCommentFunc not implemented")
 }
 
 func (s *MockPostService) GetPostByID(id int64) (*models.Post, error) {
@@ -124,7 +132,7 @@ func TestCreatePost(t *testing.T) {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 		}
 
-		if !strings.Contains(rr.Body.String(), "Image size exceeds 20MB limit") {
+		if !strings.Contains(rr.Body.String(), "image size exceeds 20MB limit") {
 			t.Errorf("handler returned unexpected error message: %s", rr.Body.String())
 		}
 	})
@@ -325,6 +333,117 @@ func TestGetFeed(t *testing.T) {
 
 		if status := rr.Code; status != http.StatusUnauthorized {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+		}
+	})
+}
+
+func TestCreateComment(t *testing.T) {
+	// Test case 1: Successful comment creation
+	t.Run("Successful comment creation", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			CreateCommentFunc: func(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error) {
+				if comment.Content != "Test comment" || comment.PostID != 1 {
+					t.Errorf("unexpected input to CreateComment: content=%s, postID=%d", comment.Content, comment.PostID)
+				}
+				return 1, nil
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
+		_ = w.WriteField("content", "Test comment")
+		w.Close()
+
+		req, err := http.NewRequest("POST", "/posts/1/comments", &b)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		req.SetPathValue("postId", "1")
+
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+		req = req.WithContext(ctx)
+
+		rr := httptest.NewRecorder()
+		postHandler.CreateComment(rr, req)
+
+		if status := rr.Code; status != http.StatusCreated {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusCreated)
+		}
+	})
+
+	// Test case 2: Invalid post ID
+	t.Run("Invalid post ID", func(t *testing.T) {
+		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
+
+		req, err := http.NewRequest("POST", "/posts/invalid/comments", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "invalid")
+
+		rr := httptest.NewRecorder()
+		postHandler.CreateComment(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+		}
+	})
+
+	// Test case 3: Unauthorized
+	t.Run("Unauthorized", func(t *testing.T) {
+		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
+
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
+		_ = w.WriteField("content", "Test comment")
+		w.Close()
+
+		req, err := http.NewRequest("POST", "/posts/1/comments", &b)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		req.SetPathValue("postId", "1")
+
+		rr := httptest.NewRecorder()
+		postHandler.CreateComment(rr, req)
+
+		if status := rr.Code; status != http.StatusUnauthorized {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+		}
+	})
+
+	// Test case 4: Service layer error
+	t.Run("Service layer error", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			CreateCommentFunc: func(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error) {
+				return 0, fmt.Errorf("service error")
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
+		_ = w.WriteField("content", "Test comment")
+		w.Close()
+
+		req, err := http.NewRequest("POST", "/posts/1/comments", &b)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		req.SetPathValue("postId", "1")
+
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+		req = req.WithContext(ctx)
+
+		rr := httptest.NewRecorder()
+		postHandler.CreateComment(rr, req)
+
+		if status := rr.Code; status != http.StatusInternalServerError {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusInternalServerError)
 		}
 	})
 }

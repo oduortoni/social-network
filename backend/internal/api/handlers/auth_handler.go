@@ -3,11 +3,10 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"fmt"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
@@ -79,7 +78,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		} else if sessionID == service.INVALID_PASSWORD {
 			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid password"})
 		} else if sessionID == service.INVALID_EMAIL {
-			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid email"})
+			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "User not found"})
 		}
 		return
 	}
