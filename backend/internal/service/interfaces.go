@@ -1,8 +1,6 @@
 package service
 
 import (
-	
-
 	"github.com/tajjjjr/social-network/backend/internal/models"
 )
 
@@ -11,6 +9,9 @@ type AuthServiceInterface interface {
 	AuthenticateUser(email, password string) (*models.User, string, error)
 	DeleteSession(sessionID string) (int, error)
 	GetUserIDBySession(sessionID string) (int, error)
+	CreateUser(user *models.User) (*models.User, error)
+	ValidateEmail(email string) (bool, error)
+	UserExists(email string) (bool, error)
 }
 
 // PostServiceInterface defines the interface for the post service.

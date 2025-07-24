@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/internal/service"
@@ -28,32 +27,16 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 
 	// Authentication Handlers
-	mux.HandleFunc("POST /validate/step1", func(w http.ResponseWriter, r *http.Request) {
-		authentication.ValidateAccountStepOne(w, r, db)
-	})
-	mux.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
-		authentication.SignupHandler(w, r, db)
-	})
+	mux.HandleFunc("POST /validate/step1", authHandler.ValidateAccountStepOne)
+	mux.HandleFunc("POST /register", authHandler.Signup)
 	mux.HandleFunc("POST /login", authHandler.Login)
-
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
-		authentication.LogoutHandler(w, r, db)
+		authHandler.LogoutHandler(w, r)
 	})
-	mux.HandleFunc("GET /auth/google/login", authentication.RedirectToGoogleLogin)
-	mux.HandleFunc("GET /auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleGoogleCallback(w, r, db)
-	})
-	mux.HandleFunc("GET /auth/facebook/login", authentication.RedirectToFacebookLogin)
-	mux.HandleFunc("GET /auth/facebook/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleFacebookCallback(w, r, db)
-	})
-	mux.HandleFunc("GET /auth/github/login", authentication.RedirectToGitHubLogin)
-	mux.HandleFunc("GET /auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleGitHubCallback(w, r, db)
-	})
-	mux.HandleFunc("GET /checksession", func(w http.ResponseWriter, r *http.Request) {
-		authentication.CheckSessionHandler(w, r, db)
-	})
+	
+	// mux.HandleFunc("GET /checksession", func(w http.ResponseWriter, r *http.Request) {
+	// 	authentication.CheckSessionHandler(w, r, db)
+	// })
 
 	// Mount handlers
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))

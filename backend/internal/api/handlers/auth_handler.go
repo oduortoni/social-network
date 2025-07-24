@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -23,14 +25,8 @@ func NewAuthHandler(as service.AuthServiceInterface) *AuthHandler {
 	return &AuthHandler{AuthService: as}
 }
 
-// LoginRequest represents the request body for a login request.
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var creds LoginRequest
+	var creds models.LoginRequest
 	var err error
 
 	// Check Content-Type header to determine how to parse the request
@@ -100,6 +96,83 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged in successfully"})
 }
 
+// Signup handles user registration
+func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
+	// Parse multipart form (limit: 10MB)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Failed to parse form"})
+		return
+	}
+
+	// Extract form values
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	firstName := r.FormValue("firstName")
+	lastName := r.FormValue("lastName")
+	dateOfBirth := r.FormValue("dob")
+	nickname := r.FormValue("nickname")
+	aboutMe := r.FormValue("aboutMe")
+	isProfilePublic := r.FormValue("profileVisibility")
+
+	// Sanitize user input to prevent XSS attacks
+	email = html.EscapeString(email)
+	firstName = html.EscapeString(firstName)
+	lastName = html.EscapeString(lastName)
+	dateOfBirth = html.EscapeString(dateOfBirth)
+	nickname = html.EscapeString(nickname)
+	aboutMe = html.EscapeString(aboutMe)
+
+	// Validate email format
+	IsEmailValid, err := auth.AuthService.ValidateEmail(email)
+	if err != nil {
+		models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Regex error in validating Email"})
+		return
+	}
+	if !IsEmailValid {
+		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid email format"})
+		return
+	}
+
+	// Handle avatar upload
+	userAvatar := "no profile photo"
+	file, header, err := r.FormFile("avatar")
+	if err == nil && file != nil {
+		defer file.Close()
+		userAvatar, err = UploadAvatarImage(file, header)
+		if err != nil {
+			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: userAvatar})
+			return
+		}
+	}
+
+	// Create user model
+	user := &models.User{
+		Email:           email,
+		Password:        password, // Will be hashed in service layer
+		FirstName:       &firstName,
+		LastName:        &lastName,
+		DateOfBirth:     &dateOfBirth,
+		Nickname:        &nickname,
+		AboutMe:         &aboutMe,
+		IsProfilePublic: isProfilePublic == "public",
+		Avatar:          &userAvatar,
+	}
+
+	// Create user through service
+	createdUser, err := auth.AuthService.CreateUser(user)
+	if err != nil {
+		if strings.Contains(err.Error(), "already exists") {
+			models.RespondJSON(w, http.StatusConflict, models.Response{Message: "Email or nickname already taken"})
+		} else {
+			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to create user"})
+		}
+		return
+	}
+
+	fmt.Println("User created successfully:", createdUser.ID)
+	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Registration successful"})
+}
+
 // LogoutHandler deletes session and clears cookie
 func (auth *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
@@ -140,4 +213,76 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), utils.User_id, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// ValidateAccountStepOne validates Account Crediential for Step One
+func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.Request) {
+	var serverresponse models.Response
+	statusCode := http.StatusOK
+	var AccountCrediential models.StepOneCredintial
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		serverresponse.Message = "Failed to read request body"
+		statusCode = http.StatusInternalServerError
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+	if err := json.Unmarshal(body, &AccountCrediential); err != nil {
+		serverresponse.Message = "Failed to parse request body"
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// Validate required fields
+	if AccountCrediential.Email == "" || AccountCrediential.Password == "" || AccountCrediential.ConfirmPassword == "" {
+		serverresponse.Message = "Missing required fields"
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// validate email
+	IsEmailValid, err := auth.AuthService.ValidateEmail(AccountCrediential.Email)
+	if err != nil {
+		serverresponse.Message = "Regex error in validating Email"
+		statusCode = http.StatusInternalServerError
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+	if !IsEmailValid {
+		serverresponse.Message = "Invalid Email format"
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// password is same as confirm passwod
+	if AccountCrediential.Password != AccountCrediential.ConfirmPassword {
+		serverresponse.Message = "Passwords do not match."
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	// Check if user already exists
+	if UserExists, err := auth.AuthService.UserExists(AccountCrediential.Email); err != nil || UserExists {
+		serverresponse.Message = "Email already exists"
+		statusCode = http.StatusConflict
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+	// validate password
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	_, err = passwordManager.HashPassword(AccountCrediential.Password)
+	if err != nil {
+		serverresponse.Message = err.Error()
+		statusCode = http.StatusBadRequest
+		models.RespondJSON(w, statusCode, serverresponse)
+		return
+	}
+
+	serverresponse.Message = "Ok"
+	models.RespondJSON(w, statusCode, serverresponse)
 }

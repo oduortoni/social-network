@@ -87,20 +87,6 @@ export function RegisterForm() {
         <form onSubmit={e => handleRegistrationFormSubmit(e, formData, setFormError)} className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center">
             {/* Third-Party Authentication */}
           <h1 className="font-bold text-2xl text-[var(--tertiary-text)]">Create Account</h1>
-          <div className="my-5 flex space-x-3">
-            <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--quinternary-text)]">
-              <FaFacebookF />
-            </a>
-            <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--quinternary-text)]">
-              <FaGooglePlusG />
-            </a>
-            <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--quinternary-text)]">
-              <FaLinkedinIn />
-            </a>
-          </div>
-
-          <span className="text-xs mb-2 text-[var(--tertiary-text)]">or use your email for registration</span>
-
             {/* Error Message Display*/}
           {formError && (
              <div className="font-bold text-base text-[var(--warning-color)]">

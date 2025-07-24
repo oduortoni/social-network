@@ -65,14 +65,21 @@ A Facebook-like social network with features like profiles, posts, groups, real-
         }
         ```   
 
- * **POST /checksession**
-    *   Description: Checks if a session is valid.
+* **POST /validate/step1**
+    *   Description: (Optional) First step of account validation (if required by your flow).
+    *   Request Body: (see implementation)
+    *   Response: (see implementation)
+
+<!--
+* **POST /checksession**
+    *   Description: Checks if a session is valid. (Currently not active in backend)
     *   if successful, Response:
         ```json
         { 
           "message": "Valid session"
         }
         ```
+-->
 
 ### Users
 
@@ -214,6 +221,55 @@ TO delete the docker containers
 ```bash
 docker-compose down
 ```
+
+## Authentication System Setup & Testing
+
+### Setup
+- Backend: Ensure Go and SQLite are installed. Run `go run server.go` in the backend directory, or use Docker Compose as described above.
+- Frontend: See environment setup above. The frontend communicates with the backend via the API endpoints below.
+
+### Running Authentication Tests
+- From the backend directory, run:
+  ```bash
+  go test ./internal/api/handlers/tests/
+  ```
+- This will execute all authentication-related tests, including SQL injection and XSS prevention.
+
+## Authentication API Endpoints
+
+| Endpoint         | Method | Description                |
+|------------------|--------|----------------------------|
+| /api/register    | POST   | Register a new user        |
+| /api/login       | POST   | Log in a user              |
+| /api/logout      | POST   | Log out the current user   |
+
+### /api/register
+- **Request:** JSON or multipart/form-data with fields:
+  - email, password, firstname, lastname, dateofbirth, nickname, aboutme, isprofilepublic, avatar
+- **Success:** 200 OK `{ "message": "Registration successful" }`
+- **Errors:** 400 (invalid input), 409 (email exists), 500 (server error)
+
+### /api/login
+- **Request:** JSON or form data with fields:
+  - email, password
+- **Success:** 200 OK `{ "message": "Login successful" }` and sets `session_id` cookie
+- **Errors:** 400 (invalid input), 401 (invalid credentials), 500 (server error)
+
+### /api/logout
+- **Request:** No body required (must be authenticated)
+- **Success:** 200 OK `{ "message": "Logout successful" }`
+- **Errors:** 401 (no valid session), 500 (server error)
+
+## Session Management & Cookies
+- On login, a `session_id` cookie is set (HttpOnly, Secure, SameSite=Strict, Path=/, Expires=24h).
+- All protected endpoints require a valid `session_id` cookie.
+- On logout, the session is deleted and the cookie is cleared.
+- Session fixation and CSRF are mitigated by secure cookie settings and session regeneration.
+
+## Security
+- All user input is validated and sanitized to prevent SQL injection and XSS.
+- Passwords are hashed before storage.
+- See `docs/authentication.md` and test files for more details.
 
 ## Contributors
 

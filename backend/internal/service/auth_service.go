@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -66,4 +67,50 @@ func (s *AuthService) GetUserIDBySession(sessionID string) (int, error) {
 		return 0, err
 	}
 	return userID, nil
+}
+
+// CreateUser creates a new user with validation and password hashing
+func (s *AuthService) CreateUser(user *models.User) (*models.User, error) {
+	// Check if user already exists
+	exists, err := s.AuthStore.UserExists(user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	if exists {
+		return nil, fmt.Errorf("user with email %s already exists", user.Email)
+	}
+
+	// Hash the password
+	passwordManager := utils.NewPasswordManager(utils.PasswordConfig{})
+	hashedPassword, err := passwordManager.HashPassword(user.Password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+	user.Password = hashedPassword
+
+	// Set created time
+	user.CreatedAt = time.Now()
+
+	// Create user in database
+	userID, err := s.AuthStore.CreateUser(user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	user.ID = userID
+	return user, nil
+}
+
+// validateEmail validates email format using regex
+func (s *AuthService) ValidateEmail(email string) (bool, error) {
+	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re, err := regexp.Compile(emailPattern)
+	if err != nil {
+		return false, err
+	}
+	return re.MatchString(email), nil
+}
+
+func (s *AuthService) UserExists(email string) (bool, error) {
+	return s.AuthStore.UserExists(email)
 }
