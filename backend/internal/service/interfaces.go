@@ -17,6 +17,8 @@ type AuthServiceInterface interface {
 type PostServiceInterface interface {
 	CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
 	GetPostByID(id int64) (*models.Post, error)
-	GetFeed(userID int64) ([]*models.Post, error)
+	GetPosts(userID int64) ([]*models.Post, error)
 	CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
+	GetCommentsByPostID(postID int64) ([]*models.Comment, error)
+	DeletePost(postID, userID int64) error
 }
