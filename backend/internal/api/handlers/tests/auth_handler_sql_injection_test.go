@@ -16,7 +16,7 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 // setupLoginTestDB creates an in-memory SQLite database for login testing

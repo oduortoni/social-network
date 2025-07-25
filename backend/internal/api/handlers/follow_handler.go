@@ -8,7 +8,7 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 type FollowHandler struct {

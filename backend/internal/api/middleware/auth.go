@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/tajjjjr/social-network/backend/internal/store"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 // AuthMiddleware retrieves the user ID from the session cookie and adds it to the request context.

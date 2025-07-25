@@ -15,7 +15,7 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 // setupEdgeCaseTestDB creates an in-memory SQLite database for edge case testing
