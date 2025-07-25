@@ -21,3 +21,8 @@ type PostServiceInterface interface {
 	GetFeed(userID int64) ([]*models.Post, error)
 	CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
 }
+
+type FollowServiceInterface interface {
+	IsAccountPublic(followeeID int64) (bool, error)
+	CreateFollowForPublicAccount(followerid, followeeid int64) error
+}
