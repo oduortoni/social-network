@@ -23,3 +23,9 @@ type PostServiceInterface interface {
 	GetCommentsByPostID(postID int64) ([]*models.Comment, error)
 	DeletePost(postID, userID int64) error
 }
+
+type FollowServiceInterface interface {
+	IsAccountPublic(followeeID int64) (bool, error)
+	CreateFollowForPublicAccount(followerid, followeeid int64) error
+	CreateFollowForPrivateAccount(followrid, followeeid int64) (int64, error)
+}
