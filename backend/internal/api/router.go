@@ -15,16 +15,19 @@ func NewRouter(db *sql.DB) http.Handler {
 	postStore := store.NewPostStore(db)
 	authStore := store.NewAuthStore(db)
 	followStore := store.NewFollowStore(db)
+	unfollowstore := store.NewUnfollowStore(db)
 
 	// Create services
 	postService := service.NewPostService(postStore)
 	authService := service.NewAuthService(authStore)
 	followService := service.NewFollowService(followStore)
+	unfollowService := service.NewUnfollowService(unfollowstore)
 
 	// Create handlers
 	postHandler := handlers.NewPostHandler(postService)
 	authHandler := handlers.NewAuthHandler(authService)
 	followHandler := handlers.NewFollowHandler(followService)
+	unfollowHandler := handlers.NewUnfollowHandler(unfollowService)
 
 	// Create router
 	mux := http.NewServeMux()
@@ -50,6 +53,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("DELETE /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeletePost)))
 
 	mux.Handle("POST /follow", middleware.AuthMiddleware(db)(http.HandlerFunc(followHandler.Follow)))
+	mux.Handle("DELETE /unfollow", middleware.AuthMiddleware(db)(http.HandlerFunc(unfollowHandler.Unfollow)))
 
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 	mux.Handle("GET /avatar", http.HandlerFunc(handlers.Avatar))
