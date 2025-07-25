@@ -55,14 +55,20 @@ func (s *PostStore) GetPostByID(id int64) (*models.Post, error) {
 	return &post, nil
 }
 
-func (s *PostStore) GetFeed(userID int64) ([]*models.Post, error) {
+func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	rows, err := s.DB.Query(`
-		SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at
-		FROM Posts p
-		INNER JOIN Followers f ON p.user_id = f.followee_id
-		WHERE f.follower_id = ? AND f.is_accepted = 1
-		ORDER BY p.created_at DESC
-	`, userID)
+        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, u.nickname, u.avatar
+        FROM Posts p
+        JOIN Users u ON p.user_id = u.id
+        WHERE p.privacy = 'public'
+        OR (p.privacy = 'almost_private' AND p.user_id = ? OR p.user_id IN (
+            SELECT follower_id FROM Followers WHERE followee_id = ? AND is_accepted = 1
+        ))
+        OR (p.privacy = 'private' AND EXISTS (
+            SELECT 1 FROM Post_visibility pv WHERE pv.post_id = p.id AND pv.viewer_id = ?
+        ))
+        ORDER BY p.created_at DESC
+    `, userID, userID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +77,7 @@ func (s *PostStore) GetFeed(userID int64) ([]*models.Post, error) {
 	var posts []*models.Post
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt); err != nil {
+		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt, &post.Author.Nickname, &post.Author.Avatar); err != nil {
 			return nil, err
 		}
 		posts = append(posts, &post)
@@ -79,3 +85,34 @@ func (s *PostStore) GetFeed(userID int64) ([]*models.Post, error) {
 
 	return posts, nil
 }
+
+func (s *PostStore) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
+    rows, err := s.DB.Query(`
+        SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, u.nickname, u.avatar
+        FROM Comments c
+        JOIN Users u ON c.user_id = u.id
+        WHERE c.post_id = ?
+        ORDER BY c.created_at ASC
+    `, postID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var comments []*models.Comment
+    for rows.Next() {
+        var comment models.Comment
+        if err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image, &comment.CreatedAt, &comment.Author.Nickname, &comment.Author.Avatar); err != nil {
+            return nil, err
+        }
+        comments = append(comments, &comment)
+    }
+
+    return comments, nil
+}
+
+func (s *PostStore) DeletePost(postID int64) error {
+	_, err := s.DB.Exec("DELETE FROM Posts WHERE id = ?", postID)
+	return err
+}
+

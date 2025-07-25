@@ -20,10 +20,12 @@ import (
 
 // MockPostService is a mock implementation of the PostService for testing.
 type MockPostService struct {
-	CreatePostFunc    func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
-	GetPostByIDFunc   func(id int64) (*models.Post, error)
-	GetFeedFunc       func(userID int64) ([]*models.Post, error)
-	CreateCommentFunc func(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
+	CreatePostFunc          func(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
+	GetPostByIDFunc         func(id int64) (*models.Post, error)
+	GetPostsFunc            func(userID int64) ([]*models.Post, error)
+	CreateCommentFunc       func(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
+	GetCommentsByPostIDFunc func(postID int64) ([]*models.Comment, error)
+	DeletePostFunc          func(postID, userID int64) error
 }
 
 func (s *MockPostService) CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error) {
@@ -41,12 +43,172 @@ func (s *MockPostService) GetPostByID(id int64) (*models.Post, error) {
 	return s.GetPostByIDFunc(id)
 }
 
-func (s *MockPostService) GetFeed(userID int64) ([]*models.Post, error) {
-	if s.GetFeedFunc != nil {
-		return s.GetFeedFunc(userID)
+func (s *MockPostService) GetPosts(userID int64) ([]*models.Post, error) {
+	if s.GetPostsFunc != nil {
+		return s.GetPostsFunc(userID)
 	}
-	return nil, fmt.Errorf("GetFeedFunc not implemented")
+	return nil, fmt.Errorf("GetPostsFunc not implemented")
 }
+
+func (s *MockPostService) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
+	if s.GetCommentsByPostIDFunc != nil {
+		return s.GetCommentsByPostIDFunc(postID)
+	}
+	return nil, fmt.Errorf("GetCommentsByPostIDFunc not implemented")
+}
+
+func (s *MockPostService) DeletePost(postID, userID int64) error {
+	if s.DeletePostFunc != nil {
+		return s.DeletePostFunc(postID, userID)
+	}
+	return fmt.Errorf("DeletePostFunc not implemented")
+}
+
+func TestDeletePost(t *testing.T) {
+	// Test case 1: Successful deletion
+	t.Run("Successful deletion", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			DeletePostFunc: func(postID, userID int64) error {
+				if postID != 1 || userID != 100 {
+					t.Errorf("unexpected input to DeletePost: postID=%d, userID=%d", postID, userID)
+				}
+				return nil
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("DELETE", "/posts/1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "1")
+
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(100))
+		req = req.WithContext(ctx)
+
+		rr := httptest.NewRecorder()
+		postHandler.DeletePost(rr, req)
+
+		if status := rr.Code; status != http.StatusNoContent {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNoContent)
+		}
+	})
+
+	// Test case 2: Invalid post ID
+	t.Run("Invalid post ID", func(t *testing.T) {
+		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
+
+		req, err := http.NewRequest("DELETE", "/posts/invalid", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "invalid")
+
+		rr := httptest.NewRecorder()
+		postHandler.DeletePost(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+		}
+	})
+
+	// Test case 3: Unauthorized (missing userID in context)
+	t.Run("Unauthorized missing userID", func(t *testing.T) {
+		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
+
+		req, err := http.NewRequest("DELETE", "/posts/1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "1")
+
+		rr := httptest.NewRecorder()
+		postHandler.DeletePost(rr, req)
+
+		if status := rr.Code; status != http.StatusUnauthorized {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+		}
+	})
+
+	// Test case 4: Unauthorized (service returns unauthorized error)
+	t.Run("Unauthorized service error", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			DeletePostFunc: func(postID, userID int64) error {
+				return fmt.Errorf("unauthorized")
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("DELETE", "/posts/1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "1")
+
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(100))
+		req = req.WithContext(ctx)
+
+		rr := httptest.NewRecorder()
+		postHandler.DeletePost(rr, req)
+
+		if status := rr.Code; status != http.StatusUnauthorized {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+		}
+	})
+
+	// Test case 5: Post not found (service returns sql.ErrNoRows)
+	t.Run("Post not found service error", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			DeletePostFunc: func(postID, userID int64) error {
+				return sql.ErrNoRows
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("DELETE", "/posts/1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "1")
+
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(100))
+		req = req.WithContext(ctx)
+
+		rr := httptest.NewRecorder()
+		postHandler.DeletePost(rr, req)
+
+		if status := rr.Code; status != http.StatusNotFound {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
+		}
+	})
+
+	// Test case 6: Internal server error (service returns generic error)
+	t.Run("Internal server error", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			DeletePostFunc: func(postID, userID int64) error {
+				return fmt.Errorf("database error")
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("DELETE", "/posts/1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "1")
+
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(100))
+		req = req.WithContext(ctx)
+
+		rr := httptest.NewRecorder()
+		postHandler.DeletePost(rr, req)
+
+		if status := rr.Code; status != http.StatusInternalServerError {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusInternalServerError)
+		}
+	})
+}
+
 
 func TestCreatePost(t *testing.T) {
 	// Test case 1: Successful post creation with image
@@ -281,11 +443,11 @@ func TestGetPostByID(t *testing.T) {
 	})
 }
 
-func TestGetFeed(t *testing.T) {
+func TestGetPosts(t *testing.T) {
 	// Test case 1: Successful retrieval
 	t.Run("Successful retrieval", func(t *testing.T) {
 		mockPostService := &MockPostService{
-			GetFeedFunc: func(userID int64) ([]*models.Post, error) {
+			GetPostsFunc: func(userID int64) ([]*models.Post, error) {
 				if userID != 1 {
 					t.Errorf("unexpected user ID: got %v want %v", userID, 1)
 				}
@@ -294,7 +456,7 @@ func TestGetFeed(t *testing.T) {
 		}
 		postHandler := handlers.NewPostHandler(mockPostService)
 
-		req, err := http.NewRequest("GET", "/feed", nil)
+		req, err := http.NewRequest("GET", "/posts", nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -303,7 +465,7 @@ func TestGetFeed(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
-		postHandler.GetFeed(rr, req)
+		postHandler.GetPosts(rr, req)
 
 		if status := rr.Code; status != http.StatusOK {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
@@ -323,16 +485,71 @@ func TestGetFeed(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
 
-		req, err := http.NewRequest("GET", "/feed", nil)
+		req, err := http.NewRequest("GET", "/posts", nil)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		rr := httptest.NewRecorder()
-		postHandler.GetFeed(rr, req)
+		postHandler.GetPosts(rr, req)
 
 		if status := rr.Code; status != http.StatusUnauthorized {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+		}
+	})
+}
+
+func TestGetCommentsByPostID(t *testing.T) {
+	// Test case 1: Successful retrieval
+	t.Run("Successful retrieval", func(t *testing.T) {
+		mockPostService := &MockPostService{
+			GetCommentsByPostIDFunc: func(postID int64) ([]*models.Comment, error) {
+				if postID != 1 {
+					t.Errorf("unexpected post ID: got %v want %v", postID, 1)
+				}
+				return []*models.Comment{{ID: 1, Content: "Test Comment"}}, nil
+			},
+		}
+		postHandler := handlers.NewPostHandler(mockPostService)
+
+		req, err := http.NewRequest("GET", "/posts/1/comments", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "1")
+
+		rr := httptest.NewRecorder()
+		postHandler.GetCommentsByPostID(rr, req)
+
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
+
+		var comments []*models.Comment
+		if err := json.NewDecoder(rr.Body).Decode(&comments); err != nil {
+			t.Fatal(err)
+		}
+
+		if len(comments) != 1 || comments[0].ID != 1 || comments[0].Content != "Test Comment" {
+			t.Errorf("handler returned unexpected body: got %v", rr.Body.String())
+		}
+	})
+
+	// Test case 2: Invalid post ID
+	t.Run("Invalid post ID", func(t *testing.T) {
+		postHandler := handlers.NewPostHandler(nil) // No service needed for this test
+
+		req, err := http.NewRequest("GET", "/posts/invalid/comments", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.SetPathValue("postId", "invalid")
+
+		rr := httptest.NewRecorder()
+		postHandler.GetCommentsByPostID(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 		}
 	})
 }

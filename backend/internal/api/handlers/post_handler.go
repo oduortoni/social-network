@@ -131,14 +131,14 @@ func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(post)
 }
 
-func (h *PostHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
+func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	posts, err := h.PostService.GetFeed(userID)
+	posts, err := h.PostService.GetPosts(userID)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -146,6 +146,53 @@ func (h *PostHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(posts)
+}
+
+func (h *PostHandler) GetCommentsByPostID(w http.ResponseWriter, r *http.Request) {
+	postIDStr := r.PathValue("postId")
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	comments, err := h.PostService.GetCommentsByPostID(postID)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(comments)
+}
+
+func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	postIDStr := r.PathValue("postId")
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	err = h.PostService.DeletePost(postID, userID)
+	if err != nil {
+		if err.Error() == "unauthorized" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		} else if err == sql.ErrNoRows {
+			http.Error(w, "Post not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // handleImageUpload processes an optional image from a multipart form.

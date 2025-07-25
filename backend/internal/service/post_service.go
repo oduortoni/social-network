@@ -13,10 +13,10 @@ import (
 )
 
 type PostService struct {
-	PostStore *store.PostStore
+	PostStore store.PostStoreInterface
 }
 
-func NewPostService(ps *store.PostStore) *PostService {
+func NewPostService(ps store.PostStoreInterface) *PostService {
 	return &PostService{PostStore: ps}
 }
 
@@ -55,8 +55,25 @@ func (s *PostService) GetPostByID(id int64) (*models.Post, error) {
 	return s.PostStore.GetPostByID(id)
 }
 
-func (s *PostService) GetFeed(userID int64) ([]*models.Post, error) {
-	return s.PostStore.GetFeed(userID)
+func (s *PostService) GetPosts(userID int64) ([]*models.Post, error) {
+	return s.PostStore.GetPosts(userID)
+}
+
+func (s *PostService) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
+	return s.PostStore.GetCommentsByPostID(postID)
+}
+
+func (s *PostService) DeletePost(postID, userID int64) error {
+	post, err := s.PostStore.GetPostByID(postID)
+	if err != nil {
+		return err
+	}
+
+	if post.UserID != userID {
+		return fmt.Errorf("unauthorized")
+	}
+
+	return s.PostStore.DeletePost(postID)
 }
 
 // saveImage handles the logic for validating, naming, and saving an uploaded image.
