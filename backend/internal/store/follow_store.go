@@ -29,3 +29,22 @@ func (followstore *FollowStore) CreatePublicFollowConnection(followerId, followe
 	_, err := followstore.DB.Exec("INSERT INTO Followers (follower_id, followee_id,is_accepted,requested_at,accepted_at) VALUES (?, ?,?,?,?)", followerId, followeeId, 1, currentTime, currentTime)
 	return err
 }
+
+func (followstore *FollowStore) CreatePrivateFollowConnection(followerId, followeeId int64) (int64, error) {
+	currentTime := time.Now()
+
+	result, err := followstore.DB.Exec(
+		"INSERT INTO Followers (follower_id, followee_id, is_accepted, requested_at) VALUES (?, ?, ?, ?)",
+		followerId, followeeId, 0, currentTime,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	followID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return followID, nil
+}
