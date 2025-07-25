@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -67,8 +68,15 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Optional: Handle private account response
-	status = http.StatusForbidden
-	serverResponse.Message = "Cannot follow private account without approval"
+	// Handle private account response
+	followID, err := follow.FollowService.CreateFollowForPrivateAccount(followerId, int64(followee.FolloweeId))
+	if err != nil {
+		status = http.StatusInternalServerError
+		serverResponse.Message = "Failed to create follow connection"
+		models.RespondJSON(w, status, serverResponse)
+		return
+	}
+	fmt.Println("Follow ID:", followID)
+	serverResponse.Message = "Follow request sent. You will be able to follow once approved."
 	models.RespondJSON(w, status, serverResponse)
 }
