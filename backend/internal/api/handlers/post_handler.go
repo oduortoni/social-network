@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,7 +25,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form data
 	err := r.ParseMultipartForm(20 << 20) // 20 MB limit for multipart form
 	if err != nil {
-		http.Error(w, "Unable to parse form: "+err.Error(), http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Unable to parse form: " + err.Error()})
 		return
 	}
 
@@ -37,7 +36,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context
 	userID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
 		return
 	}
 	post.UserID = userID
@@ -45,28 +44,26 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	// Handle optional image upload using the helper
 	imageData, imageMimeType, status, err := handleImageUpload(r)
 	if err != nil {
-		http.Error(w, err.Error(), status)
+		utils.RespondJSON(w, status, utils.Response{Message: err.Error()})
 		return
 	}
 
 	id, err := h.PostService.CreatePost(&post, imageData, imageMimeType)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
 		return
 	}
 
 	post.ID = id
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(post)
+	utils.RespondJSON(w, http.StatusCreated, post)
 }
 
 func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form data
 	err := r.ParseMultipartForm(20 << 20) // 20 MB limit for multipart form
 	if err != nil {
-		http.Error(w, "Unable to parse form: "+err.Error(), http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Unable to parse form: " + err.Error()})
 		return
 	}
 
@@ -76,7 +73,7 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.PathValue("postId")
 	postID, err := strconv.ParseInt(postIDStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
 		return
 	}
 	comment.PostID = postID
@@ -84,7 +81,7 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context
 	userID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
 		return
 	}
 	comment.UserID = userID
@@ -92,107 +89,102 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	// Handle optional image upload using the helper
 	imageData, imageMimeType, status, err := handleImageUpload(r)
 	if err != nil {
-		http.Error(w, err.Error(), status)
+		utils.RespondJSON(w, status, utils.Response{Message: err.Error()})
 		return
 	}
 
 	id, err := h.PostService.CreateComment(&comment, imageData, imageMimeType)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
 		return
 	}
 
 	comment.ID = id
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(comment)
+	utils.RespondJSON(w, http.StatusCreated, comment)
 }
 
 func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.PathValue("postId")
 	postID, err := strconv.ParseInt(postIDStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
 		return
 	}
 
 	post, err := h.PostService.GetPostByID(postID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Post not found", http.StatusNotFound)
+			utils.RespondJSON(w, http.StatusNotFound, utils.Response{Message: "Post not found"})
 		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
 		}
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(post)
+	utils.RespondJSON(w, http.StatusOK, post)
 }
 
 func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
 		return
 	}
 
 	posts, err := h.PostService.GetPosts(userID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(posts)
+	utils.RespondJSON(w, http.StatusOK, posts)
 }
 
 func (h *PostHandler) GetCommentsByPostID(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.PathValue("postId")
 	postID, err := strconv.ParseInt(postIDStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
 		return
 	}
 
 	comments, err := h.PostService.GetCommentsByPostID(postID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(comments)
+	utils.RespondJSON(w, http.StatusOK, comments)
 }
 
 func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.PathValue("postId")
 	postID, err := strconv.ParseInt(postIDStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
 		return
 	}
 
 	userID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
 		return
 	}
 
 	err = h.PostService.DeletePost(postID, userID)
 	if err != nil {
 		if err.Error() == "unauthorized" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
 		} else if err == sql.ErrNoRows {
-			http.Error(w, "Post not found", http.StatusNotFound)
+			utils.RespondJSON(w, http.StatusNotFound, utils.Response{Message: "Post not found"})
 		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
 		}
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	utils.RespondJSON(w, http.StatusNoContent, utils.Response{Message: "Post deleted successfully"})
 }
 
 // handleImageUpload processes an optional image from a multipart form.
