@@ -27,4 +27,5 @@ type PostServiceInterface interface {
 type FollowServiceInterface interface {
 	IsAccountPublic(followeeID int64) (bool, error)
 	CreateFollowForPublicAccount(followerid, followeeid int64) error
+	CreateFollowForPrivateAccount(followrid, followeeid int64) (int64, error)
 }
