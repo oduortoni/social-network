@@ -74,7 +74,7 @@ func TestSignup_Success(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestSignup_UserAlreadyExists(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusConflict)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestSignup_InvalidEmail(t *testing.T) {
 					http.StatusBadRequest, email, status)
 			}
 
-			var resp models.Response
+			var resp utils.Response
 			if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 				t.Fatal(err)
 			}
@@ -225,7 +225,7 @@ func TestSignup_InvalidFormData(t *testing.T) {
 		t.Errorf("expected status %d, got %d", http.StatusBadRequest, status)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -274,7 +274,7 @@ func TestSignup_ServiceError(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusInternalServerError)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}

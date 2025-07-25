@@ -37,14 +37,14 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		// Parse JSON body
 		err = json.NewDecoder(r.Body).Decode(&creds)
 		if err != nil {
-			models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid JSON request body"})
+			utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid JSON request body"})
 			return
 		}
 	} else if strings.Contains(contentType, "application/x-www-form-urlencoded") || strings.Contains(contentType, "multipart/form-data") {
 		// Parse form data
 		err = r.ParseForm()
 		if err != nil {
-			models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid form data"})
+			utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid form data"})
 			return
 		}
 
@@ -57,7 +57,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			// If JSON fails, try to parse as form data
 			if parseErr := r.ParseForm(); parseErr != nil {
-				models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid request body format"})
+				utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid request body format"})
 				return
 			}
 			creds.Email = r.FormValue("email")
@@ -70,11 +70,11 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	authUser, sessionID, _ := auth.AuthService.AuthenticateUser(creds.Email, creds.Password)
 	if authUser == nil {
 		if sessionID == service.EXPIRED_SESSION {
-			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to create session"})
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to create session"})
 		} else if sessionID == service.INVALID_PASSWORD {
-			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid password"})
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Invalid password"})
 		} else if sessionID == service.INVALID_EMAIL {
-			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "User not found"})
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "User not found"})
 		}
 		return
 	}
@@ -93,14 +93,14 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Setting cookie:", cookie)
 	http.SetCookie(w, cookie)
-	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged in successfully"})
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Logged in successfully"})
 }
 
 // Signup handles user registration
 func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form (limit: 10MB)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Failed to parse form"})
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Failed to parse form"})
 		return
 	}
 
@@ -125,11 +125,11 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	// Validate email format
 	IsEmailValid, err := auth.AuthService.ValidateEmail(email)
 	if err != nil {
-		models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Regex error in validating Email"})
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Regex error in validating Email"})
 		return
 	}
 	if !IsEmailValid {
-		models.RespondJSON(w, http.StatusBadRequest, models.Response{Message: "Invalid email format"})
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid email format"})
 		return
 	}
 
@@ -140,7 +140,7 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 		userAvatar, err = UploadAvatarImage(file, header)
 		if err != nil {
-			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: userAvatar})
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: userAvatar})
 			return
 		}
 	}
@@ -162,15 +162,15 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	createdUser, err := auth.AuthService.CreateUser(user)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
-			models.RespondJSON(w, http.StatusConflict, models.Response{Message: "Email or nickname already taken"})
+			utils.RespondJSON(w, http.StatusConflict, utils.Response{Message: "Email or nickname already taken"})
 		} else {
-			models.RespondJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to create user"})
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to create user"})
 		}
 		return
 	}
 
 	fmt.Println("User created successfully:", createdUser.ID)
-	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Registration successful"})
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Registration successful"})
 }
 
 // LogoutHandler deletes session and clears cookie
@@ -191,7 +191,7 @@ func (auth *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	models.RespondJSON(w, http.StatusOK, models.Response{Message: "Logged out successfully"})
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Logged out successfully"})
 }
 
 // AuthMiddleware verifies session cookie, loads user ID into context
@@ -199,13 +199,13 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("session_id")
 		if err != nil {
-			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Authentication required"})
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Authentication required"})
 			return
 		}
 
 		userID, err := auth.AuthService.GetUserIDBySession(cookie.Value)
 		if err != nil {
-			models.RespondJSON(w, http.StatusUnauthorized, models.Response{Message: "Invalid or expired session"})
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Invalid or expired session"})
 			return
 		}
 
@@ -217,7 +217,7 @@ func (auth *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 
 // ValidateAccountStepOne validates Account Crediential for Step One
 func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.Request) {
-	var serverresponse models.Response
+	var serverresponse utils.Response
 	statusCode := http.StatusOK
 	var AccountCrediential models.StepOneCredintial
 
@@ -225,13 +225,13 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 	if err != nil {
 		serverresponse.Message = "Failed to read request body"
 		statusCode = http.StatusInternalServerError
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 	if err := json.Unmarshal(body, &AccountCrediential); err != nil {
 		serverresponse.Message = "Failed to parse request body"
 		statusCode = http.StatusBadRequest
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 
@@ -239,7 +239,7 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 	if AccountCrediential.Email == "" || AccountCrediential.Password == "" || AccountCrediential.ConfirmPassword == "" {
 		serverresponse.Message = "Missing required fields"
 		statusCode = http.StatusBadRequest
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 
@@ -248,13 +248,13 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 	if err != nil {
 		serverresponse.Message = "Regex error in validating Email"
 		statusCode = http.StatusInternalServerError
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 	if !IsEmailValid {
 		serverresponse.Message = "Invalid Email format"
 		statusCode = http.StatusBadRequest
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 
@@ -262,7 +262,7 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 	if AccountCrediential.Password != AccountCrediential.ConfirmPassword {
 		serverresponse.Message = "Passwords do not match."
 		statusCode = http.StatusBadRequest
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 
@@ -270,7 +270,7 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 	if UserExists, err := auth.AuthService.UserExists(AccountCrediential.Email); err != nil || UserExists {
 		serverresponse.Message = "Email already exists"
 		statusCode = http.StatusConflict
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 	// validate password
@@ -279,10 +279,10 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 	if err != nil {
 		serverresponse.Message = err.Error()
 		statusCode = http.StatusBadRequest
-		models.RespondJSON(w, statusCode, serverresponse)
+		utils.RespondJSON(w, statusCode, serverresponse)
 		return
 	}
 
 	serverresponse.Message = "Ok"
-	models.RespondJSON(w, statusCode, serverresponse)
+	utils.RespondJSON(w, statusCode, serverresponse)
 }

@@ -109,7 +109,7 @@ func TestExpiredSessions(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+		utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 	})
 
 	authMiddleware := authHandler.AuthMiddleware(protectedHandler)
@@ -121,7 +121,7 @@ func TestExpiredSessions(t *testing.T) {
 			status, http.StatusUnauthorized)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestInvalidSessionIDs(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 			protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+				utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 			})
 
 			authMiddleware := authHandler.AuthMiddleware(protectedHandler)
@@ -282,7 +282,7 @@ func TestConcurrentLogins(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+			utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 		})
 
 		authMiddleware := authHandler.AuthMiddleware(protectedHandler)
@@ -370,7 +370,7 @@ func TestSessionCleanup(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+			utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 		})
 
 		authMiddleware := authHandler.AuthMiddleware(protectedHandler)

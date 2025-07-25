@@ -20,14 +20,14 @@ func NewFollowHandler(funf service.FollowServiceInterface) *FollowHandler {
 }
 
 func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
-	var serverResponse models.Response
+	var serverResponse utils.Response
 	status := http.StatusOK
 
 	// Get current user id from session
 	followerId, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
 		serverResponse.Message = "User not found in context"
-		models.RespondJSON(w, http.StatusUnauthorized, serverResponse)
+		utils.RespondJSON(w, http.StatusUnauthorized, serverResponse)
 		return
 	}
 
@@ -36,14 +36,14 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status = http.StatusBadRequest
 		serverResponse.Message = "Failed to read request body"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
 	if err = json.Unmarshal(body, &followee); err != nil {
 		status = http.StatusBadRequest // ✅ Corrected from 500
 		serverResponse.Message = "Invalid JSON format"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status = http.StatusInternalServerError
 		serverResponse.Message = "Failed to check account privacy status"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
@@ -60,11 +60,11 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			status = http.StatusInternalServerError
 			serverResponse.Message = "Failed to create follow connection"
-			models.RespondJSON(w, status, serverResponse)
+			utils.RespondJSON(w, status, serverResponse)
 			return
 		}
 		serverResponse.Message = "Account successfully followed"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
@@ -73,10 +73,10 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status = http.StatusInternalServerError
 		serverResponse.Message = "Failed to create follow connection"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 	fmt.Println("Follow ID:", followID)
 	serverResponse.Message = "Follow request sent. You will be able to follow once approved."
-	models.RespondJSON(w, status, serverResponse)
+	utils.RespondJSON(w, status, serverResponse)
 }
