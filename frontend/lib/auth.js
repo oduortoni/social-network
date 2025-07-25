@@ -13,6 +13,49 @@ export const handleRegistrationFormChange = (e) => {
 export const registrationFormNextStep = () => setStep((prev) => prev + 1);
 export const registrationFormPrevStep = () => setStep((prev) => prev - 1);
 
+// Post creation function
+export const createPost = async (formData) => {
+  try {
+    const response = await fetch('http://localhost:9000/posts', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData, // FormData object
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    } else {
+      return { success: false, error: data.message || 'Failed to create post' };
+    }
+  } catch (error) {
+    console.error('Error creating post:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
+// Fetch posts function
+export const fetchPosts = async () => {
+  try {
+    const response = await fetch('http://localhost:9000/posts', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    } else {
+      return { success: false, error: data.message || 'Failed to fetch posts' };
+    }
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
   // Function to handle form submission
 export const handleRegistrationFormSubmit = async (e, formData, setFormError) => {
     e.preventDefault();

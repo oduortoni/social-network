@@ -54,5 +54,8 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 	mux.Handle("GET /avatar", http.HandlerFunc(handlers.Avatar))
 
+	// Serve uploaded files
+	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("backend/uploads/"))))
+
 	return mux
 }
