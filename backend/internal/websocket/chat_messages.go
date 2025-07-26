@@ -26,7 +26,7 @@ func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessag
 
 // GET /api/messages/private?user=123&limit=50&offset=0
 func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request) {
-	userID, err := h.Resolver.GetUserIDFromRequest(r)
+	userID, _, err := h.Resolver.GetUserIDFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -59,7 +59,7 @@ func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request)
 
 // GET /api/messages/group?group=123&limit=50&offset=0
 func (h *ChatHandler) GetGroupMessages(w http.ResponseWriter, r *http.Request) {
-	_, err := h.Resolver.GetUserIDFromRequest(r)
+	_, _, err := h.Resolver.GetUserIDFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -92,7 +92,7 @@ func (h *ChatHandler) GetGroupMessages(w http.ResponseWriter, r *http.Request) {
 
 // POST /api/groups/invite
 func (h *ChatHandler) SendGroupInvite(w http.ResponseWriter, r *http.Request) {
-	inviterID, err := h.Resolver.GetUserIDFromRequest(r)
+	inviterID, _, err := h.Resolver.GetUserIDFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -136,7 +136,7 @@ func (h *ChatHandler) SendGroupInvite(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/notifications?limit=20&offset=0
 func (h *ChatHandler) GetNotifications(w http.ResponseWriter, r *http.Request) {
-	userID, err := h.Resolver.GetUserIDFromRequest(r)
+	userID, _, err := h.Resolver.GetUserIDFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -187,7 +187,7 @@ func (h *ChatHandler) GetNotifications(w http.ResponseWriter, r *http.Request) {
 
 // POST /api/notifications/read
 func (h *ChatHandler) MarkNotificationsRead(w http.ResponseWriter, r *http.Request) {
-	userID, err := h.Resolver.GetUserIDFromRequest(r)
+	userID, _, err := h.Resolver.GetUserIDFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return

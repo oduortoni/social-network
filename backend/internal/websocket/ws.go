@@ -14,7 +14,7 @@ import (
 
 // SessionResolver resolves the authenticated user ID from the HTTP request.
 type SessionResolver interface {
-	GetUserIDFromRequest(r *http.Request) (int64, error)
+	GetUserIDFromRequest(r *http.Request) (int64, string, error)
 }
 
 // GroupMemberFetcher fetches group member IDs from DB
@@ -32,14 +32,16 @@ type MessagePersister interface {
 
 type Client struct {
 	ID        int64
+	Nickname  string
 	Conn      *websocket.Conn
 	Send      chan []byte
 	Connected time.Time
 }
 
-func NewClient(id int64, conn *websocket.Conn) *Client {
+func NewClient(id int64, nickname string, conn *websocket.Conn) *Client {
 	return &Client{
 		ID:        id,
+		Nickname:  nickname,
 		Conn:      conn,
 		Send:      make(chan []byte, 256),
 		Connected: time.Now(),
@@ -69,7 +71,13 @@ func (m *Manager) Register(c *Client) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.clients[c.ID] = c
-	log.Printf("User %d connected", c.ID)
+	log.Printf("User %d connected as %s", c.ID, c.Nickname)
+	for _, client := range m.clients {
+		if client.ID == c.ID {
+			continue
+		}
+		client.Send <- []byte("User " + c.Nickname + " connected")
+	}
 }
 
 func (m *Manager) Unregister(id int64) {
@@ -158,13 +166,13 @@ func (m *Manager) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := m.resolver.GetUserIDFromRequest(r)
+	userID, nickname, err := m.resolver.GetUserIDFromRequest(r)
 	if err != nil {
 		conn.Close()
 		return
 	}
 
-	client := NewClient(userID, conn)
+	client := NewClient(userID, nickname, conn)
 	m.Register(client)
 	defer m.Unregister(userID)
 	defer conn.Close()
