@@ -3,7 +3,7 @@ class WebSocketService {
     this.ws = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
-    this.messageHandlers = new Map();
+    this.messageHandlers = new Map(); // Map<string, Array<function>>
     this.isConnecting = false;
     this.shouldReconnect = true;
     this.reconnectTimeout = null;
@@ -114,13 +114,32 @@ class WebSocketService {
   }
 
   onMessage(type, handler) {
-    this.messageHandlers.set(type, handler);
+    if (!this.messageHandlers.has(type)) {
+      this.messageHandlers.set(type, []);
+    }
+    this.messageHandlers.get(type).push(handler);
+  }
+
+  removeMessageHandler(type, handler) {
+    const handlers = this.messageHandlers.get(type);
+    if (handlers) {
+      const index = handlers.indexOf(handler);
+      if (index > -1) {
+        handlers.splice(index, 1);
+      }
+    }
   }
 
   handleMessage(message) {
-    const handler = this.messageHandlers.get(message.type);
-    if (handler) {
-      handler(message);
+    const handlers = this.messageHandlers.get(message.type);
+    if (handlers) {
+      handlers.forEach(handler => {
+        try {
+          handler(message);
+        } catch (error) {
+          console.error('Error in message handler:', error);
+        }
+      });
     }
   }
 

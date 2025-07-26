@@ -9,7 +9,6 @@ const Me = ({ user }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectedUsers, setConnectedUsers] = useState([]);
 
-
   useEffect(() => {
     let mounted = true;
 
@@ -63,7 +62,8 @@ const Me = ({ user }) => {
             if (!userExists) {
               return [...prev, {
                 user_id: notification.user_id,
-                user_name: notification.user_name
+                nickname: notification.nickname, // Use consistent field name
+                avatar: notification.avatar
               }];
             }
             return prev;

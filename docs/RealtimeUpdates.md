@@ -410,7 +410,7 @@ const reconnect = (attempt = 1) => {
   "type": "notification",
   "subtype": "follow_request",
   "user_id": 123,
-  "user_name": "John Doe",
+  "nickname": "John Doe",
   "message": "John Doe sent you a follow request",
   "timestamp": 1640995200,
   "additional_data": {

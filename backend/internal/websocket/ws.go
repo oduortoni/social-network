@@ -74,7 +74,7 @@ func (m *Manager) Register(c *Client) {
 	// Add client to map first
 	m.mu.Lock()
 	m.clients[c.ID] = c
-	fmt.Printf("User %d connected as %s", c.ID, c.Nickname)
+	fmt.Printf("User %d connected as %s\n", c.ID, c.Nickname)
 	m.mu.Unlock() // Release lock before broadcasting
 
 	// Broadcast user connection notification to all other users
