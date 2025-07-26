@@ -64,6 +64,17 @@ func (s *MockPostService) DeletePost(postID, userID int64) error {
 	return fmt.Errorf("DeletePostFunc not implemented")
 }
 
+func (s *MockPostService) CreatePostWithViewers(post *models.Post, imageData []byte, imageMimeType string, viewerIDs []int64) (int64, error) {
+	if s.CreatePostFunc != nil {
+		return s.CreatePostFunc(post, imageData, imageMimeType)
+	}
+	return 0, fmt.Errorf("CreatePostFunc not implemented")
+}
+
+func (s *MockPostService) SearchUsers(query string, currentUserID int64) ([]*models.User, error) {
+	return nil, nil
+}
+
 func TestDeletePost(t *testing.T) {
 	// Test case 1: Successful deletion
 	t.Run("Successful deletion", func(t *testing.T) {
@@ -208,7 +219,6 @@ func TestDeletePost(t *testing.T) {
 		}
 	})
 }
-
 
 func TestCreatePost(t *testing.T) {
 	// Test case 1: Successful post creation with image
