@@ -12,10 +12,10 @@ func NewUnfollowStore(db *sql.DB) *UnfollowStore {
 	return &UnfollowStore{DB: db}
 }
 
-// GetFollowConnectionID retrieves the follow connection ID between two users
+// GetFollowConnectionID retrieves the follow connection ID between two users (only accepted follows)
 func (unf *UnfollowStore) GetFollowConnectionID(followerID, followeeID int64) (int64, error) {
 	var connectionID int64
-	query := "SELECT id FROM Followers WHERE follower_id = ? AND followee_id = ?"
+	query := "SELECT id FROM Followers WHERE follower_id = ? AND followee_id = ? AND status = 'accepted'"
 	err := unf.DB.QueryRow(query, followerID, followeeID).Scan(&connectionID)
 	if err != nil {
 		return 0, err
