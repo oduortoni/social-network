@@ -13,14 +13,16 @@ type ChatHandler struct {
 	Resolver  *DBSessionResolver
 	Persister *DBMessagePersister
 	Notifier  *NotificationSender
+	WSManager *Manager
 }
 
-func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender) *ChatHandler {
+func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager) *ChatHandler {
 	return &ChatHandler{
 		DB:        db,
 		Resolver:  resolver,
 		Persister: persister,
 		Notifier:  notifier,
+		WSManager: wsManager,
 	}
 }
 
@@ -198,4 +200,15 @@ func (h *ChatHandler) MarkNotificationsRead(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /api/users/online
+func (h *ChatHandler) GetOnlineUsers(w http.ResponseWriter, r *http.Request) {
+	onlineUsers := h.WSManager.GetOnlineUsers()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"online_users": onlineUsers,
+		"count":        len(onlineUsers),
+	})
 }

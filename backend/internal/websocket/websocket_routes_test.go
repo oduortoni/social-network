@@ -23,10 +23,23 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *Manager) {
 
 	// Create test tables
 	_, err = db.Exec(`
+		CREATE TABLE users (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			email TEXT UNIQUE NOT NULL,
+			nickname TEXT,
+			first_name TEXT,
+			last_name TEXT,
+			avatar TEXT,
+			date_of_birth DATE,
+			about_me TEXT,
+			is_profile_public INTEGER DEFAULT 1,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);
 		CREATE TABLE sessions (
 			id TEXT PRIMARY KEY,
 			user_id INTEGER NOT NULL,
-			expires_at DATETIME
+			expires_at DATETIME,
+			FOREIGN KEY (user_id) REFERENCES users(id)
 		);
 		CREATE TABLE Messages (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,13 +76,18 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *Manager) {
 
 	// Insert test data
 	_, err = db.Exec(`
-		INSERT INTO sessions (id, user_id, expires_at) VALUES 
+		INSERT INTO users (id, email, nickname, first_name, last_name) VALUES
+		(1, 'user1@test.com', 'testuser1', 'Test', 'User1'),
+		(2, 'user2@test.com', 'testuser2', 'Test', 'User2'),
+		(3, 'user3@test.com', 'testuser3', 'Test', 'User3');
+
+		INSERT INTO sessions (id, user_id, expires_at) VALUES
 		('test-session-1', 1, datetime('now', '+1 day')),
 		('test-session-2', 2, datetime('now', '+1 day'));
-		
+
 		INSERT INTO Groups (id, title, description, creator_id) VALUES (1, 'Test Group', 'A test group', 1);
-		
-		INSERT INTO Group_Members (user_id, group_id, is_accepted) VALUES 
+
+		INSERT INTO Group_Members (user_id, group_id, is_accepted) VALUES
 		(1, 1, 1), (2, 1, 1);
 	`)
 	if err != nil {
@@ -85,7 +103,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *Manager) {
 
 	// Create chat handler
 	notifier := NewDBNotificationSender(manager)
-	chatHandler := NewChatHandler(db, NewDBSessionResolver(db), NewDBMessagePersister(db), notifier)
+	chatHandler := NewChatHandler(db, NewDBSessionResolver(db), NewDBMessagePersister(db), notifier, manager)
 
 	// Create test server with routes
 	mux := http.NewServeMux()

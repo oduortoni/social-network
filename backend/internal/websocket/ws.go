@@ -3,6 +3,7 @@ package websocket
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -68,24 +69,49 @@ func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persi
 }
 
 func (m *Manager) Register(c *Client) {
+	// Add client to map first
 	m.mu.Lock()
-	defer m.mu.Unlock()
 	m.clients[c.ID] = c
 	fmt.Printf("User %d connected as %s", c.ID, c.Nickname)
-	for _, client := range m.clients {
-		if client.ID == c.ID {
-			continue
-		}
-		client.Send <- []byte("User " + c.Nickname + " connected")
+	m.mu.Unlock() // Release lock before broadcasting
+
+	// Broadcast user connection notification to all other users
+	connectionNotification := map[string]interface{}{
+		"type":      "notification",
+		"subtype":   "user_connected",
+		"user_id":   c.ID,
+		"user_name": c.Nickname,
+		"message":   c.Nickname + " is now online",
+		"timestamp": time.Now().Unix(),
 	}
+
+	m.broadcastNotificationToAll(connectionNotification, c.ID)
 }
 
 func (m *Manager) Unregister(id int64) {
+	var disconnectionNotification map[string]interface{}
+
+	// Remove client and prepare notification
 	m.mu.Lock()
-	defer m.mu.Unlock()
-	if _, ok := m.clients[id]; ok {
+	if client, ok := m.clients[id]; ok {
+		// Prepare notification before removing client
+		disconnectionNotification = map[string]interface{}{
+			"type":      "notification",
+			"subtype":   "user_disconnected",
+			"user_id":   id,
+			"user_name": client.Nickname,
+			"message":   client.Nickname + " went offline",
+			"timestamp": time.Now().Unix(),
+		}
+
 		delete(m.clients, id)
 		fmt.Printf("User %d disconnected", id)
+	}
+	m.mu.Unlock() // Release lock before broadcasting
+
+	// Broadcast after releasing the lock
+	if disconnectionNotification != nil {
+		m.broadcastNotificationToAll(disconnectionNotification, id)
 	}
 }
 
@@ -133,6 +159,91 @@ func (m *Manager) OnlineUserIDs() []int64 {
 		ids = append(ids, id)
 	}
 	return ids
+}
+
+// Notification Broadcasting Methods
+
+func (m *Manager) broadcastNotificationToAll(notification map[string]interface{}, excludeUserID int64) {
+	notificationBytes, err := json.Marshal(notification)
+	if err != nil {
+		log.Printf("Failed to marshal notification: %v", err)
+		return
+	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for id, client := range m.clients {
+		if id != excludeUserID {
+			select {
+			case client.Send <- notificationBytes:
+			default:
+				// Channel is full, skip this client
+				log.Printf("Failed to send notification to user %d: channel full", id)
+			}
+		}
+	}
+}
+
+func (m *Manager) SendNotificationToUser(userID int64, notification map[string]interface{}) {
+	notificationBytes, err := json.Marshal(notification)
+	if err != nil {
+		log.Printf("Failed to marshal notification: %v", err)
+		return
+	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if client, ok := m.clients[userID]; ok {
+		select {
+		case client.Send <- notificationBytes:
+		default:
+			log.Printf("Failed to send notification to user %d: channel full", userID)
+		}
+	}
+}
+
+func (m *Manager) SendNotificationToGroup(groupID string, notification map[string]interface{}, excludeUserID int64) {
+	memberIDs, err := m.groupQuery.GetGroupMemberIDs(groupID)
+	if err != nil {
+		log.Printf("Failed to get group members: %v", err)
+		return
+	}
+
+	notificationBytes, err := json.Marshal(notification)
+	if err != nil {
+		log.Printf("Failed to marshal notification: %v", err)
+		return
+	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for _, memberID := range memberIDs {
+		if memberID != excludeUserID {
+			if client, ok := m.clients[memberID]; ok {
+				select {
+				case client.Send <- notificationBytes:
+				default:
+					log.Printf("Failed to send notification to user %d: channel full", memberID)
+				}
+			}
+		}
+	}
+}
+
+func (m *Manager) GetOnlineUsers() []map[string]interface{} {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	users := make([]map[string]interface{}, 0, len(m.clients))
+	for _, client := range m.clients {
+		users = append(users, map[string]interface{}{
+			"user_id":   client.ID,
+			"user_name": client.Nickname,
+			"connected": client.Connected.Unix(),
+		})
+	}
+
+	return users
 }
 
 // ----------- Message Format ---------------

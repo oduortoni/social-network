@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { wsService } from '../../lib/websocket';
 import { chatAPI } from '../../lib/api';
+import { notificationService } from '../../lib/notificationService';
 
 const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [activeChat, setActiveChat] = useState(null); // { type: 'private', id: userId } or { type: 'group', id: groupId }
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -17,7 +19,18 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
     wsService.onMessage('broadcast', handleBroadcastMessage);
     wsService.onMessage('notification', handleNotification);
 
-    // No cleanup needed since connection is managed elsewhere
+    // Set up notification handlers for user connection tracking
+    notificationService.onNotification('user_connected', handleUserConnected);
+    notificationService.onNotification('user_disconnected', handleUserDisconnected);
+
+    // Load initial online users
+    loadOnlineUsers();
+
+    return () => {
+      // Clean up notification handlers
+      notificationService.removeHandler('user_connected', handleUserConnected);
+      notificationService.removeHandler('user_disconnected', handleUserDisconnected);
+    };
   }, []);
 
   useEffect(() => {
@@ -43,9 +56,32 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
   };
 
   const handleNotification = (notification) => {
-    // Handle real-time notifications
-    console.log('New notification:', notification);
-    // You could show a toast notification here
+    // Pass notification to notification service for processing
+    notificationService.handleNotification(notification);
+  };
+
+  const handleUserConnected = (notification) => {
+    setOnlineUsers(prev => new Set([...prev, notification.user_id]));
+    console.log(`${notification.user_name} connected`);
+  };
+
+  const handleUserDisconnected = (notification) => {
+    setOnlineUsers(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(notification.user_id);
+      return newSet;
+    });
+    console.log(`${notification.user_name} disconnected`);
+  };
+
+  const loadOnlineUsers = async () => {
+    try {
+      const users = await notificationService.loadOnlineUsers();
+      const userIds = new Set(users.map(user => user.user_id));
+      setOnlineUsers(userIds);
+    } catch (error) {
+      console.error('Failed to load online users:', error);
+    }
   };
 
   const sendMessage = () => {
@@ -102,9 +138,12 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
           <h4 className="text-sm text-gray-600 mb-2">Private Messages</h4>
           <button
             onClick={() => loadChatHistory('private', 1)} // Example user ID
-            className="w-full text-left p-2 hover:bg-gray-100 rounded"
+            className="w-full text-left p-2 hover:bg-gray-100 rounded flex items-center justify-between"
           >
-            User 1
+            <span>User 1</span>
+            <div className={`w-2 h-2 rounded-full ${
+              onlineUsers.has(1) ? 'bg-green-500' : 'bg-gray-300'
+            }`} title={onlineUsers.has(1) ? 'Online' : 'Offline'}></div>
           </button>
         </div>
         

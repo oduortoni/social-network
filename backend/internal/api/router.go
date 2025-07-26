@@ -71,7 +71,7 @@ func NewRouter(db *sql.DB) http.Handler {
 		ws.NewDBSessionResolver(db),
 		ws.NewDBMessagePersister(db),
 		notifier,
-
+		wsManager,
 	)
 
 	/*example websocket routes */
@@ -80,6 +80,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("POST /api/groups/invite", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.SendGroupInvite)))
 	mux.Handle("GET /api/notifications", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetNotifications)))
 	mux.Handle("POST /api/notifications/read", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.MarkNotificationsRead)))
+	mux.Handle("GET /api/users/online", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetOnlineUsers)))
 
 	return mux
 }

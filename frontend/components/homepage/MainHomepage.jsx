@@ -14,6 +14,7 @@ const MainHomepage = ({ user, connectionStatus }) => {
         </div>
         <ActivitySidebar user={user} />
       </div>
+
     </div>
   );
 };

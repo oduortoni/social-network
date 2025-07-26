@@ -20,9 +20,17 @@ func setupTestDB(t *testing.T) *sql.DB {
 
 	// Create minimal tables for testing
 	_, err = db.Exec(`
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            nickname TEXT,
+            first_name TEXT,
+            last_name TEXT
+        );
         CREATE TABLE sessions (
             id TEXT PRIMARY KEY,
-            user_id INTEGER NOT NULL
+            user_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
         );
         CREATE TABLE Messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,10 +50,15 @@ func setupTestDB(t *testing.T) *sql.DB {
 		t.Fatalf("Failed to create test tables: %v", err)
 	}
 
-	// Insert test session
-	_, err = db.Exec("INSERT INTO sessions (id, user_id) VALUES ('test-session', 123)")
+	// Insert test user and session
+	_, err = db.Exec(`
+		INSERT INTO users (id, email, nickname, first_name, last_name) VALUES
+		(123, 'test@example.com', 'testuser', 'Test', 'User');
+
+		INSERT INTO sessions (id, user_id) VALUES ('test-session', 123);
+	`)
 	if err != nil {
-		t.Fatalf("Failed to insert test session: %v", err)
+		t.Fatalf("Failed to insert test data: %v", err)
 	}
 
 	return db
