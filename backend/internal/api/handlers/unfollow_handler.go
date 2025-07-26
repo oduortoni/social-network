@@ -8,7 +8,7 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 type UnfollowHandler struct {
@@ -20,14 +20,14 @@ func NewUnfollowHandler(unf service.UnfollowServiceInterface) *UnfollowHandler {
 }
 
 func (unf *UnfollowHandler) Unfollow(w http.ResponseWriter, r *http.Request) {
-	var serverResponse models.Response
+	var serverResponse utils.Response
 	status := http.StatusOK
 
 	// Get current user id from session
 	followerID, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
 		serverResponse.Message = "User not found in context"
-		models.RespondJSON(w, http.StatusUnauthorized, serverResponse)
+		utils.RespondJSON(w, http.StatusUnauthorized, serverResponse)
 		return
 	}
 
@@ -36,14 +36,14 @@ func (unf *UnfollowHandler) Unfollow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status = http.StatusBadRequest
 		serverResponse.Message = "Failed to read request body"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
 	if err = json.Unmarshal(body, &followee); err != nil {
 		status = http.StatusBadRequest
 		serverResponse.Message = "Invalid JSON format"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
@@ -57,7 +57,7 @@ func (unf *UnfollowHandler) Unfollow(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusInternalServerError
 			serverResponse.Message = "Failed to find follow connection"
 		}
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
@@ -66,10 +66,10 @@ func (unf *UnfollowHandler) Unfollow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status = http.StatusInternalServerError
 		serverResponse.Message = "Failed to unfollow user"
-		models.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
 	serverResponse.Message = "Successfully unfollowed user"
-	models.RespondJSON(w, status, serverResponse)
+	utils.RespondJSON(w, status, serverResponse)
 }
