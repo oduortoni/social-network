@@ -207,7 +207,7 @@ func (h *ChatHandler) GetOnlineUsers(w http.ResponseWriter, r *http.Request) {
 	onlineUsers := h.WSManager.GetOnlineUsers()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"online_users": onlineUsers,
 		"count":        len(onlineUsers),
 	})
