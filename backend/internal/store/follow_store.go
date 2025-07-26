@@ -26,7 +26,7 @@ func (followstore *FollowStore) IsUserAccountPublic(userid int64) (bool, error) 
 
 func (followstore *FollowStore) CreatePublicFollowConnection(followerId, followeeId int64) error {
 	currentTime := time.Now()
-	_, err := followstore.DB.Exec("INSERT INTO Followers (follower_id, followee_id,is_accepted,requested_at,accepted_at) VALUES (?, ?,?,?,?)", followerId, followeeId, 1, currentTime, currentTime)
+	_, err := followstore.DB.Exec("INSERT INTO Followers (follower_id, followee_id, status, requested_at, accepted_at) VALUES (?, ?, ?, ?, ?)", followerId, followeeId, "accepted", currentTime, currentTime)
 	return err
 }
 
@@ -34,8 +34,8 @@ func (followstore *FollowStore) CreatePrivateFollowConnection(followerId, follow
 	currentTime := time.Now()
 
 	result, err := followstore.DB.Exec(
-		"INSERT INTO Followers (follower_id, followee_id, is_accepted, requested_at) VALUES (?, ?, ?, ?)",
-		followerId, followeeId, 0, currentTime,
+		"INSERT INTO Followers (follower_id, followee_id, status, requested_at) VALUES (?, ?, ?, ?)",
+		followerId, followeeId, "pending", currentTime,
 	)
 	if err != nil {
 		return 0, err

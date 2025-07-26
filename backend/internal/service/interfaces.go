@@ -29,3 +29,13 @@ type FollowServiceInterface interface {
 	CreateFollowForPublicAccount(followerid, followeeid int64) error
 	CreateFollowForPrivateAccount(followrid, followeeid int64) (int64, error)
 }
+
+type UnfollowServiceInterface interface {
+	GetFollowConnectionID(followerID, followeeID int64) (int64, error)
+	DeleteFollowConnection(followConnectionID int64) error
+}
+
+type FollowRequestServiceInterface interface {
+	AcceptedFollowConnection(followConnectionID int64) error
+	RejectedFollowConnection(followConnectionID int64) error
+}
