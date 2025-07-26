@@ -9,7 +9,6 @@ export const useSimpleNotifications = () => {
   useEffect(() => {
     // Handle incoming notifications
     const handleNotification = (notification) => {
-      console.log('New notification received:', notification);
 
       // Add to notifications list
       setNotifications(prev => [notification, ...prev.slice(0, 19)]); // Keep last 20
