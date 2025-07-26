@@ -2,21 +2,26 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 type FollowHandler struct {
 	FollowService service.FollowServiceInterface
+	Notifier      *ws.NotificationSender
 }
 
-func NewFollowHandler(funf service.FollowServiceInterface) *FollowHandler {
-	return &FollowHandler{FollowService: funf}
+func NewFollowHandler(followService service.FollowServiceInterface, notifier *ws.NotificationSender) *FollowHandler {
+	return &FollowHandler{
+		FollowService: followService,
+		Notifier:      notifier,
+	}
 }
 
 func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +68,34 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 			utils.RespondJSON(w, status, serverResponse)
 			return
 		}
+
+		// Send notification for public account follow
+		if follow.Notifier != nil {
+			followerName, _, err := follow.FollowService.GetUserInfo(followerId)
+			if err == nil {
+				// Store notification in database
+				err = follow.FollowService.AddtoNotification(int64(followee.FolloweeId), followerName+" started following you")
+				if err != nil {
+					status = http.StatusInternalServerError
+					serverResponse.Message = "Failed to add notification"
+					utils.RespondJSON(w, status, serverResponse)
+					return
+				}
+
+				// Send real-time notification if user is online
+				if follow.Notifier.IsOnline(int64(followee.FolloweeId)) {
+					follow.Notifier.SendNotification(int64(followee.FolloweeId), map[string]interface{}{
+						"type":      "notification",
+						"subtype":   "follow",
+						"user_id":   followerId,
+						"user_name": followerName,
+						"message":   followerName + " started following you",
+						"timestamp": time.Now().Unix(),
+					})
+				}
+			}
+		}
+
 		serverResponse.Message = "Account successfully followed"
 		utils.RespondJSON(w, status, serverResponse)
 		return
@@ -76,7 +109,38 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
-	fmt.Println("Follow ID:", followID)
+
+	// Send notification for follow request
+	if follow.Notifier != nil {
+		followerName, _, err := follow.FollowService.GetUserInfo(followerId)
+		if err == nil {
+			// Store notification in database
+			err = follow.FollowService.AddtoNotification(int64(followee.FolloweeId), followerName+" sent you a follow request")
+			if err != nil {
+				status = http.StatusInternalServerError
+				serverResponse.Message = "Failed to add notification"
+				utils.RespondJSON(w, status, serverResponse)
+				return
+			}
+
+			// Send real-time notification if user is online
+			if follow.Notifier.IsOnline(int64(followee.FolloweeId)) {
+				follow.Notifier.SendNotification(int64(followee.FolloweeId), map[string]interface{}{
+					"type":      "notification",
+					"subtype":   "follow_request",
+					"user_id":   followerId,
+					"user_name": followerName,
+					"message":   followerName + " sent you a follow request",
+					"timestamp": time.Now().Unix(),
+					"additional_data": map[string]interface{}{
+						"request_id": followID,
+						"actions":    []string{"accept", "reject"},
+					},
+				})
+			}
+		}
+	}
+
 	serverResponse.Message = "Follow request sent. You will be able to follow once approved."
 	utils.RespondJSON(w, status, serverResponse)
 }
