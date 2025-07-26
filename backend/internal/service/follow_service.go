@@ -23,3 +23,11 @@ func (Follow *FollowService) CreateFollowForPublicAccount(followerid, followeeid
 func (Follow *FollowService) CreateFollowForPrivateAccount(followrid, followeeid int64) (int64, error) {
 	return Follow.FollowStore.CreatePrivateFollowConnection(followrid, followeeid)
 }
+
+func (Follow *FollowService) GetUserInfo(userID int64) (string, string, error) {
+	return Follow.FollowStore.UserInfo(userID)
+}
+
+func (Follow *FollowService) AddtoNotification(follower_id int64, message string) error {
+	return Follow.FollowStore.AddtoNotification(follower_id, message)
+}

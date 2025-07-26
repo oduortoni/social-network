@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -47,4 +48,38 @@ func (followstore *FollowStore) CreatePrivateFollowConnection(followerId, follow
 	}
 
 	return followID, nil
+}
+
+func (followstore *FollowStore) UserInfo(userID int64) (string, string, error) {
+	var firstName, lastName sql.NullString
+	query := "SELECT first_name, last_name FROM Users WHERE id = ?"
+	err := followstore.DB.QueryRow(query, userID).Scan(&firstName, &lastName)
+	if err != nil {
+		return "", "", err
+	}
+
+	name := ""
+	if firstName.Valid && lastName.Valid {
+		name = firstName.String + " " + lastName.String
+	} else if firstName.Valid {
+		name = firstName.String
+	} else if lastName.Valid {
+		name = lastName.String
+	} else {
+		name = "User"
+	}
+
+	return name, name, nil
+}
+
+func (followstore *FollowStore) AddtoNotification(follower_id int64, message string) error {
+	// Determine notification type based on message content
+	notificationType := "follow"
+	if strings.Contains(message, "follow request") {
+		notificationType = "follow_request"
+	}
+
+	_, err := followstore.DB.Exec(`INSERT INTO Notifications (user_id, type, message) VALUES (?, ?, ?)`,
+		follower_id, notificationType, message)
+	return err
 }

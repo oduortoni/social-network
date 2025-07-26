@@ -105,7 +105,7 @@ The system is built around three main interfaces:
 #### SessionResolver
 ```go
 type SessionResolver interface {
-    GetUserIDFromRequest(r *http.Request) (int64, error)
+    GetUserFromRequest(r *http.Request) (int64, error)
 }
 ```
 Handles user authentication via session cookies.

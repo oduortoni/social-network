@@ -3,6 +3,7 @@ package websocket
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -28,7 +29,7 @@ func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessag
 
 // GET /api/messages/private?user=123&limit=50&offset=0
 func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request) {
-	userID, _, err := h.Resolver.GetUserIDFromRequest(r)
+	userID, _, _, err := h.Resolver.GetUserFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -61,7 +62,7 @@ func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request)
 
 // GET /api/messages/group?group=123&limit=50&offset=0
 func (h *ChatHandler) GetGroupMessages(w http.ResponseWriter, r *http.Request) {
-	_, _, err := h.Resolver.GetUserIDFromRequest(r)
+	_, _, _, err := h.Resolver.GetUserFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -94,7 +95,7 @@ func (h *ChatHandler) GetGroupMessages(w http.ResponseWriter, r *http.Request) {
 
 // POST /api/groups/invite
 func (h *ChatHandler) SendGroupInvite(w http.ResponseWriter, r *http.Request) {
-	inviterID, _, err := h.Resolver.GetUserIDFromRequest(r)
+	inviterID, _, _, err := h.Resolver.GetUserFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -138,7 +139,7 @@ func (h *ChatHandler) SendGroupInvite(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/notifications?limit=20&offset=0
 func (h *ChatHandler) GetNotifications(w http.ResponseWriter, r *http.Request) {
-	userID, _, err := h.Resolver.GetUserIDFromRequest(r)
+	userID, _, _, err := h.Resolver.GetUserFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -189,7 +190,7 @@ func (h *ChatHandler) GetNotifications(w http.ResponseWriter, r *http.Request) {
 
 // POST /api/notifications/read
 func (h *ChatHandler) MarkNotificationsRead(w http.ResponseWriter, r *http.Request) {
-	userID, _, err := h.Resolver.GetUserIDFromRequest(r)
+	userID, _, _, err := h.Resolver.GetUserFromRequest(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -204,7 +205,9 @@ func (h *ChatHandler) MarkNotificationsRead(w http.ResponseWriter, r *http.Reque
 
 // GET /api/users/online
 func (h *ChatHandler) GetOnlineUsers(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("GetOnlineUsers API called")
 	onlineUsers := h.WSManager.GetOnlineUsers()
+	fmt.Printf("Found %d online users: %+v\n", len(onlineUsers), onlineUsers)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{

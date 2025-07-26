@@ -13,7 +13,11 @@ func NewDBSessionResolver(db *sql.DB) *DBSessionResolver {
 	return &DBSessionResolver{DB: db}
 }
 
-func (r *DBSessionResolver) GetUserIDFromRequest(req *http.Request) (int64, string, error) {
+/*
+*  Gets the user id from the request ans uses it to get the user's nickname and avatar from the database.
+*  Returns the user id, nickname, and avatar.
+*/
+func (r *DBSessionResolver) GetUserFromRequest(req *http.Request) (int64, string, string, error) {
 	var sessionID string
 
 	// First try to get session ID from cookie
@@ -22,7 +26,7 @@ func (r *DBSessionResolver) GetUserIDFromRequest(req *http.Request) (int64, stri
 		// If cookie fails, try query parameter as fallback
 		sessionID = req.URL.Query().Get("session_id")
 		if sessionID == "" {
-			return 0, "anonymous", err
+			return 0, "anonymous", "", err
 		}
 	} else {
 		sessionID = cookie.Value
@@ -30,11 +34,12 @@ func (r *DBSessionResolver) GetUserIDFromRequest(req *http.Request) (int64, stri
 
 	var userID int64
 	var nickname string
+	var avatar string
 	err = r.DB.QueryRow(`
-		SELECT sessions.user_id, users.nickname FROM sessions INNER JOIN users ON sessions.user_id = users.id WHERE sessions.id = ?
-	`, sessionID).Scan(&userID, &nickname)
+		SELECT sessions.user_id, users.nickname, users.avatar FROM sessions INNER JOIN users ON sessions.user_id = users.id WHERE sessions.id = ?
+	`, sessionID).Scan(&userID, &nickname, &avatar)
 	if err != nil {
-		return 0, "anonymous", err
+		return 0, "anonymous", "", err
 	}
-	return userID, nickname, nil
+	return userID, nickname, avatar, nil
 }

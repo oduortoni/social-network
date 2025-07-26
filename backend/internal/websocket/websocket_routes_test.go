@@ -76,10 +76,10 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *Manager) {
 
 	// Insert test data
 	_, err = db.Exec(`
-		INSERT INTO users (id, email, nickname, first_name, last_name) VALUES
-		(1, 'user1@test.com', 'testuser1', 'Test', 'User1'),
-		(2, 'user2@test.com', 'testuser2', 'Test', 'User2'),
-		(3, 'user3@test.com', 'testuser3', 'Test', 'User3');
+		INSERT INTO users (id, email, nickname, first_name, last_name, avatar) VALUES
+		(1, 'user1@test.com', 'testuser1', 'Test', 'User1', 'avatar1.jpg'),
+		(2, 'user2@test.com', 'testuser2', 'Test', 'User2', 'avatar2.jpg'),
+		(3, 'user3@test.com', 'testuser3', 'Test', 'User3', 'avatar3.jpg');
 
 		INSERT INTO sessions (id, user_id, expires_at) VALUES
 		('test-session-1', 1, datetime('now', '+1 day')),

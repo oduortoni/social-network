@@ -25,7 +25,8 @@ func setupTestDB(t *testing.T) *sql.DB {
             email TEXT UNIQUE NOT NULL,
             nickname TEXT,
             first_name TEXT,
-            last_name TEXT
+            last_name TEXT,
+            avatar TEXT
         );
         CREATE TABLE sessions (
             id TEXT PRIMARY KEY,
@@ -52,8 +53,8 @@ func setupTestDB(t *testing.T) *sql.DB {
 
 	// Insert test user and session
 	_, err = db.Exec(`
-		INSERT INTO users (id, email, nickname, first_name, last_name) VALUES
-		(123, 'test@example.com', 'testuser', 'Test', 'User');
+		INSERT INTO users (id, email, nickname, first_name, last_name, avatar) VALUES
+		(123, 'test@example.com', 'testuser', 'Test', 'User', 'test-avatar.jpg');
 
 		INSERT INTO sessions (id, user_id) VALUES ('test-session', 123);
 	`)
