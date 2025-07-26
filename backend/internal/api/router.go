@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/internal/service"
@@ -16,51 +15,42 @@ func NewRouter(db *sql.DB) http.Handler {
 	// Create stores
 	postStore := store.NewPostStore(db)
 	authStore := store.NewAuthStore(db)
+	followStore := store.NewFollowStore(db)
 
 	// Create services
 	postService := service.NewPostService(postStore)
 	authService := service.NewAuthService(authStore)
+	followService := service.NewFollowService(followStore)
 
 	// Create handlers
 	postHandler := handlers.NewPostHandler(postService)
 	authHandler := handlers.NewAuthHandler(authService)
+	followHandler := handlers.NewFollowHandler(followService)
 
 	// Create router
 	mux := http.NewServeMux()
 
 	// Authentication Handlers
-	mux.HandleFunc("POST /validate/step1", func(w http.ResponseWriter, r *http.Request) {
-		authentication.ValidateAccountStepOne(w, r, db)
-	})
-	mux.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
-		authentication.SignupHandler(w, r, db)
-	})
+	mux.HandleFunc("POST /validate/step1", authHandler.ValidateAccountStepOne)
+	mux.HandleFunc("POST /register", authHandler.Signup)
 	mux.HandleFunc("POST /login", authHandler.Login)
-
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
-		authentication.LogoutHandler(w, r, db)
+		authHandler.LogoutHandler(w, r)
 	})
-	mux.HandleFunc("GET /auth/google/login", authentication.RedirectToGoogleLogin)
-	mux.HandleFunc("GET /auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleGoogleCallback(w, r, db)
-	})
-	mux.HandleFunc("GET /auth/facebook/login", authentication.RedirectToFacebookLogin)
-	mux.HandleFunc("GET /auth/facebook/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleFacebookCallback(w, r, db)
-	})
-	mux.HandleFunc("GET /auth/github/login", authentication.RedirectToGitHubLogin)
-	mux.HandleFunc("GET /auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
-		authentication.HandleGitHubCallback(w, r, db)
-	})
-	mux.HandleFunc("GET /checksession", func(w http.ResponseWriter, r *http.Request) {
-		authentication.CheckSessionHandler(w, r, db)
-	})
+
+	// mux.HandleFunc("GET /checksession", func(w http.ResponseWriter, r *http.Request) {
+	// 	authentication.CheckSessionHandler(w, r, db)
+	// })
 
 	// Mount handlers
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))
 	mux.Handle("GET /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPostByID)))
-	mux.Handle("GET /feed", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetFeed)))
+	mux.Handle("GET /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPosts)))
 	mux.Handle("POST /posts/{postId}/comments", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreateComment)))
+	mux.Handle("GET /posts/{postId}/comments", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetCommentsByPostID)))
+	mux.Handle("DELETE /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeletePost)))
+
+	mux.Handle("POST /follow", middleware.AuthMiddleware(db)(http.HandlerFunc(followHandler.Follow)))
 
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 	mux.Handle("GET /avatar", http.HandlerFunc(handlers.Avatar))

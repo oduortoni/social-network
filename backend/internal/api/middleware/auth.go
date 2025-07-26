@@ -3,12 +3,11 @@ package middleware
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 
-	"github.com/tajjjjr/social-network/backend/internal/api/authentication"
+	"github.com/tajjjjr/social-network/backend/internal/store"
 	"github.com/tajjjjr/social-network/backend/utils"
-
-	"fmt"
 )
 
 // AuthMiddleware retrieves the user ID from the session cookie and adds it to the request context.
@@ -22,7 +21,7 @@ func AuthMiddleware(db *sql.DB) func(http.Handler) http.Handler {
 				return
 			}
 
-			userID, err := authentication.GetUserIDFromSession(cookie.Value, db)
+			userID, err := store.GetUserIDFromSession(cookie.Value, db)
 			if err != nil {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return

@@ -41,18 +41,6 @@ export function LoginForm() {
         className="bg-white h-full px-[50px] flex flex-col justify-center items-center text-center"
       >
         <h1 className="font-bold text-2xl text-[var(--tertiary-text)]">Sign in</h1>
-        <div className="my-5 flex space-x-3">
-          <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--primary-background)]">
-            <FaFacebookF />
-          </a>
-          <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--primary-background)]">
-            <FaGooglePlusG />
-          </a>
-          <a className="border bg-[var(--primary-accent)] border-[var(--primary-accent)] rounded-full h-10 w-10 flex justify-center items-center text-[var(--primary-background)]">
-            <FaLinkedinIn />
-          </a>
-        </div>
-        <span className="text-xs mb-2 text-[var(--tertiary-text)]">or use your account</span>
         {formError && (
           <div className="font-bold text-base text-[var(--warning-color)]">
             {formError}

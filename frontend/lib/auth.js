@@ -68,7 +68,7 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       const result = await response.json();
       setFormError("Registration successful!");
       // Redirect or reset form
-      window.location.href = "/";
+      window.location.href="/"
     } catch (err) {
       console.error("Registration error:", err);
       setFormError("Something went wrong. Please try again later.");

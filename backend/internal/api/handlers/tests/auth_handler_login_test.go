@@ -18,6 +18,9 @@ type MockAuthService struct {
 	AuthenticateUserFunc   func(email, password string) (*models.User, string, error)
 	DeleteSessionFunc      func(sessionID string) (int, error)
 	GetUserIDBySessionFunc func(sessionID string) (int, error)
+	CreateUserFunc         func(user *models.User) (*models.User, error)
+	ValidateEmailFunc      func(email string) (bool, error)
+	UserExistsFunc         func(email string) (bool, error)
 }
 
 func (s *MockAuthService) AuthenticateUser(email, password string) (*models.User, string, error) {
@@ -35,11 +38,26 @@ func (s *MockAuthService) GetUserIDBySession(sessionID string) (int, error) {
 	return s.GetUserIDBySessionFunc(sessionID)
 }
 
+func (s *MockAuthService) CreateUser(user *models.User) (*models.User, error) {
+	return s.CreateUserFunc(user)
+}
+
+func (s *MockAuthService) ValidateEmail(email string) (bool, error) {
+	return s.ValidateEmailFunc(email)
+}
+
+func (s *MockAuthService) UserExists(email string) (bool, error) {
+	return s.UserExistsFunc(email)
+}
+
 func TestLogin(t *testing.T) {
 	// Create a new mock auth service
 	mockAuthService := &MockAuthService{
 		AuthenticateUserFunc: func(email, password string) (*models.User, string, error) {
 			return &models.User{ID: 1, Email: "test@test.com"}, "session123", nil
+		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
 		},
 	}
 
@@ -47,7 +65,7 @@ func TestLogin(t *testing.T) {
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
 	// Create a new request
-	loginReq := handlers.LoginRequest{Email: "test@test.com", Password: "password"}
+	loginReq := models.LoginRequest{Email: "test@test.com", Password: "password"}
 	body, _ := json.Marshal(loginReq)
 	req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 	if err != nil {
@@ -113,10 +131,13 @@ func TestLogin_SessionFixation_NotPrevented(t *testing.T) {
 		AuthenticateUserFunc: func(email, password string) (*models.User, string, error) {
 			return &models.User{ID: 1, Email: "test@test.com"}, "new-session-id", nil
 		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
-	loginReq := handlers.LoginRequest{Email: "test@test.com", Password: "password"}
+	loginReq := models.LoginRequest{Email: "test@test.com", Password: "password"}
 	body, _ := json.Marshal(loginReq)
 	req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 	if err != nil {
@@ -190,10 +211,13 @@ func TestLogin_IncorrectCredentials(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockAuthService := &MockAuthService{
 				AuthenticateUserFunc: tc.mockFunc,
+				CreateUserFunc: func(user *models.User) (*models.User, error) {
+					return user, nil
+				},
 			}
 			authHandler := handlers.NewAuthHandler(mockAuthService)
 
-			loginReq := handlers.LoginRequest{Email: tc.email, Password: tc.password}
+			loginReq := models.LoginRequest{Email: tc.email, Password: tc.password}
 			body, _ := json.Marshal(loginReq)
 			req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 			if err != nil {
@@ -229,6 +253,9 @@ func TestLogin_FormData(t *testing.T) {
 				return &models.User{ID: 1, Email: "test@test.com"}, "session123", nil
 			}
 			return nil, "Invalid credentials", errors.New("authentication failed")
+		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
 		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
@@ -269,10 +296,13 @@ func TestLogin_SessionCookieProperties(t *testing.T) {
 		AuthenticateUserFunc: func(email, password string) (*models.User, string, error) {
 			return &models.User{ID: 1, Email: "test@test.com"}, "session123", nil
 		},
+		CreateUserFunc: func(user *models.User) (*models.User, error) {
+			return user, nil
+		},
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
-	loginReq := handlers.LoginRequest{Email: "test@test.com", Password: "password"}
+	loginReq := models.LoginRequest{Email: "test@test.com", Password: "password"}
 	body, _ := json.Marshal(loginReq)
 	req, err := http.NewRequest("POST", "/login", strings.NewReader(string(body)))
 	if err != nil {
