@@ -152,7 +152,7 @@ const PostList = ({ refreshTrigger }) => {
             {post.image && (
               <div className="mt-3">
                 <img 
-                  src={`http://localhost:9000/uploads/posts/${post.image}`}
+                  src={`http://localhost:9000/avatar?avatar=${post.image}`}
                   alt="Post image" 
                   className="max-w-full rounded-lg"
                   onError={(e) => {
