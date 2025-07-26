@@ -17,11 +17,13 @@ type AuthServiceInterface interface {
 // PostServiceInterface defines the interface for the post service.
 type PostServiceInterface interface {
 	CreatePost(post *models.Post, imageData []byte, imageMimeType string) (int64, error)
+	CreatePostWithViewers(post *models.Post, imageData []byte, imageMimeType string, viewerIDs []int64) (int64, error)
 	GetPostByID(id int64) (*models.Post, error)
 	GetPosts(userID int64) ([]*models.Post, error)
 	CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
 	GetCommentsByPostID(postID int64) ([]*models.Comment, error)
 	DeletePost(postID, userID int64) error
+	SearchUsers(query string, currentUserID int64) ([]*models.User, error)
 }
 
 type FollowServiceInterface interface {

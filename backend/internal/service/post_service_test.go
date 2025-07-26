@@ -39,6 +39,14 @@ func (s *MockPostStore) DeletePost(postID int64) error {
 	return s.DeletePostFunc(postID)
 }
 
+func (s *MockPostStore) AddPostViewers(postID int64, viewerIDs []int64) error {
+	return nil
+}
+
+func (s *MockPostStore) SearchUsers(query string, currentUserID int64) ([]*models.User, error) {
+	return nil, nil
+}
+
 func TestDeletePost(t *testing.T) {
 	// Test case 1: Successful deletion
 	t.Run("Successful deletion", func(t *testing.T) {

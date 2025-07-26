@@ -1,21 +1,21 @@
 package handlers
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"bytes"
-	"errors"
-	"io"
-	"mime/multipart"
 
 	"github.com/google/uuid"
 )
 
-func Avatar(w http.ResponseWriter, r *http.Request) {
+func GetImage(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Avatar request received")
 	avatar := r.URL.Query().Get("avatar")
 	if avatar == "" {
@@ -74,7 +74,7 @@ func Avatar(w http.ResponseWriter, r *http.Request) {
 	// Detect MIME type from file extension
 	ext := strings.ToLower(filepath.Ext(imageFile))
 	var contentType string
-	
+
 	switch ext {
 	case ".jpg", ".jpeg":
 		contentType = "image/jpeg"
@@ -93,7 +93,7 @@ func Avatar(w http.ResponseWriter, r *http.Request) {
 	default:
 		// Try to detect from file content using Go's built-in detection
 		contentType = http.DetectContentType(image)
-		
+
 		// If it's not a recognized image type, reject it
 		if !strings.HasPrefix(contentType, "image/") {
 			fmt.Println("File is not a valid image:", contentType)
@@ -105,7 +105,7 @@ func Avatar(w http.ResponseWriter, r *http.Request) {
 	// Set appropriate headers for image serving
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(image)))
-	w.Header().Set("Cache-Control", "public, max-age=31536000") // Cache for 1 year
+	w.Header().Set("Cache-Control", "public, max-age=31536000")            // Cache for 1 year
 	w.Header().Set("ETag", fmt.Sprintf(`"%x"`, fileInfo.ModTime().Unix())) // Simple ETag
 
 	// Handle conditional requests (If-None-Match for ETag)
@@ -190,7 +190,7 @@ func UploadAvatarImage(imagereader multipart.File, imageheader *multipart.FileHe
 	ext := filepath.Ext(imageheader.Filename)
 	filename := uuid.New().String()
 	filepath := filepath.Join("./attachments", filename+ext)
-	retFile := filename+ext
+	retFile := filename + ext
 
 	// Create the directory if it doesn't exist
 	err := os.MkdirAll("./attachments", os.ModePerm)

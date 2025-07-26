@@ -36,6 +36,43 @@ func (s *PostService) CreatePost(post *models.Post, imageData []byte, imageMimeT
 	return s.PostStore.CreatePost(post)
 }
 
+func (s *PostService) CreatePostWithViewers(post *models.Post, imageData []byte, imageMimeType string, viewerIDs []int64) (int64, error) {
+	if post.Content == "" {
+		return 0, fmt.Errorf("post content is required")
+	}
+	if len(imageData) > 0 {
+		// Perform image signature check and get detected format
+		imagePath, err := s.saveImage(imageData, "posts")
+		if err != nil {
+			return 0, err
+		}
+		post.Image = imagePath
+	}
+
+	// Create the post
+	postID, err := s.PostStore.CreatePost(post)
+	if err != nil {
+		return 0, err
+	}
+
+	// If it's a private post and has viewers, add them to Post_Visibility
+	if post.Privacy == "private" && len(viewerIDs) > 0 {
+		err = s.PostStore.AddPostViewers(postID, viewerIDs)
+		if err != nil {
+			return 0, fmt.Errorf("failed to add post viewers: %w", err)
+		}
+	}
+
+	return postID, nil
+}
+
+func (s *PostService) SearchUsers(query string, currentUserID int64) ([]*models.User, error) {
+	if query == "" {
+		return []*models.User{}, nil
+	}
+	return s.PostStore.SearchUsers(query, currentUserID)
+}
+
 func (s *PostService) CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error) {
 	if comment.Content == "" {
 		return 0, fmt.Errorf("comment content is required")
@@ -91,7 +128,7 @@ func (s *PostService) saveImage(imageData []byte, subDir string) (string, error)
 	}
 	imageFileName := fmt.Sprintf("%s%s", uuid.New().String(), extension)
 	// Consistent path structure as per project requirements
-	saveDir := filepath.Join("backend/uploads", subDir)
+	saveDir := filepath.Join("attachments", subDir)
 	imagePath := filepath.Join(saveDir, imageFileName)
 	if err := os.MkdirAll(saveDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create directory: %w", err)
@@ -100,7 +137,7 @@ func (s *PostService) saveImage(imageData []byte, subDir string) (string, error)
 	if err := os.WriteFile(imagePath, imageData, 0644); err != nil {
 		return "", fmt.Errorf("failed to save image: %w", err)
 	}
-	return filepath.Join("uploads", subDir, imageFileName), nil
+	return filepath.Join(saveDir, imageFileName), nil
 }
 
 // formatToExtension maps an ImageFormat to a file extension.
