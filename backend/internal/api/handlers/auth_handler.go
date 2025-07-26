@@ -103,8 +103,8 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	fmt.Println("Setting cookie:", cookie)
-	http.SetCookie(w, cookie)
+	fmt.Println("Setting cookie:", sessionCookie)
+	http.SetCookie(w, sessionCookie)
 	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Logged in successfully"})
 }
 
