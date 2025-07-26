@@ -12,6 +12,27 @@ import (
 )
 
 func NewRouter(db *sql.DB) http.Handler {
+	// Create router
+	mux := http.NewServeMux()
+
+	// create the websocket handler
+	wsManager := ws.NewManager(
+		ws.NewDBSessionResolver(db),
+		ws.NewDBGroupMemberFetcher(db),
+		ws.NewDBMessagePersister(db),
+	)
+	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(wsManager.HandleConnection)))
+
+	// Chat history handlers (paginated HTTP access to messages)
+	notifier := ws.NewDBNotificationSender(wsManager)
+	chatHandler := ws.NewChatHandler(
+		db,
+		ws.NewDBSessionResolver(db),
+		ws.NewDBMessagePersister(db),
+		notifier,
+		wsManager,
+	)
+
 	// Create stores
 	postStore := store.NewPostStore(db)
 	authStore := store.NewAuthStore(db)
@@ -29,12 +50,9 @@ func NewRouter(db *sql.DB) http.Handler {
 	// Create handlers
 	postHandler := handlers.NewPostHandler(postService)
 	authHandler := handlers.NewAuthHandler(authService)
-	followHandler := handlers.NewFollowHandler(followService)
+	followHandler := handlers.NewFollowHandler(followService, notifier)
 	unfollowHandler := handlers.NewUnfollowHandler(unfollowService)
-	followRequestHandler := handlers.NewFollowRequestHandler(followRequestService)
-
-	// Create router
-	mux := http.NewServeMux()
+	followRequestHandler := handlers.NewFollowRequestHandler(followRequestService, notifier)
 
 	// Authentication Handlers
 	mux.HandleFunc("POST /validate/step1", authHandler.ValidateAccountStepOne)
@@ -63,25 +81,6 @@ func NewRouter(db *sql.DB) http.Handler {
 
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 	mux.Handle("GET /avatar", http.HandlerFunc(handlers.GetImage))
-
-
-	// create the websocket handler
-	wsManager := ws.NewManager(
-		ws.NewDBSessionResolver(db),
-		ws.NewDBGroupMemberFetcher(db),
-		ws.NewDBMessagePersister(db),
-	)
-	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(wsManager.HandleConnection)))
-
-	// Chat history handlers (paginated HTTP access to messages)
-	notifier := ws.NewDBNotificationSender(wsManager)
-	chatHandler := ws.NewChatHandler(
-		db,
-		ws.NewDBSessionResolver(db),
-		ws.NewDBMessagePersister(db),
-		notifier,
-		wsManager,
-	)
 
 	/*example websocket routes */
 	mux.Handle("GET /api/messages/private", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetPrivateMessages)))
