@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS Followers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     follower_id INTEGER NOT NULL,
     followee_id INTEGER NOT NULL,
-    is_accepted BOOLEAN DEFAULT 0,
+    status TEXT CHECK(status IN ('pending', 'accepted', 'rejected')) DEFAULT 'pending',
     requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     accepted_at DATETIME,
     FOREIGN KEY (follower_id) REFERENCES Users(id) ON DELETE CASCADE,
