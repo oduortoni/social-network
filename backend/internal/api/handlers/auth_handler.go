@@ -81,7 +81,19 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Authenticated user:", authUser)
 
-	cookie := &http.Cookie{
+	// only used for UI checks to avoid flashing protected routes
+	fmt.Println("Setting login confirmation cookie:")
+	http.SetCookie(w, &http.Cookie{
+		Name:  "logged_in",
+		Value: "true",
+		Path:  "/",
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
+		Secure: true,
+	})
+
+	// used to actually authenticate users
+	sessionCookie := &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
 		Path:     "/",
@@ -91,8 +103,8 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	fmt.Println("Setting cookie:", cookie)
-	http.SetCookie(w, cookie)
+	fmt.Println("Setting cookie:", sessionCookie)
+	http.SetCookie(w, sessionCookie)
 	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Logged in successfully"})
 }
 
@@ -179,7 +191,7 @@ func (auth *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		_, _ = auth.AuthService.DeleteSession(cookie.Value)
 
-		// Clear cookie
+		// Clear cookies
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
 			Value:    "",
@@ -189,6 +201,17 @@ func (auth *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 			Secure:   false, // set true in production
 			SameSite: http.SameSiteLaxMode,
 		})
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "logged_in",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: false,
+			SameSite: http.SameSiteLaxMode,
+			Secure:   true,
+		})
+
 	}
 
 	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Logged out successfully"})

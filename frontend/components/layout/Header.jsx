@@ -1,16 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { HomeIcon, BellIcon, UsersIcon, MessageCircleIcon, SearchIcon, ChevronDownIcon, LogOutIcon } from 'lucide-react';
 import { handleLogout } from '../../lib/auth';
+import { useSimpleNotifications } from '../../hooks/useNotifications';
 
 const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
   const profileRef = useRef(null);
+  const notificationRef = useRef(null);
+  const { unreadCount, notifications, markAllAsRead } = useSimpleNotifications();
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setDropdownOpen(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationPanelOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -44,9 +51,55 @@ const Header = () => {
           <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Home</span>
         </div>
         {/* Notifications Icon */}
-        <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Notifications click */ }}>
-          <BellIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
-          <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Notifications</span>
+        <div className="relative" ref={notificationRef}>
+          <div
+            className="flex flex-col items-center cursor-pointer"
+            onClick={() => {
+              setNotificationPanelOpen(!notificationPanelOpen);
+              if (!notificationPanelOpen && unreadCount > 0) {
+                markAllAsRead();
+              }
+            }}
+          >
+            <div className="relative">
+              <BellIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
+              {unreadCount > 0 && (
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </div>
+              )}
+            </div>
+            <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Notifications</span>
+          </div>
+
+          {/* Notification Panel */}
+          {notificationPanelOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+              <div className="p-4 border-b border-gray-200">
+                <h3 className="font-semibold text-gray-800">Notifications</h3>
+              </div>
+
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.length > 0 ? (
+                  notifications.map((notification, index) => (
+                    <div
+                      key={index}
+                      className="p-4 border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <div className="text-sm text-gray-800">{notification.message}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(notification.timestamp * 1000).toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    No notifications
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Groups Icon */}

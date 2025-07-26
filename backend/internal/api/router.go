@@ -8,6 +8,7 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 )
 
 func NewRouter(db *sql.DB) http.Handler {
@@ -61,6 +62,33 @@ func NewRouter(db *sql.DB) http.Handler {
 
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 	mux.Handle("GET /avatar", http.HandlerFunc(handlers.Avatar))
+
+
+	// create the websocket handler
+	wsManager := ws.NewManager(
+		ws.NewDBSessionResolver(db),
+		ws.NewDBGroupMemberFetcher(db),
+		ws.NewDBMessagePersister(db),
+	)
+	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(wsManager.HandleConnection)))
+
+	// Chat history handlers (paginated HTTP access to messages)
+	notifier := ws.NewDBNotificationSender(wsManager)
+	chatHandler := ws.NewChatHandler(
+		db,
+		ws.NewDBSessionResolver(db),
+		ws.NewDBMessagePersister(db),
+		notifier,
+		wsManager,
+	)
+
+	/*example websocket routes */
+	mux.Handle("GET /api/messages/private", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetPrivateMessages)))
+	mux.Handle("GET /api/messages/group", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetGroupMessages)))
+	mux.Handle("POST /api/groups/invite", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.SendGroupInvite)))
+	mux.Handle("GET /api/notifications", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetNotifications)))
+	mux.Handle("POST /api/notifications/read", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.MarkNotificationsRead)))
+	mux.Handle("GET /api/users/online", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetOnlineUsers)))
 
 	return mux
 }
