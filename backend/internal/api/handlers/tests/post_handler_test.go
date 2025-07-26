@@ -15,7 +15,7 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 // MockPostService is a mock implementation of the PostService for testing.
