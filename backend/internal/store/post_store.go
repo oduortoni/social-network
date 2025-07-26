@@ -2,8 +2,9 @@ package store
 
 import (
 	"database/sql"
-	"github.com/tajjjjr/social-network/backend/internal/models"
 	"time"
+
+	"github.com/tajjjjr/social-network/backend/internal/models"
 )
 
 type PostStore struct {
@@ -57,7 +58,7 @@ func (s *PostStore) GetPostByID(id int64) (*models.Post, error) {
 
 func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	rows, err := s.DB.Query(`
-        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, u.nickname, u.avatar
+        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, u.first_name, u.last_name, u.nickname, u.avatar
         FROM Posts p
         JOIN Users u ON p.user_id = u.id
         WHERE p.privacy = 'public'
@@ -77,7 +78,7 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	var posts []*models.Post
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt, &post.Author.Nickname, &post.Author.Avatar); err != nil {
+		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt, &post.Author.FirstName, &post.Author.LastName, &post.Author.Nickname, &post.Author.Avatar); err != nil {
 			return nil, err
 		}
 		posts = append(posts, &post)
@@ -87,28 +88,28 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 }
 
 func (s *PostStore) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
-    rows, err := s.DB.Query(`
+	rows, err := s.DB.Query(`
         SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, u.nickname, u.avatar
         FROM Comments c
         JOIN Users u ON c.user_id = u.id
         WHERE c.post_id = ?
         ORDER BY c.created_at ASC
     `, postID)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    var comments []*models.Comment
-    for rows.Next() {
-        var comment models.Comment
-        if err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image, &comment.CreatedAt, &comment.Author.Nickname, &comment.Author.Avatar); err != nil {
-            return nil, err
-        }
-        comments = append(comments, &comment)
-    }
+	var comments []*models.Comment
+	for rows.Next() {
+		var comment models.Comment
+		if err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image, &comment.CreatedAt, &comment.Author.Nickname, &comment.Author.Avatar); err != nil {
+			return nil, err
+		}
+		comments = append(comments, &comment)
+	}
 
-    return comments, nil
+	return comments, nil
 }
 
 func (s *PostStore) DeletePost(postID int64) error {
@@ -116,3 +117,68 @@ func (s *PostStore) DeletePost(postID int64) error {
 	return err
 }
 
+// AddPostViewers adds viewers to a private post
+func (s *PostStore) AddPostViewers(postID int64, viewerIDs []int64) error {
+	if len(viewerIDs) == 0 {
+		return nil
+	}
+
+	// Prepare the insert statement
+	stmt, err := s.DB.Prepare("INSERT INTO Post_Visibility (post_id, viewer_id) VALUES (?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	// Insert each viewer
+	for _, viewerID := range viewerIDs {
+		_, err := stmt.Exec(postID, viewerID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// SearchUsers searches for users by name or nickname
+func (s *PostStore) SearchUsers(query string, currentUserID int64) ([]*models.User, error) {
+	searchQuery := "%" + query + "%"
+
+	rows, err := s.DB.Query(`
+		SELECT id, first_name, last_name, nickname, avatar
+		FROM Users
+		WHERE id != ? AND (
+			first_name LIKE ? OR
+			last_name LIKE ? OR
+			nickname LIKE ? OR
+			(first_name || ' ' || last_name) LIKE ?
+		)
+		ORDER BY
+			CASE
+				WHEN nickname LIKE ? THEN 1
+				WHEN first_name LIKE ? THEN 2
+				WHEN last_name LIKE ? THEN 3
+				ELSE 4
+			END,
+			first_name, last_name
+		LIMIT 10
+	`, currentUserID, searchQuery, searchQuery, searchQuery, searchQuery, searchQuery, searchQuery, searchQuery)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Nickname, &user.Avatar)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+
+	return users, nil
+}

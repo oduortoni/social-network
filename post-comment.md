@@ -55,6 +55,14 @@ Return a success response (e.g., { "message": "Post deleted" }) or error (e.g., 
 
 Develop Post Creation Frontend:
 
+Read the following files to understand my current post creation and post listing implementation: 
+
+frontend/components/posts/PostCreation.jsx
+frontend/components/posts/PostList.jsx
+backend/internal/api/handlers/post_handler.go
+
+what is the best way to handle the post creation privacy options when a user chooses private because i want the user to be able to type or start typing the name of the users they want to see the post and they get an autocomplete suggestion then 
+
 In frontend/src/components/PostForm.js, create a post creation form with fields for content (textarea), privacy (dropdown: public, almost_private, private), image (file input), and viewer_ids (multi-select for private posts, fetched from GET /api/users/{userId}/following).
 Implement client-side validation in Next.js (e.g., non-empty content, valid image formats: JPEG, PNG, GIF).
 Send form data to POST /api/posts using fetch with credentials: 'include' (as per README.md), handling multipart/form-data for images.

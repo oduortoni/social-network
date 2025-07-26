@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
@@ -48,7 +49,35 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.PostService.CreatePost(&post, imageData, imageMimeType)
+	// Handle private post viewers
+	var viewerIDs []int64
+	if post.Privacy == "private" {
+		viewersParam := r.FormValue("viewers")
+		if viewersParam != "" {
+			// Parse comma-separated viewer IDs
+			viewerIDStrings := strings.Split(viewersParam, ",")
+			for _, idStr := range viewerIDStrings {
+				idStr = strings.TrimSpace(idStr)
+				if idStr != "" {
+					id, err := strconv.ParseInt(idStr, 10, 64)
+					if err != nil {
+						utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid viewer ID: " + idStr})
+						return
+					}
+					viewerIDs = append(viewerIDs, id)
+				}
+			}
+		}
+	}
+
+	// Create post with viewers if it's private
+	var id int64
+	if post.Privacy == "private" && len(viewerIDs) > 0 {
+		id, err = h.PostService.CreatePostWithViewers(&post, imageData, imageMimeType, viewerIDs)
+	} else {
+		id, err = h.PostService.CreatePost(&post, imageData, imageMimeType)
+	}
+
 	if err != nil {
 		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
 		return
@@ -223,4 +252,28 @@ func handleImageUpload(r *http.Request) (imageData []byte, imageMimeType string,
 	imageMimeType = handler.Header.Get("Content-Type")
 
 	return imageData, imageMimeType, 0, nil
+}
+
+func (h *PostHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	// Get search query from URL parameters
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Search query is required"})
+		return
+	}
+
+	// Get user ID from context
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+
+	users, err := h.PostService.SearchUsers(query, userID)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to search users"})
+		return
+	}
+
+	utils.RespondJSON(w, http.StatusOK, users)
 }
