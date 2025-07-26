@@ -11,7 +11,7 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 // MockUnfollowService is a mock implementation of the UnfollowServiceInterface for testing.
@@ -67,7 +67,7 @@ func TestUnfollow_Success(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +102,7 @@ func TestUnfollow_FollowRelationshipNotFound(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestUnfollow_InvalidJSON(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestUnfollow_Unauthorized(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
