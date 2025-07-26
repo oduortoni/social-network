@@ -115,9 +115,9 @@ const PostList = ({ refreshTrigger }) => {
           <div className="flex justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="relative">
-                <img 
-                  src={post.author?.avatar ? `http://localhost:9000/avatar?id=${post.user_id}` : "https://randomuser.me/api/portraits/men/30.jpg"} 
-                  alt={post.author?.nickname || 'User'} 
+                <img
+                  src={post.author?.avatar && post.author.avatar !== "no profile photo" ? `http://localhost:9000/avatar?avatar=${post.author.avatar}` : "http://localhost:9000/avatar?avatar=user-profile-circle-svgrepo-com.svg"}
+                  alt={post.author?.nickname || `${post.author?.first_name || ''} ${post.author?.last_name || ''}`.trim() || 'User'}
                   className="w-10 h-10 rounded-full" 
                 />
                 <div className="absolute -bottom-1 -right-1">
@@ -127,7 +127,7 @@ const PostList = ({ refreshTrigger }) => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-white">
-                    {post.author?.nickname || `User ${post.user_id}`}
+                    {post.author?.nickname || `${post.author?.first_name || ''} ${post.author?.last_name || ''}`.trim() || 'User'}
                   </span>
                   <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--secondary-text)' }}>
                     {React.createElement(getPrivacyIcon(post.privacy), { className: "w-3 h-3" })}

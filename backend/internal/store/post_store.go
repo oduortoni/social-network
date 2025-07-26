@@ -57,7 +57,7 @@ func (s *PostStore) GetPostByID(id int64) (*models.Post, error) {
 
 func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	rows, err := s.DB.Query(`
-        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, u.nickname, u.avatar
+        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, u.first_name, u.last_name, u.nickname, u.avatar
         FROM Posts p
         JOIN Users u ON p.user_id = u.id
         WHERE p.privacy = 'public'
@@ -77,7 +77,7 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	var posts []*models.Post
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt, &post.Author.Nickname, &post.Author.Avatar); err != nil {
+		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt, &post.Author.FirstName, &post.Author.LastName, &post.Author.Nickname, &post.Author.Avatar); err != nil {
 			return nil, err
 		}
 		posts = append(posts, &post)

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ImageIcon, VideoIcon, BarChart2Icon, SendIcon, X, Globe, Users, Lock } from 'lucide-react';
+import { ImageIcon, SendIcon, X, Globe, Users, Lock } from 'lucide-react';
 import { createPost } from '../../lib/auth';
 
 const PostCreation = ({ user, onPostCreated }) => {
@@ -103,10 +103,10 @@ const PostCreation = ({ user, onPostCreated }) => {
       <form onSubmit={handleSubmit}>
         {/* Post Input Area */}
         <div className="flex items-start gap-3 rounded-xl p-3 mb-4" style={{ backgroundColor: 'var(--secondary-background)' }}>
-          <img 
-            src={user?.avatar ? `http://localhost:9000/avatar?id=${user.id}` : "https://randomuser.me/api/portraits/men/30.jpg"} 
-            alt="Profile" 
-            className="w-10 h-10 rounded-full flex-shrink-0" 
+          <img
+            src={user?.avatar && user.avatar !== "no profile photo" ? `http://localhost:9000/avatar?avatar=${user.avatar}` : "http://localhost:9000/avatar?avatar=user-profile-circle-svgrepo-com.svg"}
+            alt="Profile"
+            className="w-10 h-10 rounded-full flex-shrink-0"
           />
           <div className="flex-1">
             <textarea
