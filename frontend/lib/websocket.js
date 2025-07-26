@@ -36,8 +36,6 @@ class WebSocketService {
     };
 
     const sessionId = getSessionId();
-    console.log('Session ID found:', sessionId ? 'Yes' : 'No');
-
     let wsUrl = process.env.NEXT_PUBLIC_API_URL?.replace('http', 'ws') + '/ws';
 
     // Add session ID as query parameter if available
@@ -45,16 +43,12 @@ class WebSocketService {
       wsUrl += `?session_id=${sessionId}`;
     }
 
-    console.log('Attempting WebSocket connection to:', wsUrl.replace(/session_id=[^&]*/, 'session_id=***'));
-    console.log('Available cookies before WebSocket connection:', document.cookie);
-
     try {
       // Note: WebSocket constructor doesn't support credentials option
       // Cookies should be automatically included for same-origin requests
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log('WebSocket connected');
         this.reconnectAttempts = 0;
         this.isConnecting = false;
         this.handleMessage({ type: 'connection_status', status: 'connected' });
@@ -70,7 +64,6 @@ class WebSocketService {
       };
 
       this.ws.onclose = (event) => {
-        console.log('WebSocket disconnected', event.code, event.reason);
         this.isConnecting = false;
         this.handleMessage({ type: 'connection_status', status: 'disconnected' });
 
@@ -148,14 +141,12 @@ class WebSocketService {
 
   reconnect() {
     if (!this.shouldReconnect || this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('Max reconnection attempts reached or reconnection disabled');
       return;
     }
 
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 10000); // Exponential backoff, max 10s
 
-    console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
     this.handleMessage({ type: 'connection_status', status: 'connecting' });
 
     this.reconnectTimeout = setTimeout(() => {

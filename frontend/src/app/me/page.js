@@ -7,19 +7,41 @@ import { wsService } from '../../../lib/websocket';
 
 const Me = ({ user }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [connectedUsers, setConnectedUsers] = useState([]);
 
 
   useEffect(() => {
     let mounted = true;
 
+    // Load connected users from API
+    const loadConnectedUsers = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/online`, {
+          credentials: 'include'
+        });
+
+
+        if (response.ok) {
+          const data = await response.json();
+          setConnectedUsers(data.online_users || []);
+        } else {
+          const errorText = await response.text();
+          console.error('API error:', response.status, errorText);
+        }
+      } catch (error) {
+        console.error('Failed to load connected users:', error);
+      }
+    };
+
     // Set up connection status tracking
     wsService.onMessage('connection_status', (message) => {
-      console.log('Connection status update:', message.status);
       if (mounted) {
-        console.log('Connection status update:', message.status);
         setConnectionStatus(message.status);
 
-
+        // Load connected users immediately when connection is established
+        if (message.status === 'connected') {
+          loadConnectedUsers();
+        }
       }
     });
 
@@ -31,15 +53,32 @@ const Me = ({ user }) => {
       }
     });
 
-    // Notifications are now handled by the Header component
-
-
+    // Handle user connection/disconnection notifications
+    wsService.onMessage('notification', (notification) => {
+      if (mounted && notification.type === 'notification') {
+        if (notification.subtype === 'user_connected') {
+          setConnectedUsers(prev => {
+            // Add user if not already in the list
+            const userExists = prev.some(u => u.user_id === notification.user_id);
+            if (!userExists) {
+              return [...prev, {
+                user_id: notification.user_id,
+                user_name: notification.user_name
+              }];
+            }
+            return prev;
+          });
+        } else if (notification.subtype === 'user_disconnected') {
+          setConnectedUsers(prev =>
+            prev.filter(u => u.user_id !== notification.user_id)
+          );
+        }
+      }
+    });
 
     // Since withAuth already ensures authentication, directly connect to WebSocket
     const connectTimer = setTimeout(() => {
       if (mounted) {
-        console.log('User is authenticated (via withAuth), attempting WebSocket connection...');
-        console.log('Available cookies:', document.cookie);
         setConnectionStatus('connecting');
         wsService.connect();
       }
@@ -51,11 +90,10 @@ const Me = ({ user }) => {
     };
   }, []);
 
-  console.log(user);
   return (
     <div className="min-h-screen">
       <main className="flex flex-col items-center justify-center p-6">
-        <MainHomepage user={user} connectionStatus={connectionStatus} />
+        <MainHomepage user={user} connectionStatus={connectionStatus} connectedUsers={connectedUsers} />
       </main>
     </div>
   );

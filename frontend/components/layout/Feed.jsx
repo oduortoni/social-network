@@ -3,18 +3,16 @@ import { ImageIcon, VideoIcon, BarChart2Icon, MoreHorizontalIcon, ThumbsUpIcon, 
 import UserCircle from '../homepage/UserCircle';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 
-const Feed = () => {
+const Feed = ({user = null, connectedUsers = []}) => {
+  const users = connectedUsers.filter(u => u.user_id != user.id);
+
   return <div className="flex-1 flex flex-col gap-4">
       <div className="flex overflow-x-auto gap-3 pb-2 cursor-pointer">
-        <UserCircle image="https://randomuser.me/api/portraits/women/22.jpg" name="Amanda" active={false} highlight="#3f3fd3" />
-        <UserCircle image="https://randomuser.me/api/portraits/men/22.jpg" name="John" active={false} highlight="#ff4444" />
-        <UserCircle image="https://randomuser.me/api/portraits/men/32.jpg" name="Andrew" active={false} highlight="#3f3fd3" />
-        <UserCircle image="https://randomuser.me/api/portraits/women/32.jpg" name="Rosaline" active={false} highlight="#00ff00" />
-        <UserCircle image="https://randomuser.me/api/portraits/men/42.jpg" name="Mudreh" active={false} highlight="#ff4444" />
-        <UserCircle image="https://randomuser.me/api/portraits/women/42.jpg" name="Juliet" active={false} highlight="#3f3fd3" />
-        <UserCircle image="https://randomuser.me/api/portraits/men/52.jpg" name="Bob" active={false} highlight="#3f3fd3" />
-        <UserCircle image="https://randomuser.me/api/portraits/men/2.jpg" name="Mudreh" active={false} highlight="#ff4444" />
-        <UserCircle image="https://randomuser.me/api/portraits/women/4.jpg" name="Juliet" active={false} highlight="#3f3fd3" />
+        {
+          users.map((u, index) => {
+              return <UserCircle avatar={u.avatar? u.avatar : ''} name={u.nickname} active={false} highlight="#3f3fd3" key={index} />;
+          })
+        }
       </div>
       <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>
         <div className="flex items-center gap-3 rounded-xl p-3" style={{ backgroundColor: 'var(--secondary-background)' }}>

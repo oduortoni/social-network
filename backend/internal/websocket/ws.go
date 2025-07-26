@@ -13,9 +13,9 @@ import (
 
 // ----------- Interfaces ------------
 
-// SessionResolver resolves the authenticated user ID from the HTTP request.
+// SessionResolver resolves the authenticated user ID, nickname, and avatar from the HTTP request.
 type SessionResolver interface {
-	GetUserIDFromRequest(r *http.Request) (int64, string, error)
+	GetUserFromRequest(r *http.Request) (int64, string, string, error)
 }
 
 // GroupMemberFetcher fetches group member IDs from DB
@@ -34,15 +34,17 @@ type MessagePersister interface {
 type Client struct {
 	ID        int64
 	Nickname  string
+	Avatar    string
 	Conn      *websocket.Conn
 	Send      chan []byte
 	Connected time.Time
 }
 
-func NewClient(id int64, nickname string, conn *websocket.Conn) *Client {
+func NewClient(id int64, nickname string, avatar string, conn *websocket.Conn) *Client {
 	return &Client{
 		ID:        id,
 		Nickname:  nickname,
+		Avatar:    avatar,
 		Conn:      conn,
 		Send:      make(chan []byte, 256),
 		Connected: time.Now(),
@@ -80,7 +82,8 @@ func (m *Manager) Register(c *Client) {
 		"type":      "notification",
 		"subtype":   "user_connected",
 		"user_id":   c.ID,
-		"user_name": c.Nickname,
+		"nickname":  c.Nickname,
+		"avatar":    c.Avatar,
 		"message":   c.Nickname + " is now online",
 		"timestamp": time.Now().Unix(),
 	}
@@ -99,7 +102,8 @@ func (m *Manager) Unregister(id int64) {
 			"type":      "notification",
 			"subtype":   "user_disconnected",
 			"user_id":   id,
-			"user_name": client.Nickname,
+			"nickname": client.Nickname,
+			"avatar":   client.Avatar,
 			"message":   client.Nickname + " went offline",
 			"timestamp": time.Now().Unix(),
 		}
@@ -238,8 +242,9 @@ func (m *Manager) GetOnlineUsers() []map[string]interface{} {
 	for _, client := range m.clients {
 		users = append(users, map[string]interface{}{
 			"user_id":   client.ID,
-			"user_name": client.Nickname,
+			"nickname": client.Nickname,
 			"connected": client.Connected.Unix(),
+			"avatar":    client.Avatar,
 		})
 	}
 
@@ -277,13 +282,13 @@ func (m *Manager) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, nickname, err := m.resolver.GetUserIDFromRequest(r)
+	userID, nickname, avatar, err := m.resolver.GetUserFromRequest(r)
 	if err != nil {
 		conn.Close()
 		return
 	}
 
-	client := NewClient(userID, nickname, conn)
+	client := NewClient(userID, nickname, avatar, conn)
 	m.Register(client)
 	defer m.Unregister(userID)
 	defer conn.Close()
