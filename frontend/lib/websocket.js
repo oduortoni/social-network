@@ -23,9 +23,34 @@ class WebSocketService {
     this.isConnecting = true;
     this.shouldReconnect = true;
 
-    const wsUrl = process.env.NEXT_PUBLIC_API_URL?.replace('http', 'ws') + '/ws';
+    // Extract session_id from cookies
+    const getSessionId = () => {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'session_id') {
+          return value;
+        }
+      }
+      return null;
+    };
+
+    const sessionId = getSessionId();
+    console.log('Session ID found:', sessionId ? 'Yes' : 'No');
+
+    let wsUrl = process.env.NEXT_PUBLIC_API_URL?.replace('http', 'ws') + '/ws';
+
+    // Add session ID as query parameter if available
+    if (sessionId) {
+      wsUrl += `?session_id=${sessionId}`;
+    }
+
+    console.log('Attempting WebSocket connection to:', wsUrl.replace(/session_id=[^&]*/, 'session_id=***'));
+    console.log('Available cookies before WebSocket connection:', document.cookie);
 
     try {
+      // Note: WebSocket constructor doesn't support credentials option
+      // Cookies should be automatically included for same-origin requests
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
@@ -49,6 +74,15 @@ class WebSocketService {
         this.isConnecting = false;
         this.handleMessage({ type: 'connection_status', status: 'disconnected' });
 
+        // Log specific close codes for debugging
+        if (event.code === 1006) {
+          console.error('WebSocket closed abnormally - possible authentication failure');
+        } else if (event.code === 1002) {
+          console.error('WebSocket closed due to protocol error');
+        } else if (event.code === 1011) {
+          console.error('WebSocket closed due to server error');
+        }
+
         // Only reconnect if it wasn't a manual disconnect
         if (this.shouldReconnect && event.code !== 1000) {
           this.reconnect();
@@ -58,6 +92,7 @@ class WebSocketService {
       this.ws.onerror = (error) => {
         console.error('WebSocket error:', error);
         this.isConnecting = false;
+        this.handleMessage({ type: 'connection_status', status: 'disconnected' });
       };
     } catch (error) {
       console.error('Failed to create WebSocket:', error);
@@ -131,6 +166,17 @@ class WebSocketService {
   isConnected() {
     return this.ws?.readyState === WebSocket.OPEN;
   }
+
+  // Force disconnect (for logout or errors)
+  forceDisconnect() {
+    this.shouldReconnect = false;
+    this.disconnect();
+  }
 }
 
 export const wsService = new WebSocketService();
+
+// Global function to disconnect WebSocket on logout
+export const disconnectWebSocketOnLogout = () => {
+  wsService.forceDisconnect();
+};

@@ -33,7 +33,7 @@ function fetchCommunities() {
   return null;
 }
 
-const ProfileSidebar = () => {
+const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
   // TODO: Use useEffect to call fetchProfileImage, fetchVerifiedBadge, fetchFollowers, fetchFollowing, fetchProfileStatus, and fetchCommunities when backend is available
 
   // This component is a sidebar for user profile 
@@ -55,6 +55,16 @@ const ProfileSidebar = () => {
             />
             {/* TODO: Show verified badge if user is verified */}
           </div>
+
+          {/* WebSocket Connection Status Indicator */}
+          <div
+            className={`absolute top-0 right-0 w-4 h-4 rounded-full border-2 border-white ${
+              connectionStatus === 'connected' ? 'bg-green-500' :
+              connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
+            }`}
+            title={`WebSocket ${connectionStatus}`}
+          />
+
           <button
             className="absolute bottom-0 right-0 p-1 rounded-full"
             style={{ backgroundColor: 'var(--tertiary-text)' }}

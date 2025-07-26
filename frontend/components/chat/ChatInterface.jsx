@@ -4,42 +4,20 @@ import { useState, useEffect, useRef } from 'react';
 import { wsService } from '../../lib/websocket';
 import { chatAPI } from '../../lib/api';
 
-const ChatInterface = ({ user }) => {
+const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [activeChat, setActiveChat] = useState(null); // { type: 'private', id: userId } or { type: 'group', id: groupId }
-  const [connectionStatus, setConnectionStatus] = useState('disconnected'); // 'connecting', 'connected', 'disconnected'
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    let mounted = true;
-
-    // Set up message handlers first
+    // Set up message handlers only (connection is managed by parent)
     wsService.onMessage('private', handlePrivateMessage);
     wsService.onMessage('group', handleGroupMessage);
     wsService.onMessage('broadcast', handleBroadcastMessage);
     wsService.onMessage('notification', handleNotification);
 
-    // Add connection status tracking
-    wsService.onMessage('connection_status', (message) => {
-      if (mounted) {
-        setConnectionStatus(message.status);
-      }
-    });
-
-    // Delay connection to ensure component is mounted and server is ready
-    const connectTimer = setTimeout(() => {
-      if (mounted) {
-        setConnectionStatus('connecting');
-        wsService.connect();
-      }
-    }, 500); // 500ms delay
-
-    return () => {
-      mounted = false;
-      clearTimeout(connectTimer);
-      wsService.disconnect();
-    };
+    // No cleanup needed since connection is managed elsewhere
   }, []);
 
   useEffect(() => {

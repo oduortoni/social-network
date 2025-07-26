@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -71,7 +71,7 @@ func (m *Manager) Register(c *Client) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.clients[c.ID] = c
-	log.Printf("User %d connected as %s", c.ID, c.Nickname)
+	fmt.Printf("User %d connected as %s", c.ID, c.Nickname)
 	for _, client := range m.clients {
 		if client.ID == c.ID {
 			continue
@@ -85,7 +85,7 @@ func (m *Manager) Unregister(id int64) {
 	defer m.mu.Unlock()
 	if _, ok := m.clients[id]; ok {
 		delete(m.clients, id)
-		log.Printf("User %d disconnected", id)
+		fmt.Printf("User %d disconnected", id)
 	}
 }
 
