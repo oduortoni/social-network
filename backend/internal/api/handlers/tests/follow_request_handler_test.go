@@ -18,6 +18,9 @@ import (
 type MockFollowRequestService struct {
 	AcceptedFollowConnectionFunc func(followConnectionID int64) error
 	RejectedFollowConnectionFunc func(followConnectionID int64) error
+	RetrieveUserNameFunc         func(userID int64) (string, string, error)
+	GetRequestInfoFunc           func(requestID int64) (int64, int64, error)
+	AddtoNotificationFunc        func(follower_id int64, message string) error
 }
 
 func (s *MockFollowRequestService) AcceptedFollowConnection(followConnectionID int64) error {
@@ -34,6 +37,27 @@ func (s *MockFollowRequestService) RejectedFollowConnection(followConnectionID i
 	return nil
 }
 
+func (s *MockFollowRequestService) RetrieveUserName(userID int64) (string, string, error) {
+	if s.RetrieveUserNameFunc != nil {
+		return s.RetrieveUserNameFunc(userID)
+	}
+	return "Test User", "Test User", nil
+}
+
+func (s *MockFollowRequestService) GetRequestInfo(requestID int64) (int64, int64, error) {
+	if s.GetRequestInfoFunc != nil {
+		return s.GetRequestInfoFunc(requestID)
+	}
+	return 1, 2, nil
+}
+
+func (s *MockFollowRequestService) AddtoNotification(follower_id int64, message string) error {
+	if s.AddtoNotificationFunc != nil {
+		return s.AddtoNotificationFunc(follower_id, message)
+	}
+	return nil
+}
+
 func TestFollowRequestRespond_AcceptSuccess(t *testing.T) {
 	mockFollowRequestService := &MockFollowRequestService{
 		AcceptedFollowConnectionFunc: func(followConnectionID int64) error {
@@ -43,7 +67,7 @@ func TestFollowRequestRespond_AcceptSuccess(t *testing.T) {
 			return sql.ErrNoRows
 		},
 	}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	requestStatus := models.FollowRequestResponseStatus{Status: "accepted"}
 	body, _ := json.Marshal(requestStatus)
@@ -82,7 +106,7 @@ func TestFollowRequestRespond_RejectSuccess(t *testing.T) {
 			return sql.ErrNoRows
 		},
 	}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	requestStatus := models.FollowRequestResponseStatus{Status: "rejected"}
 	body, _ := json.Marshal(requestStatus)
@@ -118,7 +142,7 @@ func TestFollowRequestRespond_RequestNotFound(t *testing.T) {
 			return sql.ErrNoRows // Request not found
 		},
 	}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	requestStatus := models.FollowRequestResponseStatus{Status: "accepted"}
 	body, _ := json.Marshal(requestStatus)
@@ -150,7 +174,7 @@ func TestFollowRequestRespond_RequestNotFound(t *testing.T) {
 
 func TestFollowRequestRespond_InvalidRequestID(t *testing.T) {
 	mockFollowRequestService := &MockFollowRequestService{}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	requestStatus := models.FollowRequestResponseStatus{Status: "accepted"}
 	body, _ := json.Marshal(requestStatus)
@@ -182,7 +206,7 @@ func TestFollowRequestRespond_InvalidRequestID(t *testing.T) {
 
 func TestFollowRequestRespond_InvalidStatus(t *testing.T) {
 	mockFollowRequestService := &MockFollowRequestService{}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	requestStatus := models.FollowRequestResponseStatus{Status: "invalid"}
 	body, _ := json.Marshal(requestStatus)
@@ -214,7 +238,7 @@ func TestFollowRequestRespond_InvalidStatus(t *testing.T) {
 
 func TestFollowRequestRespond_InvalidJSON(t *testing.T) {
 	mockFollowRequestService := &MockFollowRequestService{}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	// Invalid JSON
 	req := httptest.NewRequest("POST", "/follow-request/123/request", bytes.NewBufferString("invalid json"))
@@ -245,7 +269,7 @@ func TestFollowRequestRespond_InvalidJSON(t *testing.T) {
 
 func TestFollowRequestRespond_Unauthorized(t *testing.T) {
 	mockFollowRequestService := &MockFollowRequestService{}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	requestStatus := models.FollowRequestResponseStatus{Status: "accepted"}
 	body, _ := json.Marshal(requestStatus)
@@ -279,7 +303,7 @@ func TestFollowRequestRespond_ServiceError(t *testing.T) {
 			return sql.ErrConnDone // Simulate database connection error
 		},
 	}
-	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService)
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
 
 	requestStatus := models.FollowRequestResponseStatus{Status: "accepted"}
 	body, _ := json.Marshal(requestStatus)
