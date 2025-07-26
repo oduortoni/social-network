@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { HomeIcon, BellIcon, UsersIcon, MessageCircleIcon, SearchIcon, ChevronDownIcon, LogOutIcon } from 'lucide-react';
 import { handleLogout } from '../../lib/auth';
 import { useSimpleNotifications } from '../../hooks/useNotifications';
+import { profileAPI } from '../../lib/api';
 
-const Header = () => {
+const Header = ({ user = null }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
   const profileRef = useRef(null);
@@ -121,8 +122,8 @@ const Header = () => {
           className="flex items-center gap-2 focus:outline-none"
           onClick={() => setDropdownOpen((open) => !open)}
         >
-          <img src="https://randomuser.me/api/portraits/men/30.jpg" alt="Profile" className="w-8 h-8 rounded-full" />
-          <span className="text-sm font-medium">Zeus</span>
+          <img src={profileAPI.fetchProfileImage(user.avatar? user.avatar : '')} alt="Profile" className="w-8 h-8 rounded-full" />
+          <span className="text-sm font-medium">{user.nickname}</span>
           <ChevronDownIcon className="w-4 h-4" />
         </button>
         {dropdownOpen && (

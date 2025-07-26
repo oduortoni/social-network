@@ -44,10 +44,6 @@ func NewRouter(db *sql.DB) http.Handler {
 		authHandler.LogoutHandler(w, r)
 	})
 
-	// mux.HandleFunc("GET /checksession", func(w http.ResponseWriter, r *http.Request) {
-	// 	authentication.CheckSessionHandler(w, r, db)
-	// })
-
 	// Mount handlers
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))
 	mux.Handle("GET /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPostByID)))

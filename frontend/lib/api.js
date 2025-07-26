@@ -41,3 +41,46 @@ export const chatAPI = {
   markNotificationsRead: () =>
     apiCall('/api/notifications/read', { method: 'POST' }),
 };
+
+
+const fallbackAvatar =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNGM0Y0RjYiLz4KPGNpcmNsZSBjeD0iMjAiIGN5PSIxNiIgcj0iNiIgZmlsbD0iIzlDQTNBRiIvPgo8cGF0aCBkPSJNMzIgMzJDMzIgMjYuNDc3MiAyNy41MjI4IDIyIDIyIDIySDE4QzEyLjQ3NzIgMjIgOCAyNi40NzcyIDggMzJWMzJIMzJWMzJaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo=";
+
+function fetchProfileImage(avatar) {
+  if (!avatar) return fallbackAvatar;
+  return `${API_BASE}/avatar?avatar=${encodeURIComponent(avatar)}`;
+}
+
+function fetchVerifiedBadge() {
+  // TODO: Fetch verified badge status from backend
+  return null;
+}
+
+function fetchFollowers() {
+  // TODO: Fetch followers count from backend
+  return null;
+}
+
+function fetchFollowing() {
+  // TODO: Fetch following count from backend
+  return null;
+}
+
+function fetchProfileStatus() {
+  // TODO: Fetch profile status from backend
+  return null;
+}
+
+function fetchCommunities() {
+  // TODO: Fetch communities list from backend
+  return null;
+}
+
+export const profileAPI = {
+  fetchProfileImage,
+  fetchVerifiedBadge,
+  fetchFollowers,
+  fetchFollowing,
+  fetchProfileStatus,
+  fetchCommunities,
+};

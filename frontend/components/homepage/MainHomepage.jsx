@@ -6,7 +6,7 @@ import ActivitySidebar from '../layout/ActivitySidebar';
 const MainHomepage = ({ user, connectionStatus }) => {
   return (
     <div className="min-h-screen flex flex-col text-white">
-      <Header />
+      <Header user={user} />
       <div className="flex flex-1 w-full max-w-7xl mx-auto gap-4 p-4">
         <ProfileSidebar user={user} connectionStatus={connectionStatus} />
         <div className="flex-1 flex flex-col">

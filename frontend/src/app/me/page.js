@@ -51,7 +51,7 @@ const Me = ({ user }) => {
     };
   }, []);
 
-  // console.log(user);
+  console.log(user);
   return (
     <div className="min-h-screen">
       <main className="flex flex-col items-center justify-center p-6">
