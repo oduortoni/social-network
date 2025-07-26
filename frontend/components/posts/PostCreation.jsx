@@ -10,6 +10,7 @@ import {
   Lock,
 } from "lucide-react";
 import { createPost } from "../../lib/auth";
+import UserSearch from "./UserSearch";
 
 const PostCreation = ({ user, onPostCreated }) => {
   const [content, setContent] = useState("");
@@ -18,6 +19,7 @@ const PostCreation = ({ user, onPostCreated }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [showPrivacyDropdown, setShowPrivacyDropdown] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -72,6 +74,23 @@ const PostCreation = ({ user, onPostCreated }) => {
     }
   };
 
+  const handleUserSelect = (user) => {
+    setSelectedUsers(prev => [...prev, user]);
+  };
+
+  const handleUserRemove = (userId) => {
+    setSelectedUsers(prev => prev.filter(user => user.id !== userId));
+  };
+
+  const handlePrivacyChange = (newPrivacy) => {
+    setPrivacy(newPrivacy);
+    setShowPrivacyDropdown(false);
+    // Clear selected users if not private
+    if (newPrivacy !== "private") {
+      setSelectedUsers([]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -88,6 +107,12 @@ const PostCreation = ({ user, onPostCreated }) => {
       formData.append("content", content.trim());
       formData.append("privacy", privacy);
 
+      // Add selected users for private posts
+      if (privacy === "private" && selectedUsers.length > 0) {
+        const viewerIds = selectedUsers.map(user => user.id).join(",");
+        formData.append("viewers", viewerIds);
+      }
+
       if (selectedImage) {
         formData.append("image", selectedImage);
       }
@@ -98,6 +123,7 @@ const PostCreation = ({ user, onPostCreated }) => {
         // Reset form
         setContent("");
         setPrivacy("public");
+        setSelectedUsers([]);
         setSelectedImage(null);
         setImagePreview(null);
         if (fileInputRef.current) {
@@ -173,6 +199,20 @@ const PostCreation = ({ user, onPostCreated }) => {
           </div>
         </div>
 
+        {/* User Search for Private Posts */}
+        {privacy === "private" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Select people who can see this post:
+            </label>
+            <UserSearch
+              selectedUsers={selectedUsers}
+              onUserSelect={handleUserSelect}
+              onUserRemove={handleUserRemove}
+            />
+          </div>
+        )}
+
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-red-300 text-sm">
@@ -243,10 +283,7 @@ const PostCreation = ({ user, onPostCreated }) => {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => {
-                        setPrivacy(option.value);
-                        setShowPrivacyDropdown(false);
-                      }}
+                      onClick={() => handlePrivacyChange(option.value)}
                       className={`w-full text-left px-3 py-2 hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg transition-colors ${privacy === option.value ? "bg-[#3f3fd3]/20" : ""
                         }`}
                       disabled={isSubmitting}
