@@ -10,7 +10,7 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/api"
 	"github.com/tajjjjr/social-network/backend/internal/api/middleware"
 	"github.com/tajjjjr/social-network/backend/pkg/db/sqlite"
-	"github.com/tajjjjr/social-network/backend/utils"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 var (

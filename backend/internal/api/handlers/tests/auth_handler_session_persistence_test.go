@@ -9,6 +9,7 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 // Test session persistence by accessing protected routes
@@ -37,7 +38,7 @@ func TestSessionPersistence_ValidSession(t *testing.T) {
 
 	// Create a dummy protected handler
 	protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+		utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 	})
 
 	// Wrap with auth middleware
@@ -49,7 +50,7 @@ func TestSessionPersistence_ValidSession(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +82,7 @@ func TestSessionPersistence_InvalidSession(t *testing.T) {
 
 	// Create a dummy protected handler
 	protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+		utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 	})
 
 	// Wrap with auth middleware
@@ -93,7 +94,7 @@ func TestSessionPersistence_InvalidSession(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +122,7 @@ func TestSessionPersistence_NoSession(t *testing.T) {
 
 	// Create a dummy protected handler
 	protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+		utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 	})
 
 	// Wrap with auth middleware
@@ -133,7 +134,7 @@ func TestSessionPersistence_NoSession(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +192,7 @@ func TestLogout_ValidSession(t *testing.T) {
 		t.Error("session_id cookie should be set to clear it")
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +224,7 @@ func TestLogout_NoSession(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +263,7 @@ func TestLogout_SessionInvalidation(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	protectedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		models.RespondJSON(w, http.StatusOK, models.Response{Message: "Access granted"})
+		utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Access granted"})
 	})
 	authMiddleware := authHandler.AuthMiddleware(protectedHandler)
 	authMiddleware.ServeHTTP(rr, req)

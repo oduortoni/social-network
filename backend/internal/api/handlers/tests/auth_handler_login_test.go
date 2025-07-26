@@ -11,6 +11,7 @@ import (
 
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 // MockAuthService is a mock implementation of the AuthService for testing.
@@ -86,7 +87,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	// Check the response body
-	var resp models.Response
+	var resp utils.Response
 	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
 		t.Fatal(err)
 	}
