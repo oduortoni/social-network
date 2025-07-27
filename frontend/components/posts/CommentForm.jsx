@@ -135,14 +135,14 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
           />
 
           {/* Input Container */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Text Input */}
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Write your comment..."
-              className="bg-transparent w-full focus:outline-none text-sm resize-none"
+              className="bg-transparent w-full focus:outline-none text-sm resize-none break-words overflow-wrap-anywhere"
               style={{ color: 'var(--primary-text)' }}
               rows={1}
               disabled={isSubmitting}

@@ -168,12 +168,12 @@ const PostCreation = ({ user, onPostCreated }) => {
             alt="Profile"
             className="w-10 h-10 rounded-full flex-shrink-0"
           />
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Tell your friends about your thoughts..."
-              className="bg-transparent w-full focus:outline-none text-sm resize-none min-h-[60px] text-white placeholder-gray-400"
+              className="bg-transparent w-full focus:outline-none text-sm resize-none min-h-[60px] text-white placeholder-gray-400 break-words overflow-wrap-anywhere"
               rows="3"
               disabled={isSubmitting}
             />

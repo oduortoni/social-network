@@ -102,7 +102,6 @@ const CommentList = ({ postId, newComment }) => {
       </div>
     );
   }
-  console.log("comments...", comments);
 
   return (
     <div className="space-y-3">
@@ -119,20 +118,20 @@ const CommentList = ({ postId, newComment }) => {
           />
 
           {/* Comment Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div 
               className="rounded-lg p-3" 
               style={{ backgroundColor: 'var(--secondary-background)' }}
             >
               {/* Author Name */}
-              <div className="font-medium text-white text-sm mb-1">
+              <div className="font-medium text-white text-sm mb-1 break-words">
                 {getDisplayName(comment.author)}
               </div>
 
               {/* Comment Text */}
               {comment.content && (
-                <div className="text-white text-sm whitespace-pre-wrap mb-2">
-                  {comment.content}
+                <div className="text-white text-sm mb-2">
+                  <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere">{comment.content}</p>
                 </div>
               )}
 
