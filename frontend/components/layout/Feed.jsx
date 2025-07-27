@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ImageIcon, VideoIcon, BarChart2Icon, MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, SendIcon } from 'lucide-react';
 import UserCircle from '../homepage/UserCircle';
 import VerifiedBadge from '../homepage/VerifiedBadge';
+import PostCreation from '../posts/PostCreation';
+import PostList from '../posts/PostList';
 
 const Feed = ({user = null, connectedUsers = []}) => {
   const users = connectedUsers.filter(u => u.user_id != user.id);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const handlePostCreated = (newPost) => {
+      // Trigger a refresh of the post list
+      setRefreshTrigger(prev => prev + 1);
+    };
 
   return <div className="flex-1 flex flex-col gap-4">
       <div className="flex overflow-x-auto gap-3 pb-2 cursor-pointer">
