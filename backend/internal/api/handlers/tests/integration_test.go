@@ -1,4 +1,4 @@
-package websocket
+package tests
 
 import (
 	"database/sql"
@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -71,17 +73,17 @@ func TestWebSocketConnection(t *testing.T) {
 	defer db.Close()
 
 	// Create manager with real dependencies
-	manager := NewManager(
-		NewDBSessionResolver(db),
-		NewDBGroupMemberFetcher(db),
-		NewDBMessagePersister(db),
+	manager := ws.NewManager(
+		ws.NewDBSessionResolver(db),
+		ws.NewDBGroupMemberFetcher(db),
+		ws.NewDBMessagePersister(db),
 	)
 
 	// Create test server with session cookie
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Add test session cookie
 		r.AddCookie(&http.Cookie{Name: "session_id", Value: "test-session"})
-		manager.HandleConnection(w, r)
+		handlers.NewWebSocketHandler(manager).HandleConnection(w, r)
 	}))
 	defer server.Close()
 
@@ -100,7 +102,7 @@ func TestWebSocketConnection(t *testing.T) {
 	defer conn.Close()
 
 	// Test message sending
-	testMsg := Message{
+	testMsg := ws.Message{
 		Type:    "broadcast",
 		Content: "Hello, World!",
 	}
