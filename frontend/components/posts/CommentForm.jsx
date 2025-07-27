@@ -90,9 +90,16 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
           fileInputRef.current.value = "";
         }
 
+        // Enhance the comment data with user info and timestamp before notifying parent
+        const enhancedComment = {
+          ...result.data,
+          author: user, // Add the current user as the author
+          created_at: result.data.created_at || new Date().toISOString() // Ensure we have a timestamp
+        };
+
         // Notify parent component
         if (onCommentCreated) {
-          onCommentCreated(result.data);
+          onCommentCreated(enhancedComment);
         }
       } else {
         setError(result.error);
@@ -106,7 +113,7 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
   };
 
   // Handle key press for quick submit
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
@@ -114,7 +121,7 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
   };
 
   return (
-    <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>
+    <div className="rounded-xl p-4 w-full" style={{ backgroundColor: 'var(--primary-background)' }}>
       <form onSubmit={handleSubmit}>
         <div className="flex items-start gap-3 rounded-xl p-3" style={{ backgroundColor: 'var(--secondary-background)' }}>
           {/* User Avatar */}
@@ -133,7 +140,7 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               placeholder="Write your comment..."
               className="bg-transparent w-full focus:outline-none text-sm resize-none"
               style={{ color: 'var(--primary-text)' }}
