@@ -17,3 +17,15 @@ func (fr *FollowRequestService) AcceptedFollowConnection(followConnectionID int6
 func (fr *FollowRequestService) RejectedFollowConnection(followConnectionID int64) error {
 	return fr.FollowRequestStore.RejectFollowConnection(followConnectionID)
 }
+
+func (fr *FollowRequestService) RetrieveUserName(userID int64) (string, string, error) {
+	return fr.FollowRequestStore.UserInfo(userID)
+}
+
+func (fr *FollowRequestService) GetRequestInfo(requestID int64) (int64, int64, error) {
+	return fr.FollowRequestStore.RetrieveRequestInfo(requestID)
+}
+
+func (fr *FollowRequestService) AddtoNotification(follower_id int64, message string) error {
+	return fr.FollowRequestStore.AddtoNotification(follower_id, message)
+}
