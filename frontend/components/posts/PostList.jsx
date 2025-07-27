@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock } from 'lucide-react';
 import { fetchPosts } from '../../lib/auth';
 import VerifiedBadge from '../homepage/VerifiedBadge';
+import CommentForm from './CommentForm';
+import CommentList from './CommentList';
 
-const PostList = ({ refreshTrigger }) => {
+const PostList = ({ refreshTrigger, user }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expandedComments, setExpandedComments] = useState(new Set());
+  const [newComments, setNewComments] = useState({});
 
   const loadPosts = async () => {
     setLoading(true);
@@ -74,6 +78,36 @@ const PostList = ({ refreshTrigger }) => {
       const days = Math.floor(diffInSeconds / 86400);
       return `${days}d ago`;
     }
+  };
+
+  // Toggle comments visibility for a post
+  const toggleComments = (postId) => {
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle new comment creation
+  const handleCommentCreated = (postId, comment) => {
+    setNewComments(prev => ({
+      ...prev,
+      [postId]: comment
+    }));
+
+    // Clear the new comment after a short delay to allow CommentList to process it
+    setTimeout(() => {
+      setNewComments(prev => {
+        const updated = { ...prev };
+        delete updated[postId];
+        return updated;
+      });
+    }, 100);
   };
 
   if (loading) {
@@ -174,17 +208,34 @@ const PostList = ({ refreshTrigger }) => {
                 <ThumbsDownIcon className="w-4 h-4" />
                 <span>Dislike</span>
               </button>
-              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg hover:bg-[#3f3fd3]/20 transition-colors" style={{ color: 'var(--secondary-text)' }}>
+              <button
+                onClick={() => toggleComments(post.id)}
+                className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg hover:bg-[#3f3fd3]/20 transition-colors"
+                style={{ color: 'var(--secondary-text)' }}
+              >
                 <MessageCircleIcon className="w-4 h-4" />
-                <span>Comment</span>
+                <span>{expandedComments.has(post.id) ? 'Hide Comments' : 'Comment'}</span>
               </button>
             </div>
           </div>
 
-          {/* Comments Section Placeholder */}
-          <div className="mt-4 pt-3 border-t border-[#3f3fd3]/30">
-            <div className="text-sm text-gray-400">Comments will be implemented next...</div>
-          </div>
+          {/* Comments Section */}
+          {expandedComments.has(post.id) && (
+            <div className="mt-4 pt-3 border-t border-[#3f3fd3]/30 space-y-4">
+              {/* Comment Form */}
+              <CommentForm
+                postId={post.id}
+                user={user}
+                onCommentCreated={(comment) => handleCommentCreated(post.id, comment)}
+              />
+
+              {/* Comments List */}
+              <CommentList
+                postId={post.id}
+                newComment={newComments[post.id]}
+              />
+            </div>
+          )}
         </div>
       ))}
     </div>
