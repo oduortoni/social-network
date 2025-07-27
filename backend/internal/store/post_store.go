@@ -89,11 +89,11 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 
 func (s *PostStore) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
 	rows, err := s.DB.Query(`
-        SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, u.nickname, u.avatar
+        SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, u.first_name, u.last_name, u.nickname, u.avatar
         FROM Comments c
         JOIN Users u ON c.user_id = u.id
         WHERE c.post_id = ?
-        ORDER BY c.created_at ASC
+        ORDER BY c.created_at DESC
     `, postID)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (s *PostStore) GetCommentsByPostID(postID int64) ([]*models.Comment, error)
 	var comments []*models.Comment
 	for rows.Next() {
 		var comment models.Comment
-		if err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image, &comment.CreatedAt, &comment.Author.Nickname, &comment.Author.Avatar); err != nil {
+		if err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image, &comment.CreatedAt, &comment.Author.FirstName, &comment.Author.LastName, &comment.Author.Nickname, &comment.Author.Avatar); err != nil {
 			return nil, err
 		}
 		comments = append(comments, &comment)

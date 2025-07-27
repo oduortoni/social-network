@@ -28,7 +28,7 @@ const Feed = ({ user }) => {
       {/* Post Creation Component */}
       <PostCreation user={user} onPostCreated={handlePostCreated} />
       {/* Posts List */}
-      <PostList refreshTrigger={refreshTrigger} />
+      <PostList refreshTrigger={refreshTrigger} user={user} />
     </div>;
 };
 
