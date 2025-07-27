@@ -1,4 +1,4 @@
-package websocket
+package tests
 
 import (
 	"bytes"
@@ -10,11 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *Manager) {
+func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
 	// Setup test database
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -95,15 +97,15 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *Manager) {
 	}
 
 	// Create WebSocket manager
-	manager := NewManager(
-		NewDBSessionResolver(db),
-		NewDBGroupMemberFetcher(db),
-		NewDBMessagePersister(db),
+	manager := ws.NewManager(
+		ws.NewDBSessionResolver(db),
+		ws.NewDBGroupMemberFetcher(db),
+		ws.NewDBMessagePersister(db),
 	)
 
 	// Create chat handler
-	notifier := NewDBNotificationSender(manager)
-	chatHandler := NewChatHandler(db, NewDBSessionResolver(db), NewDBMessagePersister(db), notifier, manager)
+	notifier := ws.NewDBNotificationSender(manager)
+	chatHandler := ws.NewChatHandler(db, ws.NewDBSessionResolver(db), ws.NewDBMessagePersister(db), notifier, manager)
 
 	// Create test server with routes
 	mux := http.NewServeMux()
@@ -115,7 +117,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *Manager) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		manager.HandleConnection(w, r)
+		handlers.NewWebSocketHandler(manager).HandleConnection(w, r)
 	})
 	
 	// HTTP API endpoints
@@ -153,7 +155,7 @@ func TestWebSocketEndpoint(t *testing.T) {
 	defer conn.Close()
 
 	// Test 3: Send a private message
-	privateMsg := Message{
+	privateMsg := ws.Message{
 		Type:    "private",
 		To:      2,
 		Content: "Hello from user 1!",
@@ -164,7 +166,7 @@ func TestWebSocketEndpoint(t *testing.T) {
 	}
 
 	// Test 4: Send a group message
-	groupMsg := Message{
+	groupMsg := ws.Message{
 		Type:    "group",
 		GroupID: "1",
 		Content: "Hello group!",
@@ -175,7 +177,7 @@ func TestWebSocketEndpoint(t *testing.T) {
 	}
 
 	// Test 5: Send a broadcast message
-	broadcastMsg := Message{
+	broadcastMsg := ws.Message{
 		Type:    "broadcast",
 		Content: "Hello everyone!",
 	}
@@ -310,7 +312,7 @@ func TestMessagePersistence(t *testing.T) {
 	}
 
 	// Send a private message
-	privateMsg := Message{
+	privateMsg := ws.Message{
 		Type:    "private",
 		To:      2,
 		Content: "Test persistence message",

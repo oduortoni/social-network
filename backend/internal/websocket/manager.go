@@ -4,59 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-// ----------- Interfaces ------------
-
-// SessionResolver resolves the authenticated user ID, nickname, and avatar from the HTTP request.
-type SessionResolver interface {
-	GetUserFromRequest(r *http.Request) (int64, string, string, error)
-}
-
-// GroupMemberFetcher fetches group member IDs from DB
-// to allow broadcasting messages to the group.
-type GroupMemberFetcher interface {
-	GetGroupMemberIDs(groupID string) ([]int64, error)
-}
-
-// MessagePersister stores chat messages for retrieval and persistence.
-type MessagePersister interface {
-	SaveMessage(senderID int64, msg *Message) error
-}
-
-// ----------- Client ---------------
-
-type Client struct {
-	ID        int64
-	Nickname  string
-	Avatar    string
-	Conn      *websocket.Conn
-	Send      chan []byte
-	Connected time.Time
-}
-
-func NewClient(id int64, nickname string, avatar string, conn *websocket.Conn) *Client {
-	return &Client{
-		ID:        id,
-		Nickname:  nickname,
-		Avatar:    avatar,
-		Conn:      conn,
-		Send:      make(chan []byte, 256),
-		Connected: time.Now(),
-	}
-}
-
-// ----------- Manager ---------------
-
 type Manager struct {
 	clients    map[int64]*Client
 	mu         sync.RWMutex
-	resolver   SessionResolver
+	Resolver   SessionResolver
 	groupQuery GroupMemberFetcher
 	persister  MessagePersister
 }
@@ -64,7 +21,7 @@ type Manager struct {
 func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister) *Manager {
 	return &Manager{
 		clients:    make(map[int64]*Client),
-		resolver:   resolver,
+		Resolver:   resolver,
 		groupQuery: groupFetcher,
 		persister:  persister,
 	}
@@ -118,6 +75,53 @@ func (m *Manager) Unregister(id int64) {
 		m.broadcastNotificationToAll(disconnectionNotification, id)
 	}
 }
+
+// ----------- read/write loop ---------------
+
+func (m *Manager) ReadPump(c *Client) {
+	for {
+		_, data, err := c.Conn.ReadMessage()
+		if err != nil {
+			break
+		}
+
+		msg, err := parseMessage(data)
+		if err != nil {
+			continue
+		}
+
+		msg.Timestamp = time.Now().Unix()
+		encoded, err := json.Marshal(msg)
+		if err != nil {
+			continue
+		}
+
+		// Save to DB if persister is configured
+		if m.persister != nil {
+			_ = m.persister.SaveMessage(c.ID, msg)
+		}
+
+		switch msg.Type {
+		case "private":
+			m.SendToUser(msg.To, encoded)
+		case "group":
+			m.BroadcastToGroup(c.ID, msg.GroupID, encoded)
+		case "broadcast":
+			m.BroadcastToAll(encoded)
+		}
+	}
+}
+
+func (m *Manager) WritePump(c *Client) {
+	for msg := range c.Send {
+		err := c.Conn.WriteMessage(websocket.TextMessage, msg)
+		if err != nil {
+			break
+		}
+	}
+}
+
+// ----------- Message Broadcasting Methods ---------------
 
 func (m *Manager) SendToUser(id int64, msg []byte) {
 	m.mu.RLock()
@@ -249,95 +253,4 @@ func (m *Manager) GetOnlineUsers() []map[string]interface{} {
 	}
 
 	return users
-}
-
-// ----------- Message Format ---------------
-
-type Message struct {
-	Type      string `json:"type"`
-	To        int64  `json:"to,omitempty"`
-	GroupID   string `json:"group_id,omitempty"`
-	Content   string `json:"content"`
-	Timestamp int64  `json:"timestamp,omitempty"`
-}
-
-func parseMessage(data []byte) (*Message, error) {
-	var m Message
-	err := json.Unmarshal(data, &m)
-	return &m, err
-}
-
-// ----------- Handler Entry Point ---------------
-
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-func (m *Manager) HandleConnection(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		http.Error(w, "could not upgrade", http.StatusBadRequest)
-		return
-	}
-
-	userID, nickname, avatar, err := m.resolver.GetUserFromRequest(r)
-	if err != nil {
-		conn.Close()
-		return
-	}
-
-	client := NewClient(userID, nickname, avatar, conn)
-	m.Register(client)
-	defer m.Unregister(userID)
-	defer conn.Close()
-
-	go writePump(client)
-	readPump(m, client)
-}
-
-// ----------- read/write loop ---------------
-
-func readPump(m *Manager, c *Client) {
-	for {
-		_, data, err := c.Conn.ReadMessage()
-		if err != nil {
-			break
-		}
-
-		msg, err := parseMessage(data)
-		if err != nil {
-			continue
-		}
-
-		msg.Timestamp = time.Now().Unix()
-		encoded, err := json.Marshal(msg)
-		if err != nil {
-			continue
-		}
-
-		// Save to DB if persister is configured
-		if m.persister != nil {
-			_ = m.persister.SaveMessage(c.ID, msg)
-		}
-
-		switch msg.Type {
-		case "private":
-			m.SendToUser(msg.To, encoded)
-		case "group":
-			m.BroadcastToGroup(c.ID, msg.GroupID, encoded)
-		case "broadcast":
-			m.BroadcastToAll(encoded)
-		}
-	}
-}
-
-func writePump(c *Client) {
-	for msg := range c.Send {
-		err := c.Conn.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			break
-		}
-	}
 }
