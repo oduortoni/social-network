@@ -56,6 +56,49 @@ export const fetchPosts = async () => {
   }
 };
 
+// Create comment function
+export const createComment = async (postId, formData) => {
+  try {
+    const response = await fetch(`http://localhost:9000/posts/${postId}/comments`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData, // FormData object
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    } else {
+      return { success: false, error: data.message || 'Failed to create comment' };
+    }
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
+// Fetch comments for a post
+export const fetchComments = async (postId) => {
+  try {
+    const response = await fetch(`http://localhost:9000/posts/${postId}/comments`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    } else {
+      return { success: false, error: data.message || 'Failed to fetch comments' };
+    }
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
   // Function to handle form submission
 export const handleRegistrationFormSubmit = async (e, formData, setFormError) => {
     e.preventDefault();
