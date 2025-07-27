@@ -69,7 +69,7 @@ const CommentList = ({ postId, newComment }) => {
   // Add new comment to the list when one is created
   useEffect(() => {
     if (newComment) {
-      setComments(prev => [...prev, newComment]);
+      setComments(prev => [newComment, ...prev]); // Add to beginning for newest first
     }
   }, [newComment]);
 
