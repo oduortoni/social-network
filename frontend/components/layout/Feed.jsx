@@ -105,6 +105,10 @@ const Feed = ({user = null, connectedUsers = []}) => {
           </button>
         </div>
       </div>
+      {/* Post Creation Component */}
+      <PostCreation user={user} onPostCreated={handlePostCreated} />
+      {/* Posts List */}
+      <PostList refreshTrigger={refreshTrigger} user={user} />
     </div>;
 };
 

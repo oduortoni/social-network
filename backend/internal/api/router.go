@@ -21,6 +21,7 @@ func NewRouter(db *sql.DB) http.Handler {
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
 	)
+  
 	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewWebSocketHandler(wsManager).HandleConnection)))
 
 	// Chat history handlers (paginated HTTP access to messages)
