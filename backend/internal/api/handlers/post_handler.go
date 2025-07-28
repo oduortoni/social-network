@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
@@ -129,6 +130,7 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comment.ID = id
+	comment.CreatedAt = time.Now() // Set the created_at timestamp
 
 	utils.RespondJSON(w, http.StatusCreated, comment)
 }

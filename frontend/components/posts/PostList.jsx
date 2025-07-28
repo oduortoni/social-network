@@ -160,7 +160,7 @@ const PostList = ({ refreshTrigger, user }) => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-white">
+                  <span className="font-medium text-white break-words">
                     {post.author?.nickname || `${post.author?.first_name || ''} ${post.author?.last_name || ''}`.trim() || 'User'}
                   </span>
                   <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--secondary-text)' }}>
@@ -180,7 +180,7 @@ const PostList = ({ refreshTrigger, user }) => {
 
           {/* Post Content */}
           <div className="mb-4">
-            <p className="text-white whitespace-pre-wrap">{post.content}</p>
+            <p className="text-white whitespace-pre-wrap break-words overflow-wrap-anywhere">{post.content}</p>
             
             {/* Post Image */}
             {post.image && (
