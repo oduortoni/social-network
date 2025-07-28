@@ -1,4 +1,4 @@
-package websocket
+package tests
 
 import (
 	"database/sql"
@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -25,7 +27,8 @@ func setupTestDB(t *testing.T) *sql.DB {
             email TEXT UNIQUE NOT NULL,
             nickname TEXT,
             first_name TEXT,
-            last_name TEXT
+            last_name TEXT,
+            avatar TEXT
         );
         CREATE TABLE sessions (
             id TEXT PRIMARY KEY,
@@ -52,8 +55,8 @@ func setupTestDB(t *testing.T) *sql.DB {
 
 	// Insert test user and session
 	_, err = db.Exec(`
-		INSERT INTO users (id, email, nickname, first_name, last_name) VALUES
-		(123, 'test@example.com', 'testuser', 'Test', 'User');
+		INSERT INTO users (id, email, nickname, first_name, last_name, avatar) VALUES
+		(123, 'test@example.com', 'testuser', 'Test', 'User', 'test-avatar.jpg');
 
 		INSERT INTO sessions (id, user_id) VALUES ('test-session', 123);
 	`)
@@ -70,17 +73,17 @@ func TestWebSocketConnection(t *testing.T) {
 	defer db.Close()
 
 	// Create manager with real dependencies
-	manager := NewManager(
-		NewDBSessionResolver(db),
-		NewDBGroupMemberFetcher(db),
-		NewDBMessagePersister(db),
+	manager := ws.NewManager(
+		ws.NewDBSessionResolver(db),
+		ws.NewDBGroupMemberFetcher(db),
+		ws.NewDBMessagePersister(db),
 	)
 
 	// Create test server with session cookie
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Add test session cookie
 		r.AddCookie(&http.Cookie{Name: "session_id", Value: "test-session"})
-		manager.HandleConnection(w, r)
+		handlers.NewWebSocketHandler(manager).HandleConnection(w, r)
 	}))
 	defer server.Close()
 
@@ -99,7 +102,7 @@ func TestWebSocketConnection(t *testing.T) {
 	defer conn.Close()
 
 	// Test message sending
-	testMsg := Message{
+	testMsg := ws.Message{
 		Type:    "broadcast",
 		Content: "Hello, World!",
 	}

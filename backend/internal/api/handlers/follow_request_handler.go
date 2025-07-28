@@ -6,18 +6,24 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
 type FollowRequestHandler struct {
 	FollowRequestService service.FollowRequestServiceInterface
+	Notifier             *ws.NotificationSender
 }
 
-func NewFollowRequestHandler(fr service.FollowRequestServiceInterface) *FollowRequestHandler {
-	return &FollowRequestHandler{FollowRequestService: fr}
+func NewFollowRequestHandler(fr service.FollowRequestServiceInterface, notifier *ws.NotificationSender) *FollowRequestHandler {
+	return &FollowRequestHandler{
+		FollowRequestService: fr,
+		Notifier:             notifier,
+	}
 }
 
 func (fr *FollowRequestHandler) FollowRequestRespond(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +71,18 @@ func (fr *FollowRequestHandler) FollowRequestRespond(w http.ResponseWriter, r *h
 
 	// Handle rejection
 	if requestStatus.Status == "rejected" {
+		// Get follow request info before rejecting (only if notifications are enabled)
+		var followerID, followeeID int64
+		if fr.Notifier != nil {
+			followerID, followeeID, err = fr.FollowRequestService.GetRequestInfo(requestID)
+			if err != nil {
+				status = http.StatusNotFound
+				serverResponse.Message = "Follow request not found"
+				utils.RespondJSON(w, status, serverResponse)
+				return
+			}
+		}
+
 		err = fr.FollowRequestService.RejectedFollowConnection(requestID)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -77,12 +95,52 @@ func (fr *FollowRequestHandler) FollowRequestRespond(w http.ResponseWriter, r *h
 			utils.RespondJSON(w, status, serverResponse)
 			return
 		}
+
+		// Send notification to the requester about rejection
+		if fr.Notifier != nil && followerID != 0 {
+			followeeName, _, err := fr.FollowRequestService.RetrieveUserName(followeeID)
+			if err == nil {
+				// Store notification in database
+				err =fr.FollowRequestService.AddtoNotification(followerID, followeeName+" rejected your follow request")
+				if err != nil {
+					status = http.StatusInternalServerError
+					serverResponse.Message = "Failed to add notification"
+					utils.RespondJSON(w, status, serverResponse)
+					return
+				}
+
+				// Send real-time notification if user is online
+				if fr.Notifier.IsOnline(followerID) {
+					fr.Notifier.SendNotification(followerID, map[string]interface{}{
+						"type":      "notification",
+						"subtype":   "follow_request_rejected",
+						"user_id":   followeeID,
+						"user_name": followeeName,
+						"message":   followeeName + " rejected your follow request",
+						"timestamp": time.Now().Unix(),
+					})
+				}
+			}
+		}
+
 		serverResponse.Message = "Successfully rejected follow request"
 		utils.RespondJSON(w, status, serverResponse)
 		return
 	}
 
 	// Handle acceptance
+	// Get follow request info before accepting (only if notifications are enabled)
+	var followerID, followeeID int64
+	if fr.Notifier != nil {
+		followerID, followeeID, err = fr.FollowRequestService.GetRequestInfo(requestID)
+		if err != nil {
+			status = http.StatusNotFound
+			serverResponse.Message = "Follow request not found"
+			utils.RespondJSON(w, status, serverResponse)
+			return
+		}
+	}
+
 	err = fr.FollowRequestService.AcceptedFollowConnection(requestID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -94,6 +152,34 @@ func (fr *FollowRequestHandler) FollowRequestRespond(w http.ResponseWriter, r *h
 		}
 		utils.RespondJSON(w, status, serverResponse)
 		return
+	}
+
+	// Send notification to the requester about acceptance
+	if fr.Notifier != nil && followerID != 0 {
+		followeeName, _, err := fr.FollowRequestService.RetrieveUserName(followeeID)
+		if err == nil {
+			
+			// Store notification in database
+			err = fr.FollowRequestService.AddtoNotification(followerID, followeeName+" accepted your follow request")
+			if err != nil {
+				status = http.StatusInternalServerError
+				serverResponse.Message = "Failed to add notification"
+				utils.RespondJSON(w, status, serverResponse)
+				return
+			}
+
+			// Send real-time notification if user is online
+			if fr.Notifier.IsOnline(followerID) {
+				fr.Notifier.SendNotification(followerID, map[string]interface{}{
+					"type":      "notification",
+					"subtype":   "follow_request_accepted",
+					"user_id":   followeeID,
+					"user_name": followeeName,
+					"message":   followeeName + " accepted your follow request",
+					"timestamp": time.Now().Unix(),
+				})
+			}
+		}
 	}
 
 	serverResponse.Message = "Successfully accepted follow request"

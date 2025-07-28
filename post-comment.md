@@ -55,14 +55,6 @@ Return a success response (e.g., { "message": "Post deleted" }) or error (e.g., 
 
 Develop Post Creation Frontend:
 
-Read the following files to understand my current post creation and post listing implementation: 
-
-frontend/components/posts/PostCreation.jsx
-frontend/components/posts/PostList.jsx
-backend/internal/api/handlers/post_handler.go
-
-what is the best way to handle the post creation privacy options when a user chooses private because i want the user to be able to type or start typing the name of the users they want to see the post and they get an autocomplete suggestion then 
-
 In frontend/src/components/PostForm.js, create a post creation form with fields for content (textarea), privacy (dropdown: public, almost_private, private), image (file input), and viewer_ids (multi-select for private posts, fetched from GET /api/users/{userId}/following).
 Implement client-side validation in Next.js (e.g., non-empty content, valid image formats: JPEG, PNG, GIF).
 Send form data to POST /api/posts using fetch with credentials: 'include' (as per README.md), handling multipart/form-data for images.
@@ -72,10 +64,35 @@ Style the form using Tailwind CSS for responsiveness and accessibility.
 
 Develop Comment Creation Frontend:
 
+Read the following files to understand my current post creation and post listing implementation: 
+
+backend/internal/api/handlers/post_handler.go
+backend/internal/models/comment.go
+backend/internal/store/post_store.go
+frontend/components/posts/PostCreation.jsx
+frontend/components/posts/PostList.jsx
+
+implement: 
+
 In frontend/src/components/CommentForm.js, create a comment form component on post pages with fields for content (textarea) and image (file input).
 Implement client-side validation for content and image formats (JPEG, PNG, GIF).
 Send form data to POST /api/posts/{postId}/comments using fetch with credentials: 'include', handling responses and updating the UI.
-Style the form consistently with the post creation form using Tailwind CSS.
+Style the form consistently with the post creation form using Tailwind CSS. The comment form should resemble this:
+
+```
+<div className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>
+        <div className="flex items-center gap-3 rounded-xl p-3" style={{ backgroundColor: 'var(--secondary-background)' }}>
+           <img src="https://randomuser.me/api/portraits/men/30.jpg" alt="Profile" className="w-10 h-10 rounded-full" />
+        <input type="text" placeholder="Write your comment..." className="bg-transparent flex-1 focus:outline-none text-sm" />
+        <button className="cursor-pointer" style={{ color: 'var(--secondary-text)' }}>
+            <ImageIcon className="w-5 h-5" />
+        </button>
+        <button className= "cursor-pointer" style={{ color: 'var(--secondary-text)' }}>
+           <SendIcon className="w-5 h-5" />
+        </button>
+    </div>
+</div>
+```
 
 
 Enhance Post Feed Component:

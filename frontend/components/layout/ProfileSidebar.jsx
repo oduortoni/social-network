@@ -1,37 +1,8 @@
 import React from 'react';
 import { SearchIcon, PlusIcon } from 'lucide-react';
 import CommunityItem from '../homepage/CommunityItem';
+import { profileAPI } from '../../lib/api';
 
-// TODO: Plug in backend API calls when available
-function fetchProfileImage() {
-  // TODO: Fetch profile image from backend
-  return null;
-}
-
-function fetchVerifiedBadge() {
-  // TODO: Fetch verified badge status from backend
-  return null;
-}
-
-function fetchFollowers() {
-  // TODO: Fetch followers count from backend
-  return null;
-}
-
-function fetchFollowing() {
-  // TODO: Fetch following count from backend
-  return null;
-}
-
-function fetchProfileStatus() {
-  // TODO: Fetch profile status from backend
-  return null;
-}
-
-function fetchCommunities() {
-  // TODO: Fetch communities list from backend
-  return null;
-}
 
 const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
   // TODO: Use useEffect to call fetchProfileImage, fetchVerifiedBadge, fetchFollowers, fetchFollowing, fetchProfileStatus, and fetchCommunities when backend is available
@@ -49,7 +20,7 @@ const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
             style={{ backgroundColor: 'var(--primary-accent)' }}
           >
             <img
-              src="https://randomuser.me/api/portraits/men/30.jpg"
+              src={profileAPI.fetchProfileImage(user.avatar? user.avatar : '')}
               alt="Profile"
               className="w-20 h-20 rounded-full"
             />
@@ -97,14 +68,14 @@ const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
         </div>
 
         <div className="mt-4 text-center">
-          <h2 className="text-lg font-bold">Zeus</h2>
+          <h2 className="text-lg font-bold">{user.first_name} {user.last_name}</h2>
           <p className="text-sm" style={{ color: 'var(--secondary-text)' }}>
-            @zeus
+            @{user.nickname}
           </p>
         </div>
 
         <div className="mt-4 text-center text-sm">
-          <p>✨ Hello, I'm Zeus. I know everything ✨</p>
+          <p>✨ {user.about_me} ✨</p>
           {/* TODO: Replace with profile status from backend */}
         </div>
 

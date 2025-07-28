@@ -1,13 +1,14 @@
-package websocket
+package tests
 
 import (
 	"testing"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 )
 
 func TestManagerRegisterUnregister(t *testing.T) {
-	manager := NewManager(nil, nil, nil)
+	manager := ws.NewManager(nil, nil, nil)
 
-	client := NewClient(123, "test-client-123", nil)
+	client := ws.NewClient(123, "test-client-123", "", nil)
 
 	// Test registration
 	manager.Register(client)
@@ -23,11 +24,11 @@ func TestManagerRegisterUnregister(t *testing.T) {
 }
 
 func TestManagerBroadcast(t *testing.T) {
-	manager := NewManager(nil, nil, nil)
+	manager := ws.NewManager(nil, nil, nil)
 
 	// Create mock clients
-	client1 := NewClient(1, "test-client-1", nil)
-	client2 := NewClient(2, "test-client-2", nil)
+	client1 := ws.NewClient(1, "test-client-1", "", nil)
+	client2 := ws.NewClient(2, "test-client-2", "", nil)
 
 	manager.Register(client1)
 	manager.Register(client2)

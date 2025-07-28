@@ -62,7 +62,7 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
 
   const handleUserConnected = (notification) => {
     setOnlineUsers(prev => new Set([...prev, notification.user_id]));
-    console.log(`${notification.user_name} connected`);
+    console.log(`${notification.nickname} connected`);
   };
 
   const handleUserDisconnected = (notification) => {
@@ -71,7 +71,7 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
       newSet.delete(notification.user_id);
       return newSet;
     });
-    console.log(`${notification.user_name} disconnected`);
+    console.log(`${notification.nickname} disconnected`);
   };
 
   const loadOnlineUsers = async () => {
