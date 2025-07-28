@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock, Edit, Trash2, UserPlus } from 'lucide-react';
-import { fetchPosts, deletePost } from '../../lib/auth';
+import { fetchPosts, deletePost, updatePost } from '../../lib/auth';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
@@ -13,6 +13,10 @@ const PostList = ({ refreshTrigger, user }) => {
   const [newComments, setNewComments] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [editModal, setEditModal] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [editImage, setEditImage] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
 
   const loadPosts = async () => {
     setLoading(true);
@@ -117,6 +121,40 @@ const PostList = ({ refreshTrigger, user }) => {
     setOpenDropdown(openDropdown === postId ? null : postId);
   };
 
+  // Handle edit post
+  const handleEditPost = (post) => {
+    setEditModal(post.id);
+    setEditContent(post.content);
+    setEditImage(null);
+    setOpenDropdown(null);
+  };
+
+  // Handle edit post submission
+  const handleEditSubmit = async (postId) => {
+    if (!editContent.trim()) return;
+
+    setEditLoading(true);
+    try {
+      const result = await updatePost(postId, editContent, editImage);
+      if (result.success) {
+        // Update the post in the local state
+        setPosts(prev => prev.map(post =>
+          post.id === postId ? result.data : post
+        ));
+        setEditModal(null);
+        setEditContent('');
+        setEditImage(null);
+      } else {
+        console.error('Failed to update post:', result.error);
+        // You could add a toast notification here
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   // Handle delete post
   const handleDeletePost = async (postId) => {
     try {
@@ -211,6 +249,11 @@ const PostList = ({ refreshTrigger, user }) => {
                 </div>
                 <div className="text-xs" style={{ color: 'var(--secondary-text)' }}>
                   {formatDate(post.created_at)}
+                  {post.is_edited && (
+                    <span className="ml-2 text-xs" style={{ color: 'var(--secondary-text)' }}>
+                      • edited
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -232,6 +275,10 @@ const PostList = ({ refreshTrigger, user }) => {
                   <div className="py-1">
                     {/* Edit Option */}
                     <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditPost(post);
+                      }}
                       className="w-full px-4 py-2 text-left text-sm text-white hover:text-white flex items-center gap-2 transition-colors"
                       style={{ ':hover': { backgroundColor: 'var(--hover-background)' } }}
                       onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
@@ -361,6 +408,70 @@ const PostList = ({ refreshTrigger, user }) => {
                 onMouseLeave={(e) => e.target.style.opacity = '1'}
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Post Modal */}
+      {editModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center" style={{ zIndex: 9999 }}>
+          <div
+            className="rounded-lg p-6 max-w-md w-full mx-4"
+            style={{ backgroundColor: 'var(--primary-background)', border: '1px solid var(--border-color)' }}
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Edit Post</h3>
+
+            <div className="mb-4">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                placeholder="What's on your mind?"
+                className="w-full p-3 rounded-lg resize-none text-white break-words overflow-wrap-anywhere"
+                style={{
+                  backgroundColor: 'var(--secondary-background)',
+                  border: '1px solid var(--border-color)',
+                  minHeight: '100px'
+                }}
+                rows={4}
+              />
+            </div>
+
+            <div className="mb-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setEditImage(e.target.files[0])}
+                className="w-full text-white"
+                style={{ backgroundColor: 'var(--secondary-background)' }}
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setEditModal(null);
+                  setEditContent('');
+                  setEditImage(null);
+                }}
+                className="px-4 py-2 rounded-lg text-white transition-colors"
+                style={{ backgroundColor: 'var(--secondary-background)' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--secondary-background)'}
+                disabled={editLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleEditSubmit(editModal)}
+                className="px-4 py-2 rounded-lg text-white transition-colors"
+                style={{ backgroundColor: 'var(--primary-color)' }}
+                onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.target.style.opacity = '1'}
+                disabled={editLoading || !editContent.trim()}
+              >
+                {editLoading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
