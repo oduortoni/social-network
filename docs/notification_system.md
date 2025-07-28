@@ -25,7 +25,7 @@ All notifications follow a standardized JSON format:
   "type": "notification",
   "subtype": "notification_category",
   "user_id": 123,
-  "user_name": "John Doe",
+  "nickname": "John Doe",
   "message": "Human-readable notification message",
   "timestamp": 1640995200,
   "additional_data": {
@@ -43,7 +43,7 @@ All notifications follow a standardized JSON format:
 
 ### Optional Fields
 - **user_id**: ID of user who triggered the notification
-- **user_name**: Display name of triggering user
+- **nickname**: Display name of triggering user
 - **additional_data**: Extra context data specific to notification type
 
 ## Notification Types
@@ -71,7 +71,7 @@ postNotification := map[string]interface{}{
     "type":      "notification",
     "subtype":   "new_post",
     "user_id":   authorID,
-    "user_name": authorName,
+    "nickname":  authorName,
     "message":   authorName + " created a new post",
     "timestamp": time.Now().Unix(),
     "additional_data": map[string]interface{}{
@@ -92,7 +92,7 @@ followRequestNotification := map[string]interface{}{
     "type":      "notification",
     "subtype":   "follow_request",
     "user_id":   senderID,
-    "user_name": senderName,
+    "nickname":  senderName,
     "message":   senderName + " sent you a follow request",
     "timestamp": time.Now().Unix(),
     "additional_data": map[string]interface{}{
@@ -112,7 +112,7 @@ groupMessageNotification := map[string]interface{}{
     "type":      "notification",
     "subtype":   "group_message",
     "user_id":   senderID,
-    "user_name": senderName,
+    "nickname":  senderName,
     "message":   senderName + " sent a message to " + groupName,
     "timestamp": time.Now().Unix(),
     "additional_data": map[string]interface{}{
@@ -172,7 +172,7 @@ likeNotification := map[string]interface{}{
     "type":      "notification",
     "subtype":   "post_like",
     "user_id":   likerID,
-    "user_name": likerName,
+    "nickname":  likerName,
     "message":   likerName + " liked your post",
     "timestamp": time.Now().Unix(),
     "additional_data": map[string]interface{}{
@@ -213,7 +213,7 @@ actionNotification := map[string]interface{}{
     "type":      "notification",
     "subtype":   "follow_request",
     "user_id":   senderID,
-    "user_name": senderName,
+    "nickname":  senderName,
     "message":   senderName + " sent you a follow request",
     "timestamp": time.Now().Unix(),
     "requires_action": true,

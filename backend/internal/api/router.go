@@ -21,7 +21,8 @@ func NewRouter(db *sql.DB) http.Handler {
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
 	)
-	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(wsManager.HandleConnection)))
+  
+	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewWebSocketHandler(wsManager).HandleConnection)))
 
 	// Chat history handlers (paginated HTTP access to messages)
 	notifier := ws.NewDBNotificationSender(wsManager)
@@ -61,10 +62,6 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
 		authHandler.LogoutHandler(w, r)
 	})
-
-	// mux.HandleFunc("GET /checksession", func(w http.ResponseWriter, r *http.Request) {
-	// 	authentication.CheckSessionHandler(w, r, db)
-	// })
 
 	// Mount handlers
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))
