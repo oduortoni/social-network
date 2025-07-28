@@ -43,6 +43,10 @@ func (s *MockPostStore) AddPostViewers(postID int64, viewerIDs []int64) error {
 	return nil
 }
 
+func (s *MockPostStore) UpdatePost(postID int64, content, imagePath string) (*models.Post, error) {
+	return nil, nil
+}
+
 func (s *MockPostStore) SearchUsers(query string, currentUserID int64) ([]*models.User, error) {
 	return nil, nil
 }

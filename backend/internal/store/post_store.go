@@ -46,19 +46,69 @@ func (s *PostStore) CreateComment(comment *models.Comment) (int64, error) {
 }
 
 func (s *PostStore) GetPostByID(id int64) (*models.Post, error) {
-	row := s.DB.QueryRow("SELECT id, user_id, content, image, privacy, created_at FROM Posts WHERE id = ?", id)
+	row := s.DB.QueryRow("SELECT id, user_id, content, image, privacy, created_at, updated_at FROM Posts WHERE id = ?", id)
 
 	var post models.Post
-	err := row.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt)
+	var updatedAt sql.NullTime
+	err := row.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt, &updatedAt)
 	if err != nil {
 		return nil, err
 	}
+
+	// Set the updated_at field and is_edited flag
+	if updatedAt.Valid {
+		post.UpdatedAt = &updatedAt.Time
+		post.IsEdited = true
+	}
+
+	return &post, nil
+}
+
+func (s *PostStore) UpdatePost(postID int64, content, imagePath string) (*models.Post, error) {
+	// Update the post with new content, image, and set updated_at timestamp
+	stmt, err := s.DB.Prepare("UPDATE Posts SET content = ?, image = ?, updated_at = ? WHERE id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	now := time.Now()
+	_, err = stmt.Exec(content, imagePath, now, postID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch and return the updated post with author information
+	row := s.DB.QueryRow(`
+        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at,
+               u.first_name, u.last_name, u.nickname, u.avatar
+        FROM Posts p
+        JOIN Users u ON p.user_id = u.id
+        WHERE p.id = ?
+    `, postID)
+
+	var post models.Post
+	var updatedAt sql.NullTime
+	err = row.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy,
+		&post.CreatedAt, &updatedAt, &post.Author.FirstName, &post.Author.LastName,
+		&post.Author.Nickname, &post.Author.Avatar)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the updated_at field and is_edited flag
+	if updatedAt.Valid {
+		post.UpdatedAt = &updatedAt.Time
+		post.IsEdited = true
+	}
+
 	return &post, nil
 }
 
 func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	rows, err := s.DB.Query(`
-        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, u.first_name, u.last_name, u.nickname, u.avatar
+        SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at,
+               u.first_name, u.last_name, u.nickname, u.avatar
         FROM Posts p
         JOIN Users u ON p.user_id = u.id
         WHERE p.privacy = 'public'
@@ -78,9 +128,19 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	var posts []*models.Post
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy, &post.CreatedAt, &post.Author.FirstName, &post.Author.LastName, &post.Author.Nickname, &post.Author.Avatar); err != nil {
+		var updatedAt sql.NullTime
+		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy,
+			&post.CreatedAt, &updatedAt, &post.Author.FirstName, &post.Author.LastName,
+			&post.Author.Nickname, &post.Author.Avatar); err != nil {
 			return nil, err
 		}
+
+		// Set the updated_at field and is_edited flag
+		if updatedAt.Valid {
+			post.UpdatedAt = &updatedAt.Time
+			post.IsEdited = true
+		}
+
 		posts = append(posts, &post)
 	}
 

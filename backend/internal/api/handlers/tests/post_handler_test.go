@@ -71,6 +71,10 @@ func (s *MockPostService) CreatePostWithViewers(post *models.Post, imageData []b
 	return 0, fmt.Errorf("CreatePostFunc not implemented")
 }
 
+func (s *MockPostService) UpdatePost(postID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Post, error) {
+	return nil, nil
+}
+
 func (s *MockPostService) SearchUsers(query string, currentUserID int64) ([]*models.User, error) {
 	return nil, nil
 }

@@ -189,6 +189,58 @@ func (h *PostHandler) GetCommentsByPostID(w http.ResponseWriter, r *http.Request
 	utils.RespondJSON(w, http.StatusOK, comments)
 }
 
+func (h *PostHandler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	postIDStr := r.PathValue("postId")
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
+		return
+	}
+
+	// Parse multipart form data
+	err = r.ParseMultipartForm(20 << 20) // 20 MB limit for multipart form
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Unable to parse form: " + err.Error()})
+		return
+	}
+
+	// Get user ID from context
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+
+	// Get the updated content
+	content := r.FormValue("content")
+	if content == "" {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Content is required"})
+		return
+	}
+
+	// Handle optional image upload using the helper
+	imageData, imageMimeType, status, err := handleImageUpload(r)
+	if err != nil {
+		utils.RespondJSON(w, status, utils.Response{Message: err.Error()})
+		return
+	}
+
+	// Update the post
+	updatedPost, err := h.PostService.UpdatePost(postID, userID, content, imageData, imageMimeType)
+	if err != nil {
+		if err.Error() == "unauthorized" {
+			utils.RespondJSON(w, http.StatusForbidden, utils.Response{Message: "You can only edit your own posts"})
+		} else if err.Error() == "post not found" {
+			utils.RespondJSON(w, http.StatusNotFound, utils.Response{Message: "Post not found"})
+		} else {
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
+		}
+		return
+	}
+
+	utils.RespondJSON(w, http.StatusOK, updatedPost)
+}
+
 func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.PathValue("postId")
 	postID, err := strconv.ParseInt(postIDStr, 10, 64)

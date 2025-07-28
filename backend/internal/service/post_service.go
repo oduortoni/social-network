@@ -100,6 +100,45 @@ func (s *PostService) GetCommentsByPostID(postID int64) ([]*models.Comment, erro
 	return s.PostStore.GetCommentsByPostID(postID)
 }
 
+func (s *PostService) UpdatePost(postID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Post, error) {
+	// Get the existing post
+	post, err := s.PostStore.GetPostByID(postID)
+	if err != nil {
+		return nil, fmt.Errorf("post not found")
+	}
+
+	// Check if the user is authorized to edit this post
+	if post.UserID != userID {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	// Validate content
+	if content == "" {
+		return nil, fmt.Errorf("post content is required")
+	}
+
+	// Handle image update if provided
+	var imagePath string
+	if len(imageData) > 0 {
+		savedImagePath, err := s.saveImage(imageData, "posts")
+		if err != nil {
+			return nil, err
+		}
+		imagePath = savedImagePath
+	} else {
+		// Keep existing image if no new image provided
+		imagePath = post.Image
+	}
+
+	// Update the post in the store
+	updatedPost, err := s.PostStore.UpdatePost(postID, content, imagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedPost, nil
+}
+
 func (s *PostService) DeletePost(postID, userID int64) error {
 	post, err := s.PostStore.GetPostByID(postID)
 	if err != nil {
