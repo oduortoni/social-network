@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock } from 'lucide-react';
-import { fetchPosts } from '../../lib/auth';
+import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock, Edit, Trash2, UserPlus } from 'lucide-react';
+import { fetchPosts, deletePost } from '../../lib/auth';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
@@ -11,6 +11,8 @@ const PostList = ({ refreshTrigger, user }) => {
   const [error, setError] = useState('');
   const [expandedComments, setExpandedComments] = useState(new Set());
   const [newComments, setNewComments] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
   const loadPosts = async () => {
     setLoading(true);
@@ -110,6 +112,45 @@ const PostList = ({ refreshTrigger, user }) => {
     }, 100);
   };
 
+  // Handle dropdown toggle
+  const toggleDropdown = (postId) => {
+    setOpenDropdown(openDropdown === postId ? null : postId);
+  };
+
+  // Handle delete post
+  const handleDeletePost = async (postId) => {
+    try {
+      const result = await deletePost(postId);
+      if (result.success) {
+        // Remove the post from the local state
+        setPosts(prev => prev.filter(post => post.id !== postId));
+        setDeleteConfirmation(null);
+        setOpenDropdown(null);
+      } else {
+        console.error('Failed to delete post:', result.error);
+        // You could add a toast notification here
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if the clicked element is part of any dropdown
+      const isDropdownClick = event.target.closest('.dropdown-container');
+      if (!isDropdownClick && openDropdown !== null) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdown]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -173,9 +214,62 @@ const PostList = ({ refreshTrigger, user }) => {
                 </div>
               </div>
             </div>
-            <button className="text-gray-400 hover:text-white transition-colors">
-              <MoreHorizontalIcon className="w-5 h-5" />
-            </button>
+            {/* Post Actions Dropdown */}
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => toggleDropdown(post.id)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <MoreHorizontalIcon className="w-5 h-5" />
+              </button>
+
+              {/* Dropdown Menu */}
+              {openDropdown === post.id && (
+                <div
+                  className="absolute right-0 top-8 w-48 rounded-lg shadow-lg z-10"
+                  style={{ backgroundColor: 'var(--primary-background)', border: '1px solid var(--border-color)' }}
+                >
+                  <div className="py-1">
+                    {/* Edit Option */}
+                    <button
+                      className="w-full px-4 py-2 text-left text-sm text-white hover:text-white flex items-center gap-2 transition-colors"
+                      style={{ ':hover': { backgroundColor: 'var(--hover-background)' } }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit
+                    </button>
+
+                    {/* Delete Option */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirmation(post.id);
+                        setOpenDropdown(null); // Close dropdown when opening modal
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-white hover:text-white flex items-center gap-2 transition-colors"
+                      style={{ color: 'var(--danger-color)' }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+
+                    {/* Follow Option */}
+                    <button
+                      className="w-full px-4 py-2 text-left text-sm text-white hover:text-white flex items-center gap-2 transition-colors"
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Follow
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Post Content */}
@@ -238,6 +332,40 @@ const PostList = ({ refreshTrigger, user }) => {
           )}
         </div>
       ))}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center" style={{ zIndex: 9999 }}>
+          <div
+            className="rounded-lg p-6 max-w-md w-full mx-4"
+            style={{ backgroundColor: 'var(--primary-background)', border: '1px solid var(--border-color)' }}
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Delete Post</h3>
+            <p className="text-white mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmation(null)}
+                className="px-4 py-2 rounded-lg text-white transition-colors"
+                style={{ backgroundColor: 'var(--secondary-background)' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--secondary-background)'}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeletePost(deleteConfirmation)}
+                className="px-4 py-2 rounded-lg text-white transition-colors"
+                style={{ backgroundColor: 'var(--danger-color)' }}
+                onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.target.style.opacity = '1'}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

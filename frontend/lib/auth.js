@@ -99,6 +99,26 @@ export const fetchComments = async (postId) => {
   }
 };
 
+// Delete post function
+export const deletePost = async (postId) => {
+  try {
+    const response = await fetch(`http://localhost:9000/posts/${postId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (response.ok) {
+      return { success: true };
+    } else {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || 'Failed to delete post' };
+    }
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
   // Function to handle form submission
 export const handleRegistrationFormSubmit = async (e, formData, setFormError) => {
     e.preventDefault();
