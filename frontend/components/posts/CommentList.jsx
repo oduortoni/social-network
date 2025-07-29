@@ -84,7 +84,7 @@ const CommentList = ({ postId, newComment }) => {
   if (error) {
     return (
       <div className="text-center py-4">
-        <div className="text-sm" style={{ color: 'var(--danger-color)' }}>{error}</div>
+        <div className="text-sm" style={{ color: 'var(--warning-color)' }}>{error}</div>
         <button 
           onClick={loadComments}
           className="text-sm mt-2 hover:underline"

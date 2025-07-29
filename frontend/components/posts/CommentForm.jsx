@@ -176,7 +176,7 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
 
             {/* Error Message */}
             {error && (
-              <div className="mt-2 text-xs" style={{ color: 'var(--danger-color)' }}>
+              <div className="mt-2 text-xs" style={{ color: 'var(--warning-color)' }}>
                 {error}
               </div>
             )}

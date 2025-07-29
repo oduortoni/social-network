@@ -220,7 +220,7 @@ const PostCreation = ({ user, onPostCreated }) => {
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 border rounded-lg text-sm"
-            style={{ backgroundColor: 'rgba(var(--danger-color-rgb), 0.2)', borderColor: 'var(--danger-color)', color: 'var(--danger-color)' }}>
+            style={{ backgroundColor: 'rgba(var(--danger-color-rgb), 0.2)', borderColor: 'var(--warning-color)', color: 'var(--warning-color)' }}>
             {error}
           </div>
         )}

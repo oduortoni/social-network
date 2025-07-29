@@ -199,12 +199,12 @@ const PostList = ({ refreshTrigger, user }) => {
 
   if (error) {
     return (
-      <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'rgba(var(--danger-color-rgb), 0.2)', border: '1px solid var(--danger-color)' }}>
-        <div style={{ color: 'var(--danger-color)' }} className="text-center">{error}</div>
+      <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'rgba(var(--danger-color-rgb), 0.2)', border: '1px solid var(--warning-color)' }}>
+        <div style={{ color: 'var(--warning-color)' }} className="text-center">{error}</div>
         <button 
           onClick={loadPosts}
           className="mt-2 w-full py-2 px-4 rounded-lg transition-colors"
-          style={{ backgroundColor: 'var(--danger-color)', color: 'var(--primary-text)' }}
+          style={{ backgroundColor: 'var(--warning-color)', color: 'var(--primary-text)' }}
           onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
           onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
         >
@@ -302,7 +302,7 @@ const PostList = ({ refreshTrigger, user }) => {
                         setOpenDropdown(null); // Close dropdown when opening modal
                       }}
                       className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
-                      style={{ color: 'var(--danger-color)' }}
+                      style={{ color: 'var(--warning-color)' }}
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
@@ -415,7 +415,7 @@ const PostList = ({ refreshTrigger, user }) => {
               <button
                 onClick={() => handleDeletePost(deleteConfirmation)}
                 className="px-4 py-2 rounded-lg transition-colors"
-                style={{ backgroundColor: 'var(--danger-color)', color: 'var(--primary-text)' }}
+                style={{ backgroundColor: 'var(--warning-color)', color: 'var(--primary-text)' }}
                 onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
