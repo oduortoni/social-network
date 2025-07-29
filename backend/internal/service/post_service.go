@@ -167,7 +167,7 @@ func (s *PostService) saveImage(imageData []byte, subDir string) (string, error)
 	}
 	imageFileName := fmt.Sprintf("%s%s", uuid.New().String(), extension)
 	// Consistent path structure as per project requirements
-	saveDir := filepath.Join("attachments", subDir)
+	saveDir := filepath.Join(subDir)
 	imagePath := filepath.Join(saveDir, imageFileName)
 	if err := os.MkdirAll(saveDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create directory: %w", err)

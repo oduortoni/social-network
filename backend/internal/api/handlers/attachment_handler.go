@@ -32,7 +32,7 @@ func GetImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	imageFile := path.Join(avatarUrl)
+	imageFile := path.Join("attachments" ,avatarUrl)
 
 	// Check if file exists and get file info
 	fileInfo, err := os.Stat(imageFile)
