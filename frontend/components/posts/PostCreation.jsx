@@ -173,7 +173,8 @@ const PostCreation = ({ user, onPostCreated }) => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Tell your friends about your thoughts..."
-              className="bg-transparent w-full focus:outline-none text-sm resize-none min-h-[60px] text-white placeholder-gray-400 break-words overflow-wrap-anywhere"
+              className="w-full focus:outline-none text-sm resize-none min-h-[60px] break-words overflow-wrap-anywhere"
+              style={{ backgroundColor: 'transparent', color: 'var(--primary-text)', '--placeholder-color': 'var(--secondary-text)' }}
               rows="3"
               disabled={isSubmitting}
             />
@@ -189,7 +190,10 @@ const PostCreation = ({ user, onPostCreated }) => {
                 <button
                   type="button"
                   onClick={removeImage}
-                  className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70"
+                  className="absolute top-2 right-2 rounded-full p-1"
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', color: 'var(--primary-text)' }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                   disabled={isSubmitting}
                 >
                   <X className="w-4 h-4" />
@@ -202,7 +206,7 @@ const PostCreation = ({ user, onPostCreated }) => {
         {/* User Search for Private Posts */}
         {privacy === "private" && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--secondary-text)' }}>
               Select people who can see this post:
             </label>
             <UserSearch
@@ -215,20 +219,23 @@ const PostCreation = ({ user, onPostCreated }) => {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-red-300 text-sm">
+          <div className="mb-4 p-3 border rounded-lg text-sm"
+            style={{ backgroundColor: 'rgba(var(--danger-color-rgb), 0.2)', borderColor: 'var(--danger-color)', color: 'var(--danger-color)' }}>
             {error}
           </div>
         )}
 
         {/* Privacy Selector and Action Buttons */}
-        <div className="flex justify-between items-center border-t border-[#3f3fd3]/30 pt-3">
+        <div className="flex justify-between items-center border-t pt-3" style={{ borderColor: 'var(--border-color)' }}>
           <div className="flex items-center gap-2">
             {/* Image Upload Button */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg cursor-pointer hover:bg-[#3f3fd3]/20 transition-colors"
+              className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg cursor-pointer transition-colors"
               style={{ color: "var(--secondary-text)" }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               disabled={isSubmitting}
             >
               <ImageIcon className="w-4 h-4" />
@@ -246,16 +253,20 @@ const PostCreation = ({ user, onPostCreated }) => {
             />
 
             <button
-              className="flex items-center gap-2 text-sm py-1.5 px-3 cursor-pointer rounded-lg hover:bg-[#3f3fd3]/20"
+              className="flex items-center gap-2 text-sm py-1.5 px-3 cursor-pointer rounded-lg"
               style={{ color: "var(--secondary-text)" }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <VideoIcon className="w-4 h-4" />
               <span>Video</span>
             </button>
             
             <button
-              className="flex items-center gap-2 text-sm py-1.5 px-3 cursor-pointer rounded-lg hover:bg-[#3f3fd3]/20"
+              className="flex items-center gap-2 text-sm py-1.5 px-3 cursor-pointer rounded-lg"
               style={{ color: "var(--secondary-text)" }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <BarChart2Icon className="w-4 h-4" />
               <span>Poll</span>
@@ -266,8 +277,10 @@ const PostCreation = ({ user, onPostCreated }) => {
               <button
                 type="button"
                 onClick={() => setShowPrivacyDropdown(!showPrivacyDropdown)}
-                className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg cursor-pointer hover:bg-[#3f3fd3]/20 transition-colors"
+                className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg cursor-pointer transition-colors"
                 style={{ color: "var(--secondary-text)" }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 disabled={isSubmitting}
               >
                 {React.createElement(getCurrentPrivacyOption().icon, {
@@ -278,25 +291,28 @@ const PostCreation = ({ user, onPostCreated }) => {
 
               {/* Privacy Dropdown */}
               {showPrivacyDropdown && (
-                <div className="absolute bottom-full left-0 mb-2 bg-gray-800 rounded-lg shadow-lg border border-gray-600 min-w-[200px] z-10">
+                <div className="absolute bottom-full left-0 mb-2 rounded-lg shadow-lg min-w-[200px] z-10"
+                  style={{ backgroundColor: 'var(--secondary-background)', border: '1px solid var(--border-color)' }}>
                   {privacyOptions.map((option) => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => handlePrivacyChange(option.value)}
-                      className={`w-full text-left px-3 py-2 hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg transition-colors ${privacy === option.value ? "bg-[#3f3fd3]/20" : ""
-                        }`}
+                      className={`w-full text-left px-3 py-2 first:rounded-t-lg last:rounded-b-lg transition-colors ${privacy === option.value ? "" : ""}`}
+                      style={privacy === option.value ? { backgroundColor: 'var(--hover-background)' } : {}}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = privacy === option.value ? 'var(--hover-background)' : 'transparent'}
                       disabled={isSubmitting}
                     >
                       <div className="flex items-center gap-2 mb-1">
                         {React.createElement(option.icon, {
                           className: "w-4 h-4",
                         })}
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium" style={{ color: 'var(--primary-text)' }}>
                           {option.label}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-400 ml-6">
+                      <div className="text-xs ml-6" style={{ color: 'var(--secondary-text)' }}>
                         {option.description}
                       </div>
                     </button>
@@ -310,10 +326,14 @@ const PostCreation = ({ user, onPostCreated }) => {
           <button
             type="submit"
             disabled={!content.trim() || isSubmitting}
-            className={`flex items-center gap-2 text-sm py-2 px-4 rounded-lg transition-all ${!content.trim() || isSubmitting
-              ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-              : "bg-[#3f3fd3] text-white hover:bg-[#3f3fd3]/80 cursor-pointer"
-              }`}
+            className={`flex items-center gap-2 text-sm py-2 px-4 rounded-lg transition-all`}
+            style={{
+              cursor: !content.trim() || isSubmitting ? 'not-allowed' : 'pointer',
+              backgroundColor: !content.trim() || isSubmitting ? 'var(--secondary-background)' : 'var(--primary-accent)',
+              color: !content.trim() || isSubmitting ? 'var(--secondary-text)' : 'var(--quinary-text)'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.opacity = !content.trim() || isSubmitting ? '1' : '0.8'}
+            onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
           >
             <SendIcon className="w-4 h-4" />
             <span>{isSubmitting ? "Posting..." : "Post"}</span>

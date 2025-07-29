@@ -100,9 +100,10 @@ const UserSearch = ({ selectedUsers, onUserSelect, onUserRemove }) => {
           {selectedUsers.map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+              className="flex items-center gap-2 px-3 py-1 rounded-full text-sm"
+              style={{ backgroundColor: 'var(--tertiary-background)', color: 'var(--quaternary-text)' }}
             >
-              <div className="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--tertiary-background)' }}>
                 {user.avatar && user.avatar !== "no profile photo" ? (
                   <img
                     src={`http://localhost:9000/avatar?avatar=${encodeURIComponent(user.avatar)}`}
@@ -110,14 +111,16 @@ const UserSearch = ({ selectedUsers, onUserSelect, onUserRemove }) => {
                     className="w-6 h-6 rounded-full object-cover"
                   />
                 ) : (
-                  <User className="w-4 h-4 text-blue-600" />
+                  <User className="w-4 h-4" style={{ color: 'var(--tertiary-text)' }} />
                 )}
               </div>
               <span>{getDisplayName(user)}</span>
               <button
                 type="button"
                 onClick={() => onUserRemove(user.id)}
-                className="text-blue-600 hover:text-blue-800"
+                style={{ color: 'var(--tertiary-text)' }}
+                onMouseOver={(e) => e.currentTarget.style.color = 'var(--quinary-text)'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'var(--tertiary-text)'}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -129,22 +132,25 @@ const UserSearch = ({ selectedUsers, onUserSelect, onUserRemove }) => {
       {/* Search Input */}
       <div className="relative" ref={searchRef}>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--secondary-text)' }} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for people to share with..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            onFocus={() => {
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent"
+            style={{ borderColor: 'var(--border-color)', '--ring-color': 'var(--primary-accent)' }}
+            onFocus={(e) => {
+              e.target.style.borderColor = 'var(--primary-accent)';
               if (searchResults.length > 0) {
                 setShowDropdown(true);
               }
             }}
+            onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
           />
           {isSearching && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: 'var(--primary-accent)' }}></div>
             </div>
           )}
         </div>
@@ -153,16 +159,20 @@ const UserSearch = ({ selectedUsers, onUserSelect, onUserRemove }) => {
         {showDropdown && (
           <div
             ref={dropdownRef}
-            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+            className="absolute z-10 w-full mt-1 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+            style={{ backgroundColor: 'var(--secondary-background)', border: '1px solid var(--border-color)' }}
           >
             {searchResults.map((user) => (
               <button
                 key={user.id}
                 type="button"
                 onClick={() => handleUserSelect(user)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-b-0"
+                className="w-full px-4 py-3 text-left flex items-center gap-3 border-b last:border-b-0"
+                style={{ borderColor: 'var(--border-color)' }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary-background)'}
               >
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--tertiary-background)' }}>
                   {user.avatar && user.avatar !== "no profile photo" ? (
                     <img
                       src={`http://localhost:9000/avatar?avatar=${encodeURIComponent(user.avatar)}`}
@@ -170,15 +180,15 @@ const UserSearch = ({ selectedUsers, onUserSelect, onUserRemove }) => {
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
-                    <User className="w-5 h-5 text-gray-500" />
+                    <User className="w-5 h-5" style={{ color: 'var(--quaternary-text)' }} />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 truncate">
+                  <div className="font-medium truncate" style={{ color: 'var(--primary-text)' }}>
                     {getDisplayName(user)}
                   </div>
                   {user.nickname && getFullName(user) && (
-                    <div className="text-sm text-gray-500 truncate">
+                    <div className="text-sm truncate" style={{ color: 'var(--secondary-text)' }}>
                       {getFullName(user)}
                     </div>
                   )}

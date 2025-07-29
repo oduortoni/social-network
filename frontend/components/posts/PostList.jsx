@@ -192,18 +192,21 @@ const PostList = ({ refreshTrigger, user }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <div className="text-gray-400">Loading posts...</div>
+        <div style={{ color: 'var(--secondary-text)' }}>Loading posts...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-xl p-4 mb-4 bg-red-500 bg-opacity-20 border border-red-500">
-        <div className="text-red-300 text-center">{error}</div>
+      <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'rgba(var(--danger-color-rgb), 0.2)', border: '1px solid var(--danger-color)' }}>
+        <div style={{ color: 'var(--danger-color)' }} className="text-center">{error}</div>
         <button 
           onClick={loadPosts}
-          className="mt-2 w-full py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          className="mt-2 w-full py-2 px-4 rounded-lg transition-colors"
+          style={{ backgroundColor: 'var(--danger-color)', color: 'var(--primary-text)' }}
+          onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+          onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
         >
           Try Again
         </button>
@@ -214,8 +217,8 @@ const PostList = ({ refreshTrigger, user }) => {
   if (posts.length === 0) {
     return (
       <div className="rounded-xl p-8 text-center" style={{ backgroundColor: 'var(--primary-background)' }}>
-        <div className="text-gray-400 mb-2">No posts yet</div>
-        <div className="text-sm text-gray-500">Be the first to share something!</div>
+        <div style={{ color: 'var(--secondary-text)' }} className="mb-2">No posts yet</div>
+        <div className="text-sm" style={{ color: 'var(--secondary-text)' }}>Be the first to share something!</div>
       </div>
     );
   }
@@ -239,7 +242,7 @@ const PostList = ({ refreshTrigger, user }) => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-white break-words">
+                  <span className="font-medium break-words" style={{ color: 'var(--primary-text)' }}>
                     {post.author?.nickname || `${post.author?.first_name || ''} ${post.author?.last_name || ''}`.trim() || 'User'}
                   </span>
                   <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--secondary-text)' }}>
@@ -261,7 +264,10 @@ const PostList = ({ refreshTrigger, user }) => {
             <div className="relative dropdown-container">
               <button
                 onClick={() => toggleDropdown(post.id)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="transition-colors"
+                style={{ color: 'var(--secondary-text)' }}
+                onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary-text)'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'var(--secondary-text)'}
               >
                 <MoreHorizontalIcon className="w-5 h-5" />
               </button>
@@ -279,10 +285,10 @@ const PostList = ({ refreshTrigger, user }) => {
                         e.stopPropagation();
                         handleEditPost(post);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-white hover:text-white flex items-center gap-2 transition-colors"
-                      style={{ ':hover': { backgroundColor: 'var(--hover-background)' } }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                      className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
+                      style={{ color: 'var(--primary-text)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <Edit className="w-4 h-4" />
                       Edit
@@ -295,10 +301,10 @@ const PostList = ({ refreshTrigger, user }) => {
                         setDeleteConfirmation(post.id);
                         setOpenDropdown(null); // Close dropdown when opening modal
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-white hover:text-white flex items-center gap-2 transition-colors"
+                      className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
                       style={{ color: 'var(--danger-color)' }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete
@@ -306,9 +312,10 @@ const PostList = ({ refreshTrigger, user }) => {
 
                     {/* Follow Option */}
                     <button
-                      className="w-full px-4 py-2 text-left text-sm text-white hover:text-white flex items-center gap-2 transition-colors"
-                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                      className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
+                      style={{ color: 'var(--primary-text)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <UserPlus className="w-4 h-4" />
                       Follow
@@ -321,7 +328,7 @@ const PostList = ({ refreshTrigger, user }) => {
 
           {/* Post Content */}
           <div className="mb-4">
-            <p className="text-white whitespace-pre-wrap break-words overflow-wrap-anywhere">{post.content}</p>
+            <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere" style={{ color: 'var(--primary-text)' }}>{post.content}</p>
             
             {/* Post Image */}
             {post.image && (
@@ -339,21 +346,26 @@ const PostList = ({ refreshTrigger, user }) => {
           </div>
 
           {/* Post Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#3f3fd3]/30">
+          <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg hover:bg-[#3f3fd3]/20 transition-colors" style={{ color: 'var(--secondary-text)' }}>
+              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <ThumbsUpIcon className="w-4 h-4" />
                 <span>Like</span>
               </button>
-              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg hover:bg-[#3f3fd3]/20 transition-colors" style={{ color: 'var(--secondary-text)' }}>
+              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <ThumbsDownIcon className="w-4 h-4" />
                 <span>Dislike</span>
               </button>
               <button
                 onClick={() => toggleComments(post.id)}
-                className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg hover:bg-[#3f3fd3]/20 transition-colors"
+                className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors"
                 style={{ color: 'var(--secondary-text)' }}
-              >
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <MessageCircleIcon className="w-4 h-4" />
                 <span>{expandedComments.has(post.id) ? 'Hide Comments' : 'Comment'}</span>
               </button>
@@ -362,7 +374,7 @@ const PostList = ({ refreshTrigger, user }) => {
 
           {/* Comments Section */}
           {expandedComments.has(post.id) && (
-            <div className="mt-4 pt-3 border-t border-[#3f3fd3]/30 space-y-4">
+            <div className="mt-4 pt-3 border-t space-y-4" style={{ borderColor: 'var(--border-color)' }}>
               {/* Comment Form */}
               <CommentForm
                 postId={post.id}
@@ -382,30 +394,30 @@ const PostList = ({ refreshTrigger, user }) => {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center" style={{ zIndex: 9999 }}>
+        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
           <div
             className="rounded-lg p-6 max-w-md w-full mx-4"
             style={{ backgroundColor: 'var(--primary-background)', border: '1px solid var(--border-color)' }}
           >
-            <h3 className="text-lg font-semibold text-white mb-4">Delete Post</h3>
-            <p className="text-white mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--primary-text)' }}>Delete Post</h3>
+            <p className="mb-6" style={{ color: 'var(--primary-text)' }}>Are you sure you want to delete this post? This action cannot be undone.</p>
 
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteConfirmation(null)}
-                className="px-4 py-2 rounded-lg text-white transition-colors"
-                style={{ backgroundColor: 'var(--secondary-background)' }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--secondary-background)'}
+                className="px-4 py-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--secondary-background)', color: 'var(--primary-text)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary-background)'}
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDeletePost(deleteConfirmation)}
-                className="px-4 py-2 rounded-lg text-white transition-colors"
-                style={{ backgroundColor: 'var(--danger-color)' }}
-                onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                onMouseLeave={(e) => e.target.style.opacity = '1'}
+                className="px-4 py-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--danger-color)', color: 'var(--primary-text)' }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Delete
               </button>
@@ -416,23 +428,24 @@ const PostList = ({ refreshTrigger, user }) => {
 
       {/* Edit Post Modal */}
       {editModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center" style={{ zIndex: 9999 }}>
+        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
           <div
             className="rounded-lg p-6 max-w-md w-full mx-4"
             style={{ backgroundColor: 'var(--primary-background)', border: '1px solid var(--border-color)' }}
           >
-            <h3 className="text-lg font-semibold text-white mb-4">Edit Post</h3>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--primary-text)' }}>Edit Post</h3>
 
             <div className="mb-4">
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 placeholder="What's on your mind?"
-                className="w-full p-3 rounded-lg resize-none text-white break-words overflow-wrap-anywhere"
+                className="w-full p-3 rounded-lg resize-none break-words overflow-wrap-anywhere"
                 style={{
                   backgroundColor: 'var(--secondary-background)',
                   border: '1px solid var(--border-color)',
-                  minHeight: '100px'
+                  minHeight: '100px',
+                  color: 'var(--primary-text)'
                 }}
                 rows={4}
               />
@@ -443,8 +456,8 @@ const PostList = ({ refreshTrigger, user }) => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setEditImage(e.target.files[0])}
-                className="w-full text-white"
-                style={{ backgroundColor: 'var(--secondary-background)' }}
+                className="w-full"
+                style={{ backgroundColor: 'var(--secondary-background)', color: 'var(--primary-text)' }}
               />
             </div>
 
@@ -455,20 +468,20 @@ const PostList = ({ refreshTrigger, user }) => {
                   setEditContent('');
                   setEditImage(null);
                 }}
-                className="px-4 py-2 rounded-lg text-white transition-colors"
-                style={{ backgroundColor: 'var(--secondary-background)' }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--hover-background)'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--secondary-background)'}
+                className="px-4 py-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--secondary-background)', color: 'var(--primary-text)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary-background)'}
                 disabled={editLoading}
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleEditSubmit(editModal)}
-                className="px-4 py-2 rounded-lg text-white transition-colors"
-                style={{ backgroundColor: 'var(--primary-color)' }}
-                onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                onMouseLeave={(e) => e.target.style.opacity = '1'}
+                className="px-4 py-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--primary-accent)', color: 'var(--quinary-text)' }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 disabled={editLoading || !editContent.trim()}
               >
                 {editLoading ? 'Saving...' : 'Save Changes'}
