@@ -223,16 +223,17 @@ func (s *PostService) saveImage(imageData []byte, subDir string) (string, error)
 	}
 	imageFileName := fmt.Sprintf("%s%s", uuid.New().String(), extension)
 	// Consistent path structure as per project requirements
-	saveDir := filepath.Join(subDir)
-	imagePath := filepath.Join(saveDir, imageFileName)
+	saveDir := filepath.Join("attachments", subDir)
+	imagePath := filepath.Join(subDir, imageFileName)
+	imageWritePath := filepath.Join(saveDir, imageFileName)
 	if err := os.MkdirAll(saveDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	if err := os.WriteFile(imagePath, imageData, 0644); err != nil {
+	if err := os.WriteFile(imageWritePath, imageData, 0644); err != nil {
 		return "", fmt.Errorf("failed to save image: %w", err)
 	}
-	return filepath.Join(saveDir, imageFileName), nil
+	return imagePath, nil
 }
 
 // formatToExtension maps an ImageFormat to a file extension.
