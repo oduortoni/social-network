@@ -163,7 +163,10 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
                 <button
                   type="button"
                   onClick={removeImage}
-                  className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70"
+                  className="absolute top-2 right-2 rounded-full p-1 transition-colors"
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', color: 'var(--primary-text)' }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'}
                   disabled={isSubmitting}
                 >
                   <X className="w-4 h-4" />
@@ -173,7 +176,7 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
 
             {/* Error Message */}
             {error && (
-              <div className="mt-2 text-red-400 text-xs">
+              <div className="mt-2 text-xs" style={{ color: 'var(--warning-color)' }}>
                 {error}
               </div>
             )}

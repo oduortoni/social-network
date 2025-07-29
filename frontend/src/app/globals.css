@@ -19,6 +19,11 @@
   /* Status Colors */
   --sucess-color: #00ff00;
   --warning-color: #ff4444;
+  
+
+  /* Interactive Colors */
+  --hover-background: #3a3a9a;
+  --border-color: #4a4ab0;
 }
 
 /* Body Background with Texture */

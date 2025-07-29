@@ -9,5 +9,7 @@ type Post struct {
 	Image     string     `json:"image,omitempty"`
 	Privacy   string     `json:"privacy"` // "public", "private", "followers"
 	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	IsEdited  bool       `json:"is_edited"`
 	Author    User       `json:"author"`
 }

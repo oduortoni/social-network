@@ -99,6 +99,55 @@ export const fetchComments = async (postId) => {
   }
 };
 
+// Update post function
+export const updatePost = async (postId, content, image) => {
+  try {
+    const formData = new FormData();
+    formData.append('content', content);
+
+    if (image) {
+      formData.append('image', image);
+    }
+
+    const response = await fetch(`http://localhost:9000/posts/${postId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || 'Failed to update post' };
+    }
+  } catch (error) {
+    console.error('Error updating post:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
+// Delete post function
+export const deletePost = async (postId) => {
+  try {
+    const response = await fetch(`http://localhost:9000/posts/${postId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (response.ok) {
+      return { success: true };
+    } else {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || 'Failed to delete post' };
+    }
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
   // Function to handle form submission
 export const handleRegistrationFormSubmit = async (e, formData, setFormError) => {
     e.preventDefault();

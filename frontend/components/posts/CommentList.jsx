@@ -84,10 +84,11 @@ const CommentList = ({ postId, newComment }) => {
   if (error) {
     return (
       <div className="text-center py-4">
-        <div className="text-red-400 text-sm">{error}</div>
+        <div className="text-sm" style={{ color: 'var(--warning-color)' }}>{error}</div>
         <button 
           onClick={loadComments}
-          className="text-blue-400 text-sm mt-2 hover:underline"
+          className="text-sm mt-2 hover:underline"
+          style={{ color: 'var(--primary-accent)' }}
         >
           Try again
         </button>
@@ -124,13 +125,13 @@ const CommentList = ({ postId, newComment }) => {
               style={{ backgroundColor: 'var(--secondary-background)' }}
             >
               {/* Author Name */}
-              <div className="font-medium text-white text-sm mb-1 break-words">
+              <div className="font-medium text-sm mb-1 break-words" style={{ color: 'var(--primary-text)' }}>
                 {getDisplayName(comment.author)}
               </div>
 
               {/* Comment Text */}
               {comment.content && (
-                <div className="text-white text-sm mb-2">
+                <div className="text-sm mb-2" style={{ color: 'var(--primary-text)' }}>
                   <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere">{comment.content}</p>
                 </div>
               )}
