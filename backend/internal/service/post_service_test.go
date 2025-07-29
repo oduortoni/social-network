@@ -51,6 +51,18 @@ func (s *MockPostStore) SearchUsers(query string, currentUserID int64) ([]*model
 	return nil, nil
 }
 
+func (s *MockPostStore) UpdateComment(commentID int64, content, imagePath string) (*models.Comment, error) {
+	return nil, nil
+}
+
+func (s *MockPostStore) DeleteComment(commentID int64) error {
+	return nil
+}
+
+func (s *MockPostStore) GetCommentByID(commentID int64) (*models.Comment, error) {
+	return nil, nil
+}
+
 func TestDeletePost(t *testing.T) {
 	// Test case 1: Successful deletion
 	t.Run("Successful deletion", func(t *testing.T) {

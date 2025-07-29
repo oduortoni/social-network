@@ -152,6 +152,62 @@ func (s *PostService) DeletePost(postID, userID int64) error {
 	return s.PostStore.DeletePost(postID)
 }
 
+func (s *PostService) UpdateComment(commentID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Comment, error) {
+	// Get the existing comment
+	comment, err := s.PostStore.GetCommentByID(commentID)
+	if err != nil {
+		return nil, fmt.Errorf("comment not found")
+	}
+
+	// Check if the user is authorized to edit this comment
+	if comment.UserID != userID {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	// Validate content
+	if content == "" {
+		return nil, fmt.Errorf("comment content is required")
+	}
+
+	// Handle image update if provided
+	var imagePath string
+	if len(imageData) > 0 {
+		savedImagePath, err := s.saveImage(imageData, "comments")
+		if err != nil {
+			return nil, err
+		}
+		imagePath = savedImagePath
+	} else {
+		// Keep existing image if no new image provided
+		imagePath = comment.Image
+	}
+
+	// Update the comment in the store
+	updatedComment, err := s.PostStore.UpdateComment(commentID, content, imagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedComment, nil
+}
+
+func (s *PostService) DeleteComment(commentID, userID int64) error {
+	comment, err := s.PostStore.GetCommentByID(commentID)
+	if err != nil {
+		return err
+	}
+
+	if comment.UserID != userID {
+		return fmt.Errorf("unauthorized")
+	}
+
+	return s.PostStore.DeleteComment(commentID)
+}
+
+func (s *PostService) GetCommentByID(commentID int64) (*models.Comment, error) {
+	return s.PostStore.GetCommentByID(commentID)
+}
+
 // saveImage handles the logic for validating, naming, and saving an uploaded image.
 // It takes the image data and a sub-directory (e.g., "posts", "comments") to save the image in.
 // It returns the saved file path or an error.
