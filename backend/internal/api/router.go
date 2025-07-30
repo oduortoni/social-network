@@ -77,6 +77,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("DELETE /unfollow", middleware.AuthMiddleware(db)(http.HandlerFunc(unfollowHandler.Unfollow)))
 	mux.Handle("GET /users/{userid}/followfollowingstats", middleware.AuthMiddleware(db)(http.HandlerFunc(followHandler.FollowStats)))
 	mux.Handle("GET /users/{userid}/followers", middleware.AuthMiddleware(db)(http.HandlerFunc(followHandler.GetFollowers)))
+	mux.Handle("GET /users/{userid}/followees", middleware.AuthMiddleware(db)(http.HandlerFunc(followHandler.GetFollowees)))
 	mux.Handle("POST /follow-request/{requestId}/request", middleware.AuthMiddleware(db)(http.HandlerFunc(followRequestHandler.FollowRequestRespond)))
 	mux.Handle("DELETE /follow-request/{requestId}/cancel", middleware.AuthMiddleware(db)(http.HandlerFunc(followRequestHandler.CancelFollowRequest)))
 
