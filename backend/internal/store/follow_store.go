@@ -139,3 +139,44 @@ func (followstore *FollowStore) GetUserFollowers(userid int64) (models.FollowLis
 
 	return followersList, nil
 }
+
+
+func (followstore *FollowStore) GetUserFollowees(userid int64) (models.FollowListResponse, error) {
+	var followersList models.FollowListResponse
+	rows, err := followstore.DB.Query(`
+		SELECT u.id, u.first_name, u.last_name, u.avatar 
+		FROM Users u 
+		INNER JOIN Followers f ON u.id = f.followee_id 
+		WHERE f.follower_id = ? AND f.status = 'accepted'`, userid)
+	if err != nil {
+		return followersList, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var follower models.FollowListUser
+		var firstName, lastName, avatar sql.NullString
+		err := rows.Scan(&follower.FollowerID, &firstName, &lastName, &avatar)
+		if err != nil {
+			return followersList, err
+		}
+
+		if firstName.Valid {
+			follower.FirstName = firstName.String
+		}
+		if lastName.Valid {
+			follower.LastName = lastName.String
+		}
+		if avatar.Valid {
+			follower.Avatar = avatar.String
+		}
+
+		followersList.Followers = append(followersList.Followers, follower)
+	}
+
+	if err = rows.Err(); err != nil {
+		return followersList, err
+	}
+
+	return followersList, nil
+}

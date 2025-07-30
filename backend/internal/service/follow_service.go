@@ -40,3 +40,7 @@ func (Follow *FollowService) GetFollowFollowingStat(userId int64) (int, int, err
 func (Follow *FollowService) GetFollowersList(userid int64) (models.FollowListResponse, error) {
 	return Follow.FollowStore.GetUserFollowers(userid)
 }
+
+func (Follow *FollowService) GetFolloweesList(userid int64) (models.FollowListResponse, error) {
+	return Follow.FollowStore.GetUserFollowees(userid)
+}
