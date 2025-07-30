@@ -179,3 +179,18 @@ func (f *FollowHandler) GetFollowers(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.RespondJSON(w, http.StatusOK, followers)
 }
+
+func (f *FollowHandler) GetFollowees(w http.ResponseWriter, r *http.Request) {
+	userIdstr := r.PathValue("userid")
+	userId, err := strconv.ParseInt(userIdstr, 10, 64)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid User Id"})
+		return
+	}
+	followers, err := f.FollowService.GetFolloweesList(userId)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
+		return
+	}
+	utils.RespondJSON(w, http.StatusOK, followers)
+}
