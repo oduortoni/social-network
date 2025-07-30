@@ -34,6 +34,7 @@ type FollowServiceInterface interface {
 	GetUserInfo(userID int64) (string, string, error)
 	AddtoNotification(follower_id int64, message string) error
 	GetFollowFollowingStat(userId int64) (int, int, error)
+	GetFollowersList(userid int64) (models.FollowListResponse, error)
 }
 
 type UnfollowServiceInterface interface {

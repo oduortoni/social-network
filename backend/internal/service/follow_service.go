@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/store"
 )
 
@@ -34,4 +35,8 @@ func (Follow *FollowService) AddtoNotification(follower_id int64, message string
 
 func (Follow *FollowService) GetFollowFollowingStat(userId int64) (int, int, error) {
 	return Follow.FollowStore.CountFollowFollowers(userId)
+}
+
+func (Follow *FollowService) GetFollowersList(userid int64) (models.FollowListResponse, error) {
+	return Follow.FollowStore.GetUserFollowers(userid)
 }
