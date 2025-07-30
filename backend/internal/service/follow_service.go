@@ -31,3 +31,7 @@ func (Follow *FollowService) GetUserInfo(userID int64) (string, string, error) {
 func (Follow *FollowService) AddtoNotification(follower_id int64, message string) error {
 	return Follow.FollowStore.AddtoNotification(follower_id, message)
 }
+
+func (Follow *FollowService) GetFollowFollowingStat(userId int64) (int, int, error) {
+	return Follow.FollowStore.CountFollowFollowers(userId)
+}
