@@ -93,3 +93,8 @@ func (followstore *FollowRequestStore) AddtoNotification(follower_id int64, mess
 		follower_id, notificationType, message)
 	return err
 }
+
+func (fr *FollowRequestStore) FollowRequestCancel(requestID int64) error {
+	_, err := fr.DB.Exec("DELETE FROM Followers WHERE id = ? AND status = 'pending'", requestID)
+	return err
+}

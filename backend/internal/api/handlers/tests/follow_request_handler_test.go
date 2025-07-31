@@ -21,6 +21,7 @@ type MockFollowRequestService struct {
 	RetrieveUserNameFunc         func(userID int64) (string, string, error)
 	GetRequestInfoFunc           func(requestID int64) (int64, int64, error)
 	AddtoNotificationFunc        func(follower_id int64, message string) error
+	CancelFollowRequestFunc      func(followConnectionID int64) error
 }
 
 func (s *MockFollowRequestService) AcceptedFollowConnection(followConnectionID int64) error {
@@ -54,6 +55,13 @@ func (s *MockFollowRequestService) GetRequestInfo(requestID int64) (int64, int64
 func (s *MockFollowRequestService) AddtoNotification(follower_id int64, message string) error {
 	if s.AddtoNotificationFunc != nil {
 		return s.AddtoNotificationFunc(follower_id, message)
+	}
+	return nil
+}
+
+func (s *MockFollowRequestService) CancelFollowRequest(followConnectionID int64) error {
+	if s.CancelFollowRequestFunc != nil {
+		return s.CancelFollowRequestFunc(followConnectionID)
 	}
 	return nil
 }
@@ -328,6 +336,211 @@ func TestFollowRequestRespond_ServiceError(t *testing.T) {
 	}
 
 	expectedMessage := "Failed to accept follow request"
+	if resp.Message != expectedMessage {
+		t.Errorf("expected message %q, got %q", expectedMessage, resp.Message)
+	}
+}
+
+func TestCancelFollowRequest_Success(t *testing.T) {
+	mockFollowRequestService := &MockFollowRequestService{
+		GetRequestInfoFunc: func(requestID int64) (int64, int64, error) {
+			if requestID == 123 {
+				return 1, 2, nil // followerID=1, followeeID=2
+			}
+			return 0, 0, sql.ErrNoRows
+		},
+		CancelFollowRequestFunc: func(followConnectionID int64) error {
+			if followConnectionID == 123 {
+				return nil
+			}
+			return sql.ErrNoRows
+		},
+	}
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
+
+	req := httptest.NewRequest("DELETE", "/follow-request/123/cancel", nil)
+	req.SetPathValue("requestId", "123")
+
+	// Add user ID to context (user 1 is the follower)
+	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
+	followRequestHandler.CancelFollowRequest(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	var resp utils.Response
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedMessage := "Successfully cancelled follow request"
+	if resp.Message != expectedMessage {
+		t.Errorf("expected message %q, got %q", expectedMessage, resp.Message)
+	}
+}
+
+func TestCancelFollowRequest_Unauthorized(t *testing.T) {
+	mockFollowRequestService := &MockFollowRequestService{}
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
+
+	req := httptest.NewRequest("DELETE", "/follow-request/123/cancel", nil)
+	req.SetPathValue("requestId", "123")
+	// No user ID in context
+
+	rr := httptest.NewRecorder()
+	followRequestHandler.CancelFollowRequest(rr, req)
+
+	if status := rr.Code; status != http.StatusUnauthorized {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+	}
+
+	var resp utils.Response
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedMessage := "User not found in context"
+	if resp.Message != expectedMessage {
+		t.Errorf("expected message %q, got %q", expectedMessage, resp.Message)
+	}
+}
+
+func TestCancelFollowRequest_InvalidRequestID(t *testing.T) {
+	mockFollowRequestService := &MockFollowRequestService{}
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
+
+	req := httptest.NewRequest("DELETE", "/follow-request/invalid/cancel", nil)
+	req.SetPathValue("requestId", "invalid")
+
+	// Add user ID to context
+	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
+	followRequestHandler.CancelFollowRequest(rr, req)
+
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+	}
+
+	var resp utils.Response
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedMessage := "Invalid request ID"
+	if resp.Message != expectedMessage {
+		t.Errorf("expected message %q, got %q", expectedMessage, resp.Message)
+	}
+}
+
+func TestCancelFollowRequest_RequestNotFound(t *testing.T) {
+	mockFollowRequestService := &MockFollowRequestService{
+		GetRequestInfoFunc: func(requestID int64) (int64, int64, error) {
+			return 0, 0, sql.ErrNoRows
+		},
+	}
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
+
+	req := httptest.NewRequest("DELETE", "/follow-request/999/cancel", nil)
+	req.SetPathValue("requestId", "999")
+
+	// Add user ID to context
+	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
+	followRequestHandler.CancelFollowRequest(rr, req)
+
+	if status := rr.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
+	}
+
+	var resp utils.Response
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedMessage := "Follow request not found"
+	if resp.Message != expectedMessage {
+		t.Errorf("expected message %q, got %q", expectedMessage, resp.Message)
+	}
+}
+
+func TestCancelFollowRequest_Forbidden(t *testing.T) {
+	mockFollowRequestService := &MockFollowRequestService{
+		GetRequestInfoFunc: func(requestID int64) (int64, int64, error) {
+			if requestID == 123 {
+				return 2, 3, nil // followerID=2, followeeID=3 (user 1 is not the follower)
+			}
+			return 0, 0, sql.ErrNoRows
+		},
+	}
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
+
+	req := httptest.NewRequest("DELETE", "/follow-request/123/cancel", nil)
+	req.SetPathValue("requestId", "123")
+
+	// Add user ID to context (user 1, but follower is user 2)
+	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
+	followRequestHandler.CancelFollowRequest(rr, req)
+
+	if status := rr.Code; status != http.StatusForbidden {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusForbidden)
+	}
+
+	var resp utils.Response
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedMessage := "You can only cancel your own follow requests"
+	if resp.Message != expectedMessage {
+		t.Errorf("expected message %q, got %q", expectedMessage, resp.Message)
+	}
+}
+
+func TestCancelFollowRequest_ServiceError(t *testing.T) {
+	mockFollowRequestService := &MockFollowRequestService{
+		GetRequestInfoFunc: func(requestID int64) (int64, int64, error) {
+			if requestID == 123 {
+				return 1, 2, nil // followerID=1, followeeID=2
+			}
+			return 0, 0, sql.ErrNoRows
+		},
+		CancelFollowRequestFunc: func(followConnectionID int64) error {
+			return sql.ErrConnDone // Simulate database error
+		},
+	}
+	followRequestHandler := handlers.NewFollowRequestHandler(mockFollowRequestService, nil)
+
+	req := httptest.NewRequest("DELETE", "/follow-request/123/cancel", nil)
+	req.SetPathValue("requestId", "123")
+
+	// Add user ID to context (user 1 is the follower)
+	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
+	followRequestHandler.CancelFollowRequest(rr, req)
+
+	if status := rr.Code; status != http.StatusInternalServerError {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusInternalServerError)
+	}
+
+	var resp utils.Response
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedMessage := "Failed to cancel follow request"
 	if resp.Message != expectedMessage {
 		t.Errorf("expected message %q, got %q", expectedMessage, resp.Message)
 	}
