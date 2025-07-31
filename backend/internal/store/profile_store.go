@@ -17,7 +17,10 @@ func NewProfileStore(db *sql.DB) *ProfileStore {
 	return &ProfileStore{DB: db}
 }
 
-func (ps *ProfileStore) MyProfileDetails(userid int64, profile models.ProfileDetails) (models.ProfileDetails, error) {
+func (ps *ProfileStore) MyProfileDetails(userid int64) (models.ProfileDetails, error) {
+	// Initialize an empty ProfileDetails struct
+	var profile models.ProfileDetails
+	// Prepare the SQL query to fetch user details
 	var firstName, lastName, email, nickname, aboutMe, avatar sql.NullString
 	var dateOfBirth sql.NullTime
 	var isProfilePublic bool
@@ -51,6 +54,48 @@ func (ps *ProfileStore) MyProfileDetails(userid int64, profile models.ProfileDet
 	profile.Avatar = getStringValue(avatar)
 
 	return profile, nil
+}
+
+func (followStore *ProfileStore) GetFollowersStat(userid int64) (int, int, error) {
+	followers := 0
+	following := 0
+	err := followStore.DB.QueryRow("SELECT COUNT(*) FROM Followers WHERE follower_id = ? AND status = 'accepted'", userid).Scan(&followers)
+	if err != nil {
+		return 0, 0, err
+	}
+	err = followStore.DB.QueryRow("SELECT COUNT(*) FROM Followers WHERE followee_id = ? AND status = 'accepted'", userid).Scan(&following)
+	if err != nil {
+		return 0, 0, err
+	}
+	return followers, following, nil
+}
+
+func (ps *ProfileStore) GetNumberOfPosts(userid int64) (int, error) {
+	var count int
+	err := ps.DB.QueryRow("SELECT COUNT(*) FROM Posts WHERE user_id = ?", userid).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (ps *ProfileStore) GetFollowStatus(user_id, LoggedInUser int64) (string, error) {
+	var status string
+	query := `SELECT status FROM Followers WHERE follower_id = ? AND followee_id = ?`
+	err := ps.DB.QueryRow(query, LoggedInUser, user_id).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "follow", nil // No follow relationship found
+		}
+		return "", err // Other error
+	}
+
+	if status == "accepted" {
+		return "following", nil // Already following
+	} else if status == "pending" {
+		return "pending", nil // Follow request is pending
+	}
+	return "follow", nil // Follow request was rejected, can follow again
 }
 
 // Helper function to handle null string values

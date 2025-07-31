@@ -17,7 +17,15 @@ type ProfileDetails struct {
 	// Message button visibility:
 	// - "hide"     → Hidden (for the logged-in user's own profile)
 	// - "visible"  → Visible to followers (messaging allowed)
-	MessageBtnStatus string `json:"messagebtnstatus"`
-	DateOfBirth      string `json:"dateofbirth"`
-	Profile          string `json:"profile"`
+	MessageBtnStatus  string `json:"messagebtnstatus"`
+	DateOfBirth       string `json:"dateofbirth"`
+	Profile           string `json:"profile"`
+	NumberOfFollowers int    `json:"numberoffollowers"`
+	NumberOfFollowees int    `json:"numberoffollowees"`
+	NumberOfPosts     int    `json:"numberofposts"`
+}
+
+type ProfileResponse struct {
+	ProfileDetails ProfileDetails `json:"profile_details"`
+	// Posts          []Post         `json:"posts"`
 }

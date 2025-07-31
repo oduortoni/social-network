@@ -33,7 +33,6 @@ type FollowServiceInterface interface {
 	CreateFollowForPrivateAccount(followrid, followeeid int64) (int64, error)
 	GetUserInfo(userID int64) (string, string, error)
 	AddtoNotification(follower_id int64, message string) error
-	GetFollowFollowingStat(userId int64) (int, int, error)
 	GetFollowersList(userid int64) (models.FollowListResponse, error)
 	GetFolloweesList(userid int64) (models.FollowListResponse, error)
 }
@@ -54,4 +53,5 @@ type FollowRequestServiceInterface interface {
 
 type ProfileServiceInterface interface {
 	GetUserOwnProfile(userid int64) (models.ProfileDetails, error)
+	GetUserProfile(userid, LoggedInUser int64) (models.ProfileDetails, error)
 }
