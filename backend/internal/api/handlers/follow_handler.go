@@ -146,24 +146,6 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, status, serverResponse)
 }
 
-func (f *FollowHandler) FollowStats(w http.ResponseWriter, r *http.Request) {
-	userIdstr := r.PathValue("userid")
-	userId, err := strconv.ParseInt(userIdstr, 10, 64)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid User Id"})
-		return
-	}
-	followers, following, err := f.FollowService.GetFollowFollowingStat(userId)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
-		return
-	}
-	var followfollowingstat models.FollowFollowingStat
-	followfollowingstat.NumberOfFollowers = followers
-	followfollowingstat.NumberOfFollowing = following
-
-	utils.RespondJSON(w, http.StatusOK, followfollowingstat)
-}
 
 func (f *FollowHandler) GetFollowers(w http.ResponseWriter, r *http.Request) {
 	userIdstr := r.PathValue("userid")

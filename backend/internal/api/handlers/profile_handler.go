@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
@@ -22,7 +23,7 @@ func NewProfileHandler(profileService service.ProfileServiceInterface) *ProfileH
 func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	var serverResponse utils.Response
 	status := http.StatusOK
-	IsMyProfile := false;
+	IsMyProfile := false
 	// get  LOGGED IN USER
 	LoggedInUser, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
@@ -41,6 +42,29 @@ func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	if userId == LoggedInUser {
-		IsMyProfile = true;
+		IsMyProfile = true
 	}
+	if IsMyProfile {
+		profileDetails, err := ps.ProfileService.GetUserOwnProfile(LoggedInUser)
+		if err != nil {
+			serverResponse.Message = "Error fetching profile details"
+			utils.RespondJSON(w, http.StatusInternalServerError, serverResponse)
+			return
+		}
+		utils.RespondJSON(w, status, models.ProfileResponse{
+			ProfileDetails: profileDetails,
+		})
+		return
+	}
+	// If not my profile, fetch the profile of the userId
+	var profileDetails models.ProfileDetails
+	profileDetails, err = ps.ProfileService.GetUserProfile(userId, LoggedInUser)
+	if err != nil {
+		serverResponse.Message = "Error fetching profile details"
+		utils.RespondJSON(w, http.StatusInternalServerError, serverResponse)
+		return
+	}
+	utils.RespondJSON(w, status, models.ProfileResponse{
+		ProfileDetails: profileDetails,
+	})
 }
