@@ -51,3 +51,7 @@ type FollowRequestServiceInterface interface {
 	GetRequestInfo(requestID int64) (int64, int64, error)
 	AddtoNotification(follower_id int64, message string) error
 }
+
+type ProfileServiceInterface interface {
+	GetUserOwnProfile(userid int64) (models.ProfileDetails, error)
+}
