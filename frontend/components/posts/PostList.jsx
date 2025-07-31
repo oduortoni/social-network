@@ -386,6 +386,7 @@ const PostList = ({ refreshTrigger, user }) => {
               <CommentList
                 postId={post.id}
                 newComment={newComments[post.id]}
+                user={user}
               />
             </div>
           )}
