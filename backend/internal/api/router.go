@@ -54,6 +54,9 @@ func NewRouter(db *sql.DB) http.Handler {
 	followHandler := handlers.NewFollowHandler(followService, notifier)
 	unfollowHandler := handlers.NewUnfollowHandler(unfollowService)
 	followRequestHandler := handlers.NewFollowRequestHandler(followRequestService, notifier)
+	reactionStore := store.NewReactionStore(db)
+	reactionService := service.NewReactionService(reactionStore)
+	reactionHandler := handlers.NewReactionHandler(reactionService)
 
 	// Authentication Handlers
 	mux.HandleFunc("POST /validate/step1", authHandler.ValidateAccountStepOne)
@@ -89,6 +92,12 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("GET /api/notifications", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetNotifications)))
 	mux.Handle("POST /api/notifications/read", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.MarkNotificationsRead)))
 	mux.Handle("GET /api/users/online", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetOnlineUsers)))
+
+	// Reaction Handlers
+	mux.Handle("POST /api/posts/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.ReactToPost)))
+	mux.Handle("DELETE /api/posts/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.UnreactToPost)))
+	mux.Handle("POST /api/comments/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.ReactToComment)))
+	mux.Handle("DELETE /api/comments/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.UnreactToComment)))
 
 	return mux
 }
