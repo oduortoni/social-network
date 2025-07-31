@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
+	"github.com/tajjjjr/social-network/backend/pkg/utils"
 )
 
-// ReactionHandler handles reaction-related requests.	ype ReactionHandler struct {
+// ReactionHandler handles reaction-related requests.
+type ReactionHandler struct {
 	service *service.ReactionService
 }
 
@@ -19,100 +20,108 @@ func NewReactionHandler(service *service.ReactionService) *ReactionHandler {
 	return &ReactionHandler{service}
 }
 
-// RegisterReactionRoutes registers the reaction routes to the router.
-func (h *ReactionHandler) RegisterReactionRoutes(router *mux.Router) {
-	router.HandleFunc("/api/posts/{id}/reaction", h.ReactToPost).Methods("POST")
-	router.HandleFunc("/api/posts/{id}/reaction", h.UnreactToPost).Methods("DELETE")
-	router.HandleFunc("/api/comments/{id}/reaction", h.ReactToComment).Methods("POST")
-	router.HandleFunc("/api/comments/{id}/reaction", h.UnreactToComment).Methods("DELETE")
-}
-
 func (h *ReactionHandler) ReactToPost(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	postID, err := strconv.Atoi(vars["id"])
+	userID, ok := r.Context().Value(utils.User_id).(int)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+
+	postIDStr := r.PathValue("id")
+	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
 		return
 	}
 
 	var reaction models.Reaction
 	if err := json.NewDecoder(r.Body).Decode(&reaction); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid request body"})
 		return
 	}
 
-	// TODO: Get user ID from session
-	reaction.UserID = 1
+	reaction.UserID = userID
 	reaction.PostID = &postID
 
 	if err := h.service.ReactToPost(&reaction); err != nil {
-		http.Error(w, "Failed to react to post", http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to react to post"})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Successfully reacted to post"})
 }
 
 func (h *ReactionHandler) UnreactToPost(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	postID, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+	userID, ok := r.Context().Value(utils.User_id).(int)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
 		return
 	}
 
-	// TODO: Get user ID from session
-	userID := 1
+	postIDStr := r.PathValue("id")
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
+		return
+	}
 
 	if err := h.service.UnreactToPost(userID, postID); err != nil {
-		http.Error(w, "Failed to unreact to post", http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to unreact to post"})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Successfully unreacted to post"})
 }
 
 func (h *ReactionHandler) ReactToComment(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	commentID, err := strconv.Atoi(vars["id"])
+	userID, ok := r.Context().Value(utils.User_id).(int)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+
+	commentIDStr := r.PathValue("id")
+	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
-		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid comment ID"})
 		return
 	}
 
 	var reaction models.Reaction
 	if err := json.NewDecoder(r.Body).Decode(&reaction); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid request body"})
 		return
 	}
 
-	// TODO: Get user ID from session
-	reaction.UserID = 1
+	reaction.UserID = userID
 	reaction.CommentID = &commentID
 
 	if err := h.service.ReactToComment(&reaction); err != nil {
-		http.Error(w, "Failed to react to comment", http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to react to comment"})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Successfully reacted to comment"})
 }
 
 func (h *ReactionHandler) UnreactToComment(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	commentID, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+	userID, ok := r.Context().Value(utils.User_id).(int)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
 		return
 	}
 
-	// TODO: Get user ID from session
-	userID := 1
+	commentIDStr := r.PathValue("id")
+	commentID, err := strconv.Atoi(commentIDStr)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid comment ID"})
+		return
+	}
 
 	if err := h.service.UnreactToComment(userID, commentID); err != nil {
-		http.Error(w, "Failed to unreact to comment", http.StatusInternalServerError)
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to unreact to comment"})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Successfully unreacted to comment"})
 }
