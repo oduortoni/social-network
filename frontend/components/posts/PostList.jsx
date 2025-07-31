@@ -4,6 +4,7 @@ import { fetchPosts, deletePost, updatePost } from '../../lib/auth';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
+import ReactionButtons from './ReactionButtons';
 
 const PostList = ({ refreshTrigger, user }) => {
   const [posts, setPosts] = useState([]);
@@ -355,18 +356,7 @@ const PostList = ({ refreshTrigger, user }) => {
           {/* Post Actions */}
           <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                <ThumbsUpIcon className="w-4 h-4" />
-                <span>Like</span>
-              </button>
-              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                <ThumbsDownIcon className="w-4 h-4" />
-                <span>Dislike</span>
-              </button>
+              <ReactionButtons post={post} user={user} />
               <button
                 onClick={() => toggleComments(post.id)}
                 className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors"

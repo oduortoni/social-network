@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchComments, updateComment, deleteComment, followUser } from "../../lib/auth";
 import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, Edit, Trash2, UserPlus } from 'lucide-react';
+import CommentReactionButtons from './CommentReactionButtons';
 
 const CommentList = ({ postId, newComment, user }) => {
   const [comments, setComments] = useState([]);
@@ -248,18 +249,7 @@ const CommentList = ({ postId, newComment, user }) => {
               {/* Comment Actions */}
               <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
                 <div className="flex items-center gap-4">
-                  <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                    <ThumbsUpIcon className="w-4 h-4" />
-                    <span>Like</span>
-                  </button>
-                  <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                    <ThumbsDownIcon className="w-4 h-4" />
-                    <span>Dislike</span>
-                  </button>
+                  <CommentReactionButtons comment={comment} user={user} />
                 </div>
               </div>
 
