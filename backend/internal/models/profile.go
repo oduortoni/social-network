@@ -27,5 +27,5 @@ type ProfileDetails struct {
 
 type ProfileResponse struct {
 	ProfileDetails ProfileDetails `json:"profile_details"`
-	// Posts          []Post         `json:"posts"`
+	UserPosts      []Post         `json:"posts"`
 }

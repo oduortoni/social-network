@@ -4,12 +4,9 @@ type Followee struct {
 	FolloweeId int `json:"followeeid"`
 }
 
-type FollowFollowingStat struct {
-	NumberOfFollowers int `json:"numberoffollowers"`
-	NumberOfFollowing int `json:"numberoffollowing"`
-}
 
-type FollowListUser struct {
+
+type FollowUser struct {
 	FirstName  string `json:"firstname"`
 	LastName   string `json:"lastname"`
 	Avatar     string `json:"avatar"`
@@ -17,5 +14,5 @@ type FollowListUser struct {
 }
 
 type FollowListResponse struct {
-	Followers []FollowListUser `json:"user"`
+	Followers []FollowUser `json:"user"`
 }
