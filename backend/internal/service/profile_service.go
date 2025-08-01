@@ -23,12 +23,12 @@ func (ps *ProfileService) GetUserOwnProfile(userid int64) (models.ProfileDetails
 		return userDetails, err
 	}
 	// Get the number of followers and followees
-	userDetails.NumberOfFollowers, userDetails.NumberOfFollowees, err = ps.ProfileStore.GetFollowersStat(userid)
+	user.NumberOfFollowers, user.NumberOfFollowees, err = ps.ProfileStore.GetFollowersStat(userid)
 	if err != nil {
 		return userDetails, err
 	}
 
-	userDetails.NumberOfPosts, err = ps.ProfileStore.GetNumberOfPosts(userid)
+	user.NumberOfPosts, err = ps.ProfileStore.GetNumberOfPosts(userid)
 	if err != nil {
 		return userDetails, err
 	}
@@ -49,12 +49,12 @@ func (ps *ProfileService) GetUserProfile(userid, LoggedInUser int64) (models.Pro
 		return userDetails, err
 	}
 	// Get the number of followers and followees
-	userDetails.NumberOfFollowers, userDetails.NumberOfFollowees, err = ps.ProfileStore.GetFollowersStat(userid)
+	user.NumberOfFollowers, user.NumberOfFollowees, err = ps.ProfileStore.GetFollowersStat(userid)
 	if err != nil {
 		return userDetails, err
 	}
 
-	userDetails.NumberOfPosts, err = ps.ProfileStore.GetNumberOfPosts(userid)
+	user.NumberOfPosts, err = ps.ProfileStore.GetNumberOfPosts(userid)
 	if err != nil {
 		return userDetails, err
 	}
@@ -65,7 +65,9 @@ func (ps *ProfileService) GetUserProfile(userid, LoggedInUser int64) (models.Pro
 	if err != nil {
 		return userDetails, err
 	}
-	if userDetails.FollowbtnStatus == "follow" {
+	// Corrected logic for MessageBtnStatus:
+	// The message button should be visible if the logged-in user is following the profile user.
+	if userDetails.FollowbtnStatus == "following" {
 		userDetails.MessageBtnStatus = "visible"
 	} else {
 		userDetails.MessageBtnStatus = "hide"
