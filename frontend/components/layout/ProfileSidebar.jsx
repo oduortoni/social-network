@@ -3,12 +3,11 @@ import React from 'react';
 import { SearchIcon, PlusIcon } from 'lucide-react';
 import CommunityItem from '../homepage/CommunityItem';
 import { profileAPI } from '../../lib/api';
-import { useRouter } from 'next/navigation';
 
 
 const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
   // TODO: Use useEffect to call fetchProfileImage, fetchVerifiedBadge, fetchFollowers, fetchFollowing, fetchProfileStatus, and fetchCommunities when backend is available
-     const router = useRouter();
+    
   // This component is a sidebar for user profile 
   return <div className="w-72 flex flex-col gap-6">
       {/* Profile Card */}
@@ -88,8 +87,6 @@ const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
             borderColor: 'var(--tertiary-text)',
             color: 'var(--primary-text)',
           }}
-
-          onClick={() => {router.push(`/profile`)}}
         >
           My Profile
         </button>
