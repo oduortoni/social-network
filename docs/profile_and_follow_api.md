@@ -54,29 +54,91 @@ This document explains the backend endpoints for user profile and follow functio
 - **Endpoint:** `GET /profile/{userid}/followers`
 - **Description:** Returns a list of users who follow the specified user.
 - **Authentication:** Required
+- **Response Example:**
+  ```json
+  {
+    "user": [
+      {
+        "firstname": "Alice",
+        "lastname": "Smith",
+        "avatar": "/avatar/2.jpg",
+        "follower_id": 2
+      },
+      {
+        "firstname": "Bob",
+        "lastname": "Johnson",
+        "avatar": "/avatar/3.jpg",
+        "follower_id": 3
+      }
+    ]
+  }
+  ```
 
 ### 3. Get User Followees (Following)
 - **Endpoint:** `GET /profile/{userid}/followees`
 - **Description:** Returns a list of users that the specified user is following.
 - **Authentication:** Required
+- **Response Example:**
+  ```json
+  {
+    "user": [
+      {
+        "firstname": "Charlie",
+        "lastname": "Brown",
+        "avatar": "/avatar/4.jpg",
+        "follower_id": 4
+      },
+      {
+        "firstname": "Diana",
+        "lastname": "Prince",
+        "avatar": "/avatar/5.jpg",
+        "follower_id": 5
+      }
+    ]
+  }
+  ```
 
 ## Follow Endpoints
 
 ### 1. Follow a User
 - **Endpoint:** `POST /follow`
 - **Description:** Authenticated user sends a follow request to another user.
+- **Request Body:**
+  ```json
+  {
+    "followeeid": 2
+  }
+  ```
 
 ### 2. Unfollow a User
 - **Endpoint:** `DELETE /unfollow`
 - **Description:** Authenticated user unfollows another user.
+- **Request Body:**
+  ```json
+  {
+    "followeeid": 2
+  }
+  ```
 
 ### 3. Respond to Follow Request
 - **Endpoint:** `POST /follow-request/{requestId}/request`
 - **Description:** Accept or reject a follow request (for private accounts).
+- **Response Example:**
+  ```json
+  {
+    "status": "accepted"
+  }
+  ```
 
 ### 4. Cancel Follow Request
 - **Endpoint:** `DELETE /follow-request/{requestId}/cancel`
 - **Description:** Cancel a pending follow request.
+- **Response Example:**
+  ```json
+  {
+    "status": "cancelled"
+  }
+  ```
 
 ---
 
