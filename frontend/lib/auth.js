@@ -148,6 +148,80 @@ export const deletePost = async (postId) => {
   }
 };
 
+// Update comment function
+export const updateComment = async (postId, commentId, content, image) => {
+  try {
+    const formData = new FormData();
+    formData.append('content', content);
+
+    if (image) {
+      formData.append('image', image);
+    }
+
+    const response = await fetch(`http://localhost:9000/posts/${postId}/comments/${commentId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || 'Failed to update comment' };
+    }
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
+// Delete comment function
+export const deleteComment = async (postId, commentId) => {
+  try {
+    const response = await fetch(`http://localhost:9000/posts/${postId}/comments/${commentId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (response.ok) {
+      return { success: true };
+    } else {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || 'Failed to delete comment' };
+    }
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
+// Follow user function
+export const followUser = async (userId) => {
+  try {
+    const response = await fetch(`http://localhost:9000/follow`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || 'Failed to follow user' };
+    }
+  } catch (error) {
+    console.error('Error following user:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
   // Function to handle form submission
 export const handleRegistrationFormSubmit = async (e, formData, setFormError) => {
     e.preventDefault();

@@ -70,6 +70,8 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("PUT /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.UpdatePost)))
 	mux.Handle("POST /posts/{postId}/comments", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreateComment)))
 	mux.Handle("GET /posts/{postId}/comments", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetCommentsByPostID)))
+	mux.Handle("PUT /posts/{postId}/comments/{commentId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.UpdateComment)))
+	mux.Handle("DELETE /posts/{postId}/comments/{commentId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeleteComment)))
 	mux.Handle("DELETE /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeletePost)))
 	mux.Handle("GET /users/search", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.SearchUsers)))
 

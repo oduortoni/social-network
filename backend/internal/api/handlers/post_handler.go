@@ -331,3 +331,84 @@ func (h *PostHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondJSON(w, http.StatusOK, users)
 }
+
+func (h *PostHandler) UpdateComment(w http.ResponseWriter, r *http.Request) {
+	commentIDStr := r.PathValue("commentId")
+	commentID, err := strconv.ParseInt(commentIDStr, 10, 64)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid comment ID"})
+		return
+	}
+
+	// Parse multipart form data
+	err = r.ParseMultipartForm(20 << 20) // 20 MB limit for multipart form
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Unable to parse form: " + err.Error()})
+		return
+	}
+
+	// Get user ID from context
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+
+	// Get the updated content
+	content := r.FormValue("content")
+	if content == "" {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Content is required"})
+		return
+	}
+
+	// Handle optional image upload using the helper
+	imageData, imageMimeType, status, err := handleImageUpload(r)
+	if err != nil {
+		utils.RespondJSON(w, status, utils.Response{Message: err.Error()})
+		return
+	}
+
+	// Update the comment
+	updatedComment, err := h.PostService.UpdateComment(commentID, userID, content, imageData, imageMimeType)
+	if err != nil {
+		if err.Error() == "unauthorized" {
+			utils.RespondJSON(w, http.StatusForbidden, utils.Response{Message: "You can only edit your own comments"})
+		} else if err.Error() == "comment not found" {
+			utils.RespondJSON(w, http.StatusNotFound, utils.Response{Message: "Comment not found"})
+		} else {
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
+		}
+		return
+	}
+
+	utils.RespondJSON(w, http.StatusOK, updatedComment)
+}
+
+func (h *PostHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	commentIDStr := r.PathValue("commentId")
+	commentID, err := strconv.ParseInt(commentIDStr, 10, 64)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid comment ID"})
+		return
+	}
+
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+
+	err = h.PostService.DeleteComment(commentID, userID)
+	if err != nil {
+		if err.Error() == "unauthorized" {
+			utils.RespondJSON(w, http.StatusForbidden, utils.Response{Message: "You can only delete your own comments"})
+		} else if err == sql.ErrNoRows {
+			utils.RespondJSON(w, http.StatusNotFound, utils.Response{Message: "Comment not found"})
+		} else {
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
+		}
+		return
+	}
+
+	utils.RespondJSON(w, http.StatusNoContent, utils.Response{Message: "Comment deleted successfully"})
+}

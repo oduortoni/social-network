@@ -152,6 +152,62 @@ func (s *PostService) DeletePost(postID, userID int64) error {
 	return s.PostStore.DeletePost(postID)
 }
 
+func (s *PostService) UpdateComment(commentID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Comment, error) {
+	// Get the existing comment
+	comment, err := s.PostStore.GetCommentByID(commentID)
+	if err != nil {
+		return nil, fmt.Errorf("comment not found")
+	}
+
+	// Check if the user is authorized to edit this comment
+	if comment.UserID != userID {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	// Validate content
+	if content == "" {
+		return nil, fmt.Errorf("comment content is required")
+	}
+
+	// Handle image update if provided
+	var imagePath string
+	if len(imageData) > 0 {
+		savedImagePath, err := s.saveImage(imageData, "comments")
+		if err != nil {
+			return nil, err
+		}
+		imagePath = savedImagePath
+	} else {
+		// Keep existing image if no new image provided
+		imagePath = comment.Image
+	}
+
+	// Update the comment in the store
+	updatedComment, err := s.PostStore.UpdateComment(commentID, content, imagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedComment, nil
+}
+
+func (s *PostService) DeleteComment(commentID, userID int64) error {
+	comment, err := s.PostStore.GetCommentByID(commentID)
+	if err != nil {
+		return err
+	}
+
+	if comment.UserID != userID {
+		return fmt.Errorf("unauthorized")
+	}
+
+	return s.PostStore.DeleteComment(commentID)
+}
+
+func (s *PostService) GetCommentByID(commentID int64) (*models.Comment, error) {
+	return s.PostStore.GetCommentByID(commentID)
+}
+
 // saveImage handles the logic for validating, naming, and saving an uploaded image.
 // It takes the image data and a sub-directory (e.g., "posts", "comments") to save the image in.
 // It returns the saved file path or an error.
@@ -168,15 +224,16 @@ func (s *PostService) saveImage(imageData []byte, subDir string) (string, error)
 	imageFileName := fmt.Sprintf("%s%s", uuid.New().String(), extension)
 	// Consistent path structure as per project requirements
 	saveDir := filepath.Join("attachments", subDir)
-	imagePath := filepath.Join(saveDir, imageFileName)
+	imagePath := filepath.Join(subDir, imageFileName)
+	imageWritePath := filepath.Join(saveDir, imageFileName)
 	if err := os.MkdirAll(saveDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	if err := os.WriteFile(imagePath, imageData, 0644); err != nil {
+	if err := os.WriteFile(imageWritePath, imageData, 0644); err != nil {
 		return "", fmt.Errorf("failed to save image: %w", err)
 	}
-	return filepath.Join(saveDir, imageFileName), nil
+	return imagePath, nil
 }
 
 // formatToExtension maps an ImageFormat to a file extension.
