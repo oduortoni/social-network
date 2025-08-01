@@ -54,4 +54,5 @@ type FollowRequestServiceInterface interface {
 type ProfileServiceInterface interface {
 	GetUserOwnProfile(userid int64) (models.ProfileDetails, error)
 	GetUserProfile(userid, LoggedInUser int64) (models.ProfileDetails, error)
+	GetUserPosts(userid int64) ([]models.Post, error)
 }

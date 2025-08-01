@@ -100,7 +100,7 @@ func (followstore *FollowStore) GetUserFollowers(userid int64) (models.FollowLis
 	defer rows.Close()
 
 	for rows.Next() {
-		var follower models.FollowListUser
+		var follower models.FollowUser
 		var firstName, lastName, avatar sql.NullString
 		err := rows.Scan(&follower.FollowerID, &firstName, &lastName, &avatar)
 		if err != nil {
@@ -141,7 +141,7 @@ func (followstore *FollowStore) GetUserFollowees(userid int64) (models.FollowLis
 	defer rows.Close()
 
 	for rows.Next() {
-		var follower models.FollowListUser
+		var follower models.FollowUser
 		var firstName, lastName, avatar sql.NullString
 		err := rows.Scan(&follower.FollowerID, &firstName, &lastName, &avatar)
 		if err != nil {

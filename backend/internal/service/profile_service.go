@@ -73,3 +73,7 @@ func (ps *ProfileService) GetUserProfile(userid, LoggedInUser int64) (models.Pro
 
 	return userDetails, nil
 }
+
+func (ps *ProfileService) GetUserPosts(userid int64) ([]models.Post, error) {
+	return ps.ProfileStore.GetPostsOfUser(userid)
+}

@@ -98,6 +98,53 @@ func (ps *ProfileStore) GetFollowStatus(user_id, LoggedInUser int64) (string, er
 	return "follow", nil // Follow request was rejected, can follow again
 }
 
+func (s *ProfileStore) GetPostsOfUser(id int64) ([]models.Post, error) {
+	query := `
+		SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at,
+			   u.first_name, u.last_name, u.nickname, u.avatar
+		FROM Posts p
+		JOIN Users u ON p.user_id = u.id
+		WHERE p.user_id = ?`
+
+	rows, err := s.DB.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []models.Post
+	for rows.Next() {
+		var post models.Post
+		var updatedAt sql.NullTime
+		var firstName, lastName, nickname, avatar sql.NullString
+
+		if err := rows.Scan(
+			&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy,
+			&post.CreatedAt, &updatedAt,
+			&firstName, &lastName, &nickname, &avatar); err != nil {
+			return nil, err
+		}
+
+		// Set the updated_at field and is_edited flag
+		if updatedAt.Valid {
+			post.UpdatedAt = &updatedAt.Time
+			post.IsEdited = true
+		}
+
+		// Set user information
+		post.Author = models.User{
+			FirstName: &firstName.String,
+			LastName:  &lastName.String,
+			Nickname:  &nickname.String,
+			Avatar:    &avatar.String,
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}
+
 // Helper function to handle null string values
 func getStringValue(s sql.NullString) string {
 	if s.Valid {
