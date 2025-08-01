@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"database/sql"
-	"net/http"
 	"encoding/json"
+	"net/http"
 	"strings"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
@@ -20,7 +20,6 @@ func NewMeHandler(db *sql.DB) http.HandlerFunc {
 		}
 		cookieValue := strings.TrimPrefix(sessionCookie.Value, "session_id=")
 
-
 		fmt.Println("Session Cookie:", cookieValue)
 		var userID int
 
@@ -31,7 +30,7 @@ func NewMeHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("User ID from session:", userID	)
+		fmt.Println("User ID from session:", userID)
 
 		var user models.User
 		errUser := db.QueryRow(
@@ -50,4 +49,3 @@ func NewMeHandler(db *sql.DB) http.HandlerFunc {
 		}
 	}
 }
-

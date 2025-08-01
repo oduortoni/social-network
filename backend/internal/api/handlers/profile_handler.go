@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,10 +10,10 @@ import (
 )
 
 type ProfileHandler struct {
-	ProfileService service.ProfileServiceInterface
+	ProfileService *service.ProfileService
 }
 
-func NewProfileHandler(profileService service.ProfileServiceInterface) *ProfileHandler {
+func NewProfileHandler(profileService *service.ProfileService) *ProfileHandler {
 	return &ProfileHandler{
 		ProfileService: profileService,
 	}
@@ -31,8 +30,7 @@ func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request)
 		utils.RespondJSON(w, http.StatusUnauthorized, serverResponse)
 		return
 	}
-	fmt.Println(status)
-	fmt.Println(IsMyProfile)
+
 	// Use id
 	userIdstr := r.PathValue("userid")
 	userId, err := strconv.ParseInt(userIdstr, 10, 64)
@@ -62,6 +60,12 @@ func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
+	if profileDetails.FollowbtnStatus == "follow" && !profileDetails.ProfilePublic {
+		utils.RespondJSON(w, status, models.ProfileResponse{
+			ProfileDetails: profileDetails,
+		})
+		return
+	}
 
 	posts, err := ps.ProfileService.GetUserPosts(userId)
 	if err != nil {
@@ -74,4 +78,34 @@ func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request)
 		ProfileDetails: profileDetails,
 		UserPosts:      posts,
 	})
+}
+
+func (f *ProfileHandler) GetFollowers(w http.ResponseWriter, r *http.Request) {
+	userIdstr := r.PathValue("userid")
+	userId, err := strconv.ParseInt(userIdstr, 10, 64)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid User Id"})
+		return
+	}
+	followers, err := f.ProfileService.GetFollowersList(userId)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
+		return
+	}
+	utils.RespondJSON(w, http.StatusOK, followers)
+}
+
+func (f *ProfileHandler) GetFollowees(w http.ResponseWriter, r *http.Request) {
+	userIdstr := r.PathValue("userid")
+	userId, err := strconv.ParseInt(userIdstr, 10, 64)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid User Id"})
+		return
+	}
+	followers, err := f.ProfileService.GetFolloweesList(userId)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
+		return
+	}
+	utils.RespondJSON(w, http.StatusOK, followers)
 }
