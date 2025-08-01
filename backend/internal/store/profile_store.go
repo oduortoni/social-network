@@ -2,7 +2,6 @@ package store
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 )
@@ -23,7 +22,7 @@ func (ps *ProfileStore) MyProfileDetails(userid int64) (models.ProfileDetails, e
 	// Prepare the SQL query to fetch user details
 	var firstName, lastName, email, nickname, aboutMe, avatar sql.NullString
 	var dateOfBirth sql.NullTime
-	var isProfilePublic bool
+	var isProfilePublic int
 
 	query := `SELECT first_name, last_name, email, nickname, about_me, date_of_birth, is_profile_public, avatar 
 			  FROM Users 
@@ -50,7 +49,7 @@ func (ps *ProfileStore) MyProfileDetails(userid int64) (models.ProfileDetails, e
 	profile.Nickname = getStringValue(nickname)
 	profile.About = getStringValue(aboutMe)
 	profile.DateOfBirth = dateOfBirth.Time.Format("2006-01-02")
-	profile.Profile = fmt.Sprintf("%v", isProfilePublic)
+	profile.ProfilePublic = isProfilePublic == 1
 	profile.Avatar = getStringValue(avatar)
 
 	return profile, nil
@@ -143,6 +142,86 @@ func (s *ProfileStore) GetPostsOfUser(id int64) ([]models.Post, error) {
 	}
 
 	return posts, nil
+}
+
+func (followstore *ProfileStore) GetUserFollowers(userid int64) (models.FollowListResponse, error) {
+	var followersList models.FollowListResponse
+	rows, err := followstore.DB.Query(`
+		SELECT u.id, u.first_name, u.last_name, u.avatar 
+		FROM Users u 
+		INNER JOIN Followers f ON u.id = f.follower_id 
+		WHERE f.followee_id = ? AND f.status = 'accepted'`, userid)
+	if err != nil {
+		return followersList, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var follower models.FollowUser
+		var firstName, lastName, avatar sql.NullString
+		err := rows.Scan(&follower.FollowerID, &firstName, &lastName, &avatar)
+		if err != nil {
+			return followersList, err
+		}
+
+		if firstName.Valid {
+			follower.FirstName = firstName.String
+		}
+		if lastName.Valid {
+			follower.LastName = lastName.String
+		}
+		if avatar.Valid {
+			follower.Avatar = avatar.String
+		}
+
+		followersList.Followers = append(followersList.Followers, follower)
+	}
+
+	if err = rows.Err(); err != nil {
+		return followersList, err
+	}
+
+	return followersList, nil
+}
+
+func (followstore *ProfileStore) GetUserFollowees(userid int64) (models.FollowListResponse, error) {
+	var followersList models.FollowListResponse
+	rows, err := followstore.DB.Query(`
+		SELECT u.id, u.first_name, u.last_name, u.avatar 
+		FROM Users u 
+		INNER JOIN Followers f ON u.id = f.followee_id 
+		WHERE f.follower_id = ? AND f.status = 'accepted'`, userid)
+	if err != nil {
+		return followersList, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var follower models.FollowUser
+		var firstName, lastName, avatar sql.NullString
+		err := rows.Scan(&follower.FollowerID, &firstName, &lastName, &avatar)
+		if err != nil {
+			return followersList, err
+		}
+
+		if firstName.Valid {
+			follower.FirstName = firstName.String
+		}
+		if lastName.Valid {
+			follower.LastName = lastName.String
+		}
+		if avatar.Valid {
+			follower.Avatar = avatar.String
+		}
+
+		followersList.Followers = append(followersList.Followers, follower)
+	}
+
+	if err = rows.Err(); err != nil {
+		return followersList, err
+	}
+
+	return followersList, nil
 }
 
 // Helper function to handle null string values
