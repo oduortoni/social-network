@@ -10,7 +10,7 @@ import (
 // MockPostStore is a mock implementation of the PostStore for testing.
 type MockPostStore struct {
 	GetPostsFunc            func(userID int64) ([]*models.Post, error)
-	GetCommentsByPostIDFunc func(postID int64) ([]*models.Comment, error)
+	GetCommentsByPostIDFunc func(postID, userID int64) ([]*models.Comment, error)
 	GetPostByIDFunc         func(id int64) (*models.Post, error)
 	DeletePostFunc          func(postID int64) error
 }
@@ -31,8 +31,8 @@ func (s *MockPostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	return s.GetPostsFunc(userID)
 }
 
-func (s *MockPostStore) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
-	return s.GetCommentsByPostIDFunc(postID)
+func (s *MockPostStore) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) {
+	return s.GetCommentsByPostIDFunc(postID, userID)
 }
 
 func (s *MockPostStore) DeletePost(postID int64) error {
