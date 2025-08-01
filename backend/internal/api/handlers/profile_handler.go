@@ -44,27 +44,34 @@ func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request)
 	if userId == LoggedInUser {
 		IsMyProfile = true
 	}
+	var profileDetails models.ProfileDetails
+
 	if IsMyProfile {
-		profileDetails, err := ps.ProfileService.GetUserOwnProfile(LoggedInUser)
+		profileDetails, err = ps.ProfileService.GetUserOwnProfile(LoggedInUser)
 		if err != nil {
 			serverResponse.Message = "Error fetching profile details"
 			utils.RespondJSON(w, http.StatusInternalServerError, serverResponse)
 			return
 		}
-		utils.RespondJSON(w, status, models.ProfileResponse{
-			ProfileDetails: profileDetails,
-		})
-		return
+
+	} else {
+		profileDetails, err = ps.ProfileService.GetUserProfile(userId, LoggedInUser)
+		if err != nil {
+			serverResponse.Message = "Error fetching profile details"
+			utils.RespondJSON(w, http.StatusInternalServerError, serverResponse)
+			return
+		}
 	}
-	// If not my profile, fetch the profile of the userId
-	var profileDetails models.ProfileDetails
-	profileDetails, err = ps.ProfileService.GetUserProfile(userId, LoggedInUser)
+
+	posts, err := ps.ProfileService.GetUserPosts(userId)
 	if err != nil {
-		serverResponse.Message = "Error fetching profile details"
+		serverResponse.Message = "Error fetching posts"
 		utils.RespondJSON(w, http.StatusInternalServerError, serverResponse)
 		return
 	}
+
 	utils.RespondJSON(w, status, models.ProfileResponse{
 		ProfileDetails: profileDetails,
+		UserPosts:      posts,
 	})
 }
