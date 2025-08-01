@@ -22,9 +22,12 @@ type PostServiceInterface interface {
 	GetPosts(userID int64) ([]*models.Post, error)
 	UpdatePost(postID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Post, error)
 	CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
-	GetCommentsByPostID(postID int64) ([]*models.Comment, error)
+	GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error)
 	DeletePost(postID, userID int64) error
 	SearchUsers(query string, currentUserID int64) ([]*models.User, error)
+	UpdateComment(commentID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Comment, error)
+	DeleteComment(commentID, userID int64) error
+	GetCommentByID(commentID int64) (*models.Comment, error)
 }
 
 type FollowServiceInterface interface {

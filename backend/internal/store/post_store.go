@@ -108,18 +108,24 @@ func (s *PostStore) UpdatePost(postID int64, content, imagePath string) (*models
 func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	rows, err := s.DB.Query(`
         SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at,
-               u.first_name, u.last_name, u.nickname, u.avatar
+               u.first_name, u.last_name, u.nickname, u.avatar,
+               COALESCE(likes.count, 0) as likes_count,
+               COALESCE(dislikes.count, 0) as dislikes_count,
+               ur.reaction_type as user_reaction
         FROM Posts p
         JOIN Users u ON p.user_id = u.id
+        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM post_reactions WHERE reaction_type = 'like' GROUP BY post_id) likes ON p.id = likes.post_id
+        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM post_reactions WHERE reaction_type = 'dislike' GROUP BY post_id) dislikes ON p.id = dislikes.post_id
+        LEFT JOIN post_reactions ur ON p.id = ur.post_id AND ur.user_id = ?
         WHERE p.privacy = 'public'
         OR (p.privacy = 'almost_private' AND p.user_id = ? OR p.user_id IN (
-            SELECT follower_id FROM Followers WHERE followee_id = ? AND is_accepted = 1
+            SELECT follower_id FROM Followers WHERE followee_id = ?
         ))
         OR (p.privacy = 'private' AND EXISTS (
             SELECT 1 FROM Post_visibility pv WHERE pv.post_id = p.id AND pv.viewer_id = ?
         ))
         ORDER BY p.created_at DESC
-    `, userID, userID, userID)
+    `, userID, userID, userID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +135,10 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 	for rows.Next() {
 		var post models.Post
 		var updatedAt sql.NullTime
+		var userReaction sql.NullString
 		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.Image, &post.Privacy,
 			&post.CreatedAt, &updatedAt, &post.Author.FirstName, &post.Author.LastName,
-			&post.Author.Nickname, &post.Author.Avatar); err != nil {
+			&post.Author.Nickname, &post.Author.Avatar, &post.LikesCount, &post.DislikesCount, &userReaction); err != nil {
 			return nil, err
 		}
 
@@ -141,20 +148,32 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 			post.IsEdited = true
 		}
 
+		// Set user reaction if exists
+		if userReaction.Valid {
+			post.UserReaction = &userReaction.String
+		}
+
 		posts = append(posts, &post)
 	}
 
 	return posts, nil
 }
 
-func (s *PostStore) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
+func (s *PostStore) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) {
 	rows, err := s.DB.Query(`
-        SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, u.first_name, u.last_name, u.nickname, u.avatar
+        SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, c.updated_at,
+               u.first_name, u.last_name, u.nickname, u.avatar,
+               COALESCE(likes.count, 0) as likes_count,
+               COALESCE(dislikes.count, 0) as dislikes_count,
+               ur.reaction_type as user_reaction
         FROM Comments c
         JOIN Users u ON c.user_id = u.id
+        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM comment_reactions WHERE reaction_type = 'like' GROUP BY comment_id) likes ON c.id = likes.comment_id
+        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM comment_reactions WHERE reaction_type = 'dislike' GROUP BY comment_id) dislikes ON c.id = dislikes.comment_id
+        LEFT JOIN comment_reactions ur ON c.id = ur.comment_id AND ur.user_id = ?
         WHERE c.post_id = ?
         ORDER BY c.created_at DESC
-    `, postID)
+    `, userID, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -163,9 +182,25 @@ func (s *PostStore) GetCommentsByPostID(postID int64) ([]*models.Comment, error)
 	var comments []*models.Comment
 	for rows.Next() {
 		var comment models.Comment
-		if err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image, &comment.CreatedAt, &comment.Author.FirstName, &comment.Author.LastName, &comment.Author.Nickname, &comment.Author.Avatar); err != nil {
+		var updatedAt sql.NullTime
+		var userReaction sql.NullString
+		if err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image,
+			&comment.CreatedAt, &updatedAt, &comment.Author.FirstName, &comment.Author.LastName,
+			&comment.Author.Nickname, &comment.Author.Avatar, &comment.LikesCount, &comment.DislikesCount, &userReaction); err != nil {
 			return nil, err
 		}
+
+		// Set the updated_at field and is_edited flag
+		if updatedAt.Valid {
+			comment.UpdatedAt = &updatedAt.Time
+			comment.IsEdited = true
+		}
+
+		// Set user reaction if exists
+		if userReaction.Valid {
+			comment.UserReaction = &userReaction.String
+		}
+
 		comments = append(comments, &comment)
 	}
 
@@ -241,4 +276,80 @@ func (s *PostStore) SearchUsers(query string, currentUserID int64) ([]*models.Us
 	}
 
 	return users, nil
+}
+
+// UpdateComment updates a comment's content and image, setting the updated_at timestamp
+func (s *PostStore) UpdateComment(commentID int64, content, imagePath string) (*models.Comment, error) {
+	// Update the comment with new content, image, and set updated_at timestamp
+	stmt, err := s.DB.Prepare("UPDATE Comments SET content = ?, image = ?, updated_at = ? WHERE id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	now := time.Now()
+	_, err = stmt.Exec(content, imagePath, now, commentID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch and return the updated comment with author information
+	row := s.DB.QueryRow(`
+        SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, c.updated_at,
+               u.first_name, u.last_name, u.nickname, u.avatar
+        FROM Comments c
+        JOIN Users u ON c.user_id = u.id
+        WHERE c.id = ?
+    `, commentID)
+
+	var comment models.Comment
+	var updatedAt sql.NullTime
+	err = row.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image,
+		&comment.CreatedAt, &updatedAt, &comment.Author.FirstName, &comment.Author.LastName,
+		&comment.Author.Nickname, &comment.Author.Avatar)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the updated_at field and is_edited flag
+	if updatedAt.Valid {
+		comment.UpdatedAt = &updatedAt.Time
+		comment.IsEdited = true
+	}
+
+	return &comment, nil
+}
+
+// DeleteComment removes a comment from the database
+func (s *PostStore) DeleteComment(commentID int64) error {
+	_, err := s.DB.Exec("DELETE FROM Comments WHERE id = ?", commentID)
+	return err
+}
+
+// GetCommentByID retrieves a specific comment by its ID with author information
+func (s *PostStore) GetCommentByID(commentID int64) (*models.Comment, error) {
+	row := s.DB.QueryRow(`
+        SELECT c.id, c.post_id, c.user_id, c.content, c.image, c.created_at, c.updated_at,
+               u.first_name, u.last_name, u.nickname, u.avatar
+        FROM Comments c
+        JOIN Users u ON c.user_id = u.id
+        WHERE c.id = ?
+    `, commentID)
+
+	var comment models.Comment
+	var updatedAt sql.NullTime
+	err := row.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.Image,
+		&comment.CreatedAt, &updatedAt, &comment.Author.FirstName, &comment.Author.LastName,
+		&comment.Author.Nickname, &comment.Author.Avatar)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the updated_at field and is_edited flag
+	if updatedAt.Valid {
+		comment.UpdatedAt = &updatedAt.Time
+		comment.IsEdited = true
+	}
+
+	return &comment, nil
 }
