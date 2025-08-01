@@ -96,8 +96,8 @@ func (s *PostService) GetPosts(userID int64) ([]*models.Post, error) {
 	return s.PostStore.GetPosts(userID)
 }
 
-func (s *PostService) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
-	return s.PostStore.GetCommentsByPostID(postID)
+func (s *PostService) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) {
+	return s.PostStore.GetCommentsByPostID(postID, userID)
 }
 
 func (s *PostService) UpdatePost(postID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Post, error) {

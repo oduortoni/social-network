@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchComments, updateComment, deleteComment, followUser } from "../../lib/auth";
-import { MoreHorizontalIcon, Edit, Trash2, UserPlus } from 'lucide-react';
+import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, Edit, Trash2, UserPlus } from 'lucide-react';
+import CommentReactionButtons from './CommentReactionButtons';
 
 const CommentList = ({ postId, newComment, user }) => {
   const [comments, setComments] = useState([]);
@@ -51,7 +52,7 @@ const CommentList = ({ postId, newComment, user }) => {
     try {
       setLoading(true);
       const result = await fetchComments(postId);
-      
+
       if (result.success) {
         setComments(result.data || []);
         setError("");
@@ -181,7 +182,7 @@ const CommentList = ({ postId, newComment, user }) => {
     return (
       <div className="text-center py-4">
         <div className="text-sm" style={{ color: 'var(--warning-color)' }}>{error}</div>
-        <button 
+        <button
           onClick={loadComments}
           className="text-sm mt-2 hover:underline"
           style={{ color: 'var(--primary-accent)' }}
@@ -206,8 +207,8 @@ const CommentList = ({ postId, newComment, user }) => {
         <div key={comment.id} className="flex gap-3">
           {/* Comment Author Avatar */}
           <img
-            src={comment.author?.avatar && comment.author.avatar !== "no profile photo" 
-              ? `http://localhost:9000/avatar?avatar=${comment.author.avatar}` 
+            src={comment.author?.avatar && comment.author.avatar !== "no profile photo"
+              ? `http://localhost:9000/avatar?avatar=${comment.author.avatar}`
               : "http://localhost:9000/avatar?avatar=user-profile-circle-svgrepo-com.svg"
             }
             alt={getDisplayName(comment.author)}
@@ -216,7 +217,7 @@ const CommentList = ({ postId, newComment, user }) => {
 
           {/* Comment Content */}
           <div className="flex-1 min-w-0">
-            <div 
+            <div
               className="rounded-lg p-3 relative"
               style={{ backgroundColor: 'var(--secondary-background)' }}
             >
@@ -235,9 +236,9 @@ const CommentList = ({ postId, newComment, user }) => {
               {/* Comment Image */}
               {comment.image && (
                 <div className="mt-2">
-                  <img 
+                  <img
                     src={`http://localhost:9000/avatar?avatar=${comment.image}`}
-                    alt="Comment image" 
+                    alt="Comment image"
                     className="max-w-full max-h-48 rounded-lg object-cover"
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -245,6 +246,12 @@ const CommentList = ({ postId, newComment, user }) => {
                   />
                 </div>
               )}
+              {/* Comment Actions */}
+              <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                <div className="flex items-center gap-4">
+                  <CommentReactionButtons comment={comment} user={user} />
+                </div>
+              </div>
 
               {/* Comment Actions Dropdown */}
               <div className="absolute top-2 right-2 dropdown-container">
@@ -317,8 +324,8 @@ const CommentList = ({ postId, newComment, user }) => {
             </div>
 
             {/* Comment Timestamp */}
-            <div 
-              className="text-xs mt-1 ml-3" 
+            <div
+              className="text-xs mt-1 ml-3"
               style={{ color: 'var(--secondary-text)' }}
             >
               {formatDate(comment.created_at)}

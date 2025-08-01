@@ -42,6 +42,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	post.UserID = userID
+	fmt.Println("able to get user from context: ", r.Context())
 
 	// Handle optional image upload using the helper
 	imageData, imageMimeType, status, err := handleImageUpload(r)
@@ -180,7 +181,13 @@ func (h *PostHandler) GetCommentsByPostID(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	comments, err := h.PostService.GetCommentsByPostID(postID)
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+
+	comments, err := h.PostService.GetCommentsByPostID(postID, userID)
 	if err != nil {
 		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
 		return
