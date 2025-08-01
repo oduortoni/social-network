@@ -32,10 +32,10 @@ func NewPasswordManager(config PasswordConfig) *PasswordManager {
 	if config.BcryptCost == 0 {
 		config.BcryptCost = bcrypt.DefaultCost
 	}
-	config.RequireLower=true;
-	config.RequireSpecial=true;
-	config.RequireUpper=true;
-	config.RequireNumber=true;
+	config.RequireLower = true
+	config.RequireSpecial = true
+	config.RequireUpper = true
+	config.RequireNumber = true
 
 	return &PasswordManager{Config: config}
 }

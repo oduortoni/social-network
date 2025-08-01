@@ -59,8 +59,8 @@ func (m *Manager) Unregister(id int64) {
 			"type":      "notification",
 			"subtype":   "user_disconnected",
 			"user_id":   id,
-			"nickname": client.Nickname,
-			"avatar":   client.Avatar,
+			"nickname":  client.Nickname,
+			"avatar":    client.Avatar,
 			"message":   client.Nickname + " went offline",
 			"timestamp": time.Now().Unix(),
 		}
@@ -246,7 +246,7 @@ func (m *Manager) GetOnlineUsers() []map[string]interface{} {
 	for _, client := range m.clients {
 		users = append(users, map[string]interface{}{
 			"user_id":   client.ID,
-			"nickname": client.Nickname,
+			"nickname":  client.Nickname,
 			"connected": client.Connected.Unix(),
 			"avatar":    client.Avatar,
 		})
