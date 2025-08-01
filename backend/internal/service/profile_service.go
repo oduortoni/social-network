@@ -65,7 +65,6 @@ func (ps *ProfileService) GetUserProfile(userid, LoggedInUser int64) (models.Pro
 	if err != nil {
 		return userDetails, err
 	}
-	// Corrected logic for MessageBtnStatus:
 	// The message button should be visible if the logged-in user is following the profile user.
 	if userDetails.FollowbtnStatus == "following" {
 		userDetails.MessageBtnStatus = "visible"
