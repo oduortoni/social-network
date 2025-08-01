@@ -24,7 +24,7 @@ type MockPostService struct {
 	GetPostByIDFunc         func(id int64) (*models.Post, error)
 	GetPostsFunc            func(userID int64) ([]*models.Post, error)
 	CreateCommentFunc       func(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
-	GetCommentsByPostIDFunc func(postID int64) ([]*models.Comment, error)
+	GetCommentsByPostIDFunc func(postID, userID int64) ([]*models.Comment, error)
 	DeletePostFunc          func(postID, userID int64) error
 	UpdateCommentFunc       func(commentID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Comment, error)
 	DeleteCommentFunc       func(commentID, userID int64) error
@@ -53,9 +53,9 @@ func (s *MockPostService) GetPosts(userID int64) ([]*models.Post, error) {
 	return nil, fmt.Errorf("GetPostsFunc not implemented")
 }
 
-func (s *MockPostService) GetCommentsByPostID(postID int64) ([]*models.Comment, error) {
+func (s *MockPostService) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) {
 	if s.GetCommentsByPostIDFunc != nil {
-		return s.GetCommentsByPostIDFunc(postID)
+		return s.GetCommentsByPostIDFunc(postID, userID)
 	}
 	return nil, fmt.Errorf("GetCommentsByPostIDFunc not implemented")
 }
@@ -541,7 +541,7 @@ func TestGetCommentsByPostID(t *testing.T) {
 	// Test case 1: Successful retrieval
 	t.Run("Successful retrieval", func(t *testing.T) {
 		mockPostService := &MockPostService{
-			GetCommentsByPostIDFunc: func(postID int64) ([]*models.Comment, error) {
+			GetCommentsByPostIDFunc: func(postID, userID int64) ([]*models.Comment, error) {
 				if postID != 1 {
 					t.Errorf("unexpected post ID: got %v want %v", postID, 1)
 				}
@@ -555,6 +555,9 @@ func TestGetCommentsByPostID(t *testing.T) {
 			t.Fatal(err)
 		}
 		req.SetPathValue("postId", "1")
+
+		ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
+		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
 		postHandler.GetCommentsByPostID(rr, req)
