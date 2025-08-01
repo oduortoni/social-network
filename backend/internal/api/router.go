@@ -40,6 +40,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	followStore := store.NewFollowStore(db)
 	unfollowstore := store.NewUnfollowStore(db)
 	followRequestStore := store.NewFollowRequestStore(db)
+	reactionStore := store.NewReactionStore(db)
 
 	// Create services
 	postService := service.NewPostService(postStore)
@@ -47,6 +48,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	followService := service.NewFollowService(followStore)
 	unfollowService := service.NewUnfollowService(unfollowstore)
 	followRequestService := service.NewFollowRequestService(followRequestStore)
+	reactionService := service.NewReactionService(reactionStore)
 
 	// Create handlers
 	postHandler := handlers.NewPostHandler(postService)
@@ -54,8 +56,6 @@ func NewRouter(db *sql.DB) http.Handler {
 	followHandler := handlers.NewFollowHandler(followService, notifier)
 	unfollowHandler := handlers.NewUnfollowHandler(unfollowService)
 	followRequestHandler := handlers.NewFollowRequestHandler(followRequestService, notifier)
-	reactionStore := store.NewReactionStore(db)
-	reactionService := service.NewReactionService(reactionStore)
 	reactionHandler := handlers.NewReactionHandler(reactionService)
 
 	// Authentication Handlers
@@ -77,7 +77,13 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("DELETE /posts/{postId}/comments/{commentId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeleteComment)))
 	mux.Handle("DELETE /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeletePost)))
 	mux.Handle("GET /users/search", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.SearchUsers)))
-
+	
+	// Reaction Handlers
+	mux.Handle("POST /posts/{postId}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.ReactToPost)))
+	mux.Handle("DELETE /posts/{postId}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.UnreactToPost)))
+	mux.Handle("POST /comments/{commentId}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.ReactToComment)))
+	mux.Handle("DELETE /comments/{commentId}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.UnreactToComment)))
+	
 	mux.Handle("POST /follow", middleware.AuthMiddleware(db)(http.HandlerFunc(followHandler.Follow)))
 	mux.Handle("DELETE /unfollow", middleware.AuthMiddleware(db)(http.HandlerFunc(unfollowHandler.Unfollow)))
 	mux.Handle("POST /follow-request/{requestId}/request", middleware.AuthMiddleware(db)(http.HandlerFunc(followRequestHandler.FollowRequestRespond)))
@@ -92,12 +98,6 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("GET /api/notifications", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetNotifications)))
 	mux.Handle("POST /api/notifications/read", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.MarkNotificationsRead)))
 	mux.Handle("GET /api/users/online", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetOnlineUsers)))
-
-	// Reaction Handlers
-	mux.Handle("POST /api/posts/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.ReactToPost)))
-	mux.Handle("DELETE /api/posts/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.UnreactToPost)))
-	mux.Handle("POST /api/comments/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.ReactToComment)))
-	mux.Handle("DELETE /api/comments/{id}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.UnreactToComment)))
 
 	return mux
 }

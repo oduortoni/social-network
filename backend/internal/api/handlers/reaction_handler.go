@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -21,18 +22,30 @@ func NewReactionHandler(service *service.ReactionService) *ReactionHandler {
 }
 
 func (h *ReactionHandler) ReactToPost(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(utils.User_id).(int)
-	if !ok {
-		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
-		return
-	}
-
-	postIDStr := r.PathValue("id")
+	postIDStr := r.PathValue("postId")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
 		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
 		return
 	}
+	fmt.Println("got post if from url: ", postID)
+	userIDValue := r.Context().Value(utils.User_id)
+	if userIDValue == nil {
+		fmt.Println("unable to get user from context: ", r.Context())
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+	userID, ok := userIDValue.(int)
+	if !ok {
+		if userID64, ok := userIDValue.(int64); ok {
+			userID = int(userID64)
+		} else {
+			fmt.Println("unable to cast user ID from context, type:", fmt.Sprintf("%T", userIDValue))
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+			return
+		}
+	}
+
 
 	var reaction models.Reaction
 	if err := json.NewDecoder(r.Body).Decode(&reaction); err != nil {
@@ -52,18 +65,27 @@ func (h *ReactionHandler) ReactToPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ReactionHandler) UnreactToPost(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(utils.User_id).(int)
-	if !ok {
-		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
-		return
-	}
-
-	postIDStr := r.PathValue("id")
+	postIDStr := r.PathValue("postId")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
 		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid post ID"})
 		return
 	}
+	userIDValue := r.Context().Value(utils.User_id)
+	if userIDValue == nil {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+	userID, ok := userIDValue.(int)
+	if !ok {
+		if userID64, ok := userIDValue.(int64); ok {
+			userID = int(userID64)
+		} else {
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+			return
+		}
+	}
+
 
 	if err := h.service.UnreactToPost(userID, postID); err != nil {
 		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to unreact to post"})
@@ -74,18 +96,27 @@ func (h *ReactionHandler) UnreactToPost(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ReactionHandler) ReactToComment(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(utils.User_id).(int)
-	if !ok {
-		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
-		return
-	}
-
-	commentIDStr := r.PathValue("id")
+	commentIDStr := r.PathValue("commentId")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
 		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid comment ID"})
 		return
 	}
+	userIDValue := r.Context().Value(utils.User_id)
+	if userIDValue == nil {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+	userID, ok := userIDValue.(int)
+	if !ok {
+		if userID64, ok := userIDValue.(int64); ok {
+			userID = int(userID64)
+		} else {
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+			return
+		}
+	}
+
 
 	var reaction models.Reaction
 	if err := json.NewDecoder(r.Body).Decode(&reaction); err != nil {
@@ -105,18 +136,27 @@ func (h *ReactionHandler) ReactToComment(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *ReactionHandler) UnreactToComment(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(utils.User_id).(int)
-	if !ok {
-		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
-		return
-	}
-
-	commentIDStr := r.PathValue("id")
+	commentIDStr := r.PathValue("commentId")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
 		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid comment ID"})
 		return
 	}
+	userIDValue := r.Context().Value(utils.User_id)
+	if userIDValue == nil {
+		utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+		return
+	}
+	userID, ok := userIDValue.(int)
+	if !ok {
+		if userID64, ok := userIDValue.(int64); ok {
+			userID = int(userID64)
+		} else {
+			utils.RespondJSON(w, http.StatusUnauthorized, utils.Response{Message: "Unauthorized"})
+			return
+		}
+	}
+
 
 	if err := h.service.UnreactToComment(userID, commentID); err != nil {
 		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to unreact to comment"})

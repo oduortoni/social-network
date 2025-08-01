@@ -413,7 +413,7 @@ export const validateStepTwo=(userFirstName,UserLastName,UserDateOfBirth)=>{
 // React to a post
 export const reactToPost = async (postId, reaction) => {
   try {
-    const response = await fetch(`http://localhost:9000/api/posts/${postId}/reaction`, {
+    const response = await fetch(`http://localhost:9000/posts/${postId}/reaction`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -435,10 +435,30 @@ export const reactToPost = async (postId, reaction) => {
   }
 };
 
+// Unreact to a post
+export const unreactToPost = async (postId) => {
+  try {
+    const response = await fetch(`http://localhost:9000/posts/${postId}/reaction`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (response.ok) {
+      return { success: true };
+    } else {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || 'Failed to unreact to post' };
+    }
+  } catch (error) {
+    console.error('Error unreacting to post:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
 // React to a comment
 export const reactToComment = async (commentId, reaction) => {
   try {
-    const response = await fetch(`http://localhost:9000/api/comments/${commentId}/reaction`, {
+    const response = await fetch(`http://localhost:9000/comments/${commentId}/reaction`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -463,7 +483,7 @@ export const reactToComment = async (commentId, reaction) => {
 // Unreact to a comment
 export const unreactToComment = async (commentId) => {
   try {
-    const response = await fetch(`http://localhost:9000/api/comments/${commentId}/reaction`, {
+    const response = await fetch(`http://localhost:9000/comments/${commentId}/reaction`, {
       method: 'DELETE',
       credentials: 'include',
     });
