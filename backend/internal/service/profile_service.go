@@ -6,10 +6,10 @@ import (
 )
 
 type ProfileService struct {
-	ProfileStore store.ProfileStore
+	ProfileStore *store.ProfileStore
 }
 
-func NewProfileService(ps store.ProfileStore) *ProfileService {
+func NewProfileService(ps *store.ProfileStore) *ProfileService {
 	return &ProfileService{ProfileStore: ps}
 }
 
@@ -76,4 +76,12 @@ func (ps *ProfileService) GetUserProfile(userid, LoggedInUser int64) (models.Pro
 
 func (ps *ProfileService) GetUserPosts(userid int64) ([]models.Post, error) {
 	return ps.ProfileStore.GetPostsOfUser(userid)
+}
+
+func (ps *ProfileService) GetFollowersList(userid int64) (models.FollowListResponse, error) {
+	return ps.ProfileStore.GetUserFollowers(userid)
+}
+
+func (ps *ProfileService) GetFolloweesList(userid int64) (models.FollowListResponse, error) {
+	return ps.ProfileStore.GetUserFollowees(userid)
 }

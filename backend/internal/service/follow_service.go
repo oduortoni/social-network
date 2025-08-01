@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/store"
 )
 
@@ -31,13 +30,4 @@ func (Follow *FollowService) GetUserInfo(userID int64) (string, string, error) {
 
 func (Follow *FollowService) AddtoNotification(follower_id int64, message string) error {
 	return Follow.FollowStore.AddtoNotification(follower_id, message)
-}
-
-
-func (Follow *FollowService) GetFollowersList(userid int64) (models.FollowListResponse, error) {
-	return Follow.FollowStore.GetUserFollowers(userid)
-}
-
-func (Follow *FollowService) GetFolloweesList(userid int64) (models.FollowListResponse, error) {
-	return Follow.FollowStore.GetUserFollowees(userid)
 }

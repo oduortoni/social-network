@@ -19,7 +19,7 @@ type ProfileDetails struct {
 	// - "visible"  → Visible to followers (messaging allowed)
 	MessageBtnStatus  string `json:"messagebtnstatus"`
 	DateOfBirth       string `json:"dateofbirth"`
-	Profile           string `json:"profile"`
+	ProfilePublic     bool   `json:"profile"`
 	NumberOfFollowers int    `json:"numberoffollowers"`
 	NumberOfFollowees int    `json:"numberoffollowees"`
 	NumberOfPosts     int    `json:"numberofposts"`

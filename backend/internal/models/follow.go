@@ -4,8 +4,6 @@ type Followee struct {
 	FolloweeId int `json:"followeeid"`
 }
 
-
-
 type FollowUser struct {
 	FirstName  string `json:"firstname"`
 	LastName   string `json:"lastname"`

@@ -34,7 +34,6 @@ type StepOneCredintial struct {
 	ConfirmPassword string `json:"confirm_password"`
 }
 
-
 // String returns a pretty-printed multiline JSON-style representation of the User.
 func (user User) String() string {
 	data, err := json.MarshalIndent(user, "", "\t")
