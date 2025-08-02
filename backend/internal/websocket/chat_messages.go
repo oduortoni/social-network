@@ -50,7 +50,9 @@ func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if !allowed {
-		http.Error(w, "You are not permitted to view messages with this user", http.StatusForbidden)
+		// Instead of blocking access, return empty history to allow new conversations
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]interface{}{})
 		return
 	}
 
@@ -245,17 +247,30 @@ func (h *ChatHandler) GetMessageableUsers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// [ RESTRICTIVE: IF FOLLOW AND PUBLIC PROFILE WORK AND MUTUAL FOLLOWERS ]
+	// ===================================================================================
+	// rows, err := h.DB.Query(`
+	// 	SELECT u.id, u.nickname, u.avatar
+	// 	FROM Users u
+	// 	INNER JOIN Followers f1 ON u.id = f1.followee_id AND f1.follower_id = ? AND f1.status = 'accepted'
+	// 	INNER JOIN Followers f2 ON u.id = f2.follower_id AND f2.followee_id = ? AND f2.status = 'accepted'
+	// 	WHERE u.id != ?
+	// 	UNION
+	// 	SELECT u.id, u.nickname, u.avatar
+	// 	FROM Users u
+	// 	WHERE u.is_profile_public = 1 AND u.id != ?
+	// `, userID, userID, userID, userID)
+	// if err != nil {
+	// 	http.Error(w, "Failed to fetch messageable users", http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// [ PERMISSIBLE PERMISSIONS ]
 	rows, err := h.DB.Query(`
 		SELECT u.id, u.nickname, u.avatar
 		FROM Users u
-		INNER JOIN Followers f1 ON u.id = f1.followee_id AND f1.follower_id = ? AND f1.status = 'accepted'
-		INNER JOIN Followers f2 ON u.id = f2.follower_id AND f2.followee_id = ? AND f2.status = 'accepted'
 		WHERE u.id != ?
-		UNION
-		SELECT u.id, u.nickname, u.avatar
-		FROM Users u
-		WHERE u.is_profile_public = 1 AND u.id != ?
-	`, userID, userID, userID, userID)
+	`, userID)
 	if err != nil {
 		http.Error(w, "Failed to fetch messageable users", http.StatusInternalServerError)
 		return
@@ -270,11 +285,15 @@ func (h *ChatHandler) GetMessageableUsers(w http.ResponseWriter, r *http.Request
 
 	var users []MessageableUser
 	for rows.Next() {
+		fmt.Println("Scanning row")
 		var u MessageableUser
 		if err := rows.Scan(&u.ID, &u.Nickname, &u.Avatar); err == nil {
 			users = append(users, u)
+			fmt.Printf("Found messageable user: %+v\n", u)
 		}
 	}
+
+	fmt.Printf("Found %d messageable users: %+v\n", len(users), users)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(users)
