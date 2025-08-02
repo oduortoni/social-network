@@ -15,44 +15,18 @@ type ChatHandler struct {
 	Persister *DBMessagePersister
 	Notifier  *NotificationSender
 	WSManager *Manager
+	PermissionChecker PermissionChecker
 }
 
-func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager) *ChatHandler {
+func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager, permissionChecker PermissionChecker) *ChatHandler {
 	return &ChatHandler{
 		DB:        db,
 		Resolver:  resolver,
 		Persister: persister,
 		Notifier:  notifier,
 		WSManager: wsManager,
+		PermissionChecker: permissionChecker,
 	}
-}
-
-// canUsersChat checks if userA is allowed to communicate with userB.
-// This is true if they are mutual followers or if userB's profile is public.
-func (h *ChatHandler) CanUsersChat(userA, userB int64) (bool, error) {
-	// 1. Check for mutual follow
-	var count int
-	err := h.DB.QueryRow(`
-		SELECT COUNT(*) FROM Followers
-		WHERE (follower_id = ? AND followee_id = ? AND status = 'accepted')
-		   OR (follower_id = ? AND followee_id = ? AND status = 'accepted')
-	`, userA, userB, userB, userA).Scan(&count)
-
-	if err != nil && err != sql.ErrNoRows {
-		return false, err
-	}
-	if count == 2 { // They mutually follow each other
-		return true, nil
-	}
-
-	// 2. Check if receiver has a public profile
-	var isPublic bool
-	err = h.DB.QueryRow(`SELECT isprofilepublic FROM Users WHERE id = ?`, userB).Scan(&isPublic)
-	if err != nil {
-		return false, err
-	}
-
-	return isPublic, nil
 }
 
 // GET /api/messages/private?user=123&limit=50&offset=0
@@ -70,7 +44,7 @@ func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Requirement #2 & #4: Validate that the users are allowed to chat
-	allowed, err := h.CanUsersChat(userID, targetID)
+	allowed, err := h.PermissionChecker.CanUsersChat(userID, targetID)
 	if err != nil {
 		http.Error(w, "Could not verify relationship", http.StatusInternalServerError)
 		return

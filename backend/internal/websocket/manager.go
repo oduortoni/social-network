@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -17,16 +16,16 @@ type Manager struct {
 	Resolver   SessionResolver
 	groupQuery GroupMemberFetcher
 	persister  MessagePersister
-	DB         *sql.DB
+	PermissionChecker PermissionChecker
 }
 
-func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister, db *sql.DB) *Manager {
+func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister, permissionChecker PermissionChecker) *Manager {
 	return &Manager{
 		clients:    make(map[int64]*Client),
 		Resolver:   resolver,
 		groupQuery: groupFetcher,
 		persister:  persister,
-		DB:         db,
+		PermissionChecker: permissionChecker,
 	}
 }
 
@@ -103,7 +102,7 @@ func (m *Manager) ReadPump(c *Client) {
 		switch msg.Type {
 		case "private":
 			// Requirement #2 & #4: Validate if users are allowed to chat
-			allowed, err := m.canUsersChat(c.ID, msg.To)
+			allowed, err := m.PermissionChecker.CanUsersChat(c.ID, msg.To)
 			if err != nil {
 				log.Printf("Error checking chat permissions for user %d to %d: %v", c.ID, msg.To, err)
 				continue // Silently drop on error
@@ -132,32 +131,6 @@ func (m *Manager) ReadPump(c *Client) {
 			m.BroadcastToAll(encoded)
 		}
 	}
-}
-
-func (m *Manager) canUsersChat(userA, userB int64) (bool, error) {
-	// 1. check that two users have a mutual following
-	var count int
-	err := m.DB.QueryRow(`
-		SELECT COUNT(*) FROM Followers
-		WHERE (follower_id = ? AND followee_id = ? AND status = 'accepted')
-		   OR (follower_id = ? AND followee_id = ? AND status = 'accepted')
-	`, userA, userB, userB, userA).Scan(&count)
-
-	if err != nil && err != sql.ErrNoRows {
-		return false, err
-	}
-	if count == 2 { // mutually follow each other
-		return true, nil
-	}
-
-	// 2. does the receiver has a public profile
-	var isPublic bool
-	err = m.DB.QueryRow(`SELECT isprofilepublic FROM Users WHERE id = ?`, userB).Scan(&isPublic)
-	if err != nil {
-		return false, err
-	}
-
-	return isPublic, nil
 }
 
 func (m *Manager) WritePump(c *Client) {

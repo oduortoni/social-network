@@ -109,17 +109,18 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
 		t.Fatalf("Failed to insert test data: %v", err)
 	}
 
+	permissionChecker := ws.NewDBPermissionChecker(db)
 	// Create WebSocket manager
 	manager := ws.NewManager(
 		ws.NewDBSessionResolver(db),
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
-		db,
+		permissionChecker,
 	)
 
 	// Create chat handler
 	notifier := ws.NewDBNotificationSender(manager)
-	chatHandler := ws.NewChatHandler(db, ws.NewDBSessionResolver(db), ws.NewDBMessagePersister(db), notifier, manager)
+	chatHandler := ws.NewChatHandler(db, ws.NewDBSessionResolver(db), ws.NewDBMessagePersister(db), notifier, manager, permissionChecker)
 
 	// Create test server with routes
 	mux := http.NewServeMux()

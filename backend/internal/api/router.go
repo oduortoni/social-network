@@ -15,12 +15,13 @@ func NewRouter(db *sql.DB) http.Handler {
 	// Create router
 	mux := http.NewServeMux()
 
+	permissionChecker := ws.NewDBPermissionChecker(db)
 	// create the websocket handler
 	wsManager := ws.NewManager(
 		ws.NewDBSessionResolver(db),
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
-		db,
+		permissionChecker,
 	)
 
 	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewWebSocketHandler(wsManager).HandleConnection)))
@@ -33,6 +34,7 @@ func NewRouter(db *sql.DB) http.Handler {
 		ws.NewDBMessagePersister(db),
 		notifier,
 		wsManager,
+		permissionChecker,
 	)
 
 	// Create stores
