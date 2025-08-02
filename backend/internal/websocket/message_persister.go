@@ -43,7 +43,7 @@ func (p *DBMessagePersister) FetchPrivateMessages(userA, userB int64, limit int)
 		SELECT sender_id, receiver_id, content, strftime('%s', created_at)
 		FROM Messages
 		WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
-		ORDER BY created_at DESC
+		ORDER BY created_at ASC
 		LIMIT ?
 	`, userA, userB, userB, userA, limit)
 	if err != nil {
@@ -108,7 +108,7 @@ func (p *DBMessagePersister) FetchPrivateMessagesPaginated(userA, userB int64, l
 		SELECT sender_id, receiver_id, content, strftime('%s', created_at)
 		FROM Messages
 		WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
-		ORDER BY created_at DESC
+		ORDER BY created_at ASC
 		LIMIT ? OFFSET ?
 	`, userA, userB, userB, userA, limit, offset)
 	if err != nil {

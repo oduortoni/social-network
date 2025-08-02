@@ -47,12 +47,19 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
   }, [messages]);
 
   const handlePrivateMessage = (message) => {
+    console.log('Received private message:', message);
+    console.log('Current activeChat:', activeChat);
+    console.log('Current user ID:', user.id);
+
     // A private message is relevant if the active chat is private
     // and the message is either from me to the active user, or from the active user to me.
     if (activeChat?.type === 'private' &&
         ((message.from === user.id && message.to === activeChat.id) ||
          (message.from === activeChat.id && message.to === user.id))) {
+      console.log('Adding message to chat');
       setMessages(prev => [...prev, message]);
+    } else {
+      console.log('Message not relevant for current chat');
     }
   };
 
