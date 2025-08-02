@@ -22,9 +22,12 @@ type PostServiceInterface interface {
 	GetPosts(userID int64) ([]*models.Post, error)
 	UpdatePost(postID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Post, error)
 	CreateComment(comment *models.Comment, imageData []byte, imageMimeType string) (int64, error)
-	GetCommentsByPostID(postID int64) ([]*models.Comment, error)
+	GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error)
 	DeletePost(postID, userID int64) error
 	SearchUsers(query string, currentUserID int64) ([]*models.User, error)
+	UpdateComment(commentID, userID int64, content string, imageData []byte, imageMimeType string) (*models.Comment, error)
+	DeleteComment(commentID, userID int64) error
+	GetCommentByID(commentID int64) (*models.Comment, error)
 }
 
 type FollowServiceInterface interface {
@@ -33,6 +36,9 @@ type FollowServiceInterface interface {
 	CreateFollowForPrivateAccount(followrid, followeeid int64) (int64, error)
 	GetUserInfo(userID int64) (string, string, error)
 	AddtoNotification(follower_id int64, message string) error
+	GetFollowFollowingStat(userId int64) (int, int, error)
+	GetFollowersList(userid int64) (models.FollowListResponse, error)
+	GetFolloweesList(userid int64) (models.FollowListResponse, error)
 }
 
 type UnfollowServiceInterface interface {
@@ -43,6 +49,7 @@ type UnfollowServiceInterface interface {
 type FollowRequestServiceInterface interface {
 	AcceptedFollowConnection(followConnectionID int64) error
 	RejectedFollowConnection(followConnectionID int64) error
+	CancelFollowRequest(followConnectionID int64) error
 	RetrieveUserName(userID int64) (string, string, error)
 	GetRequestInfo(requestID int64) (int64, int64, error)
 	AddtoNotification(follower_id int64, message string) error

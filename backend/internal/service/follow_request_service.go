@@ -29,3 +29,7 @@ func (fr *FollowRequestService) GetRequestInfo(requestID int64) (int64, int64, e
 func (fr *FollowRequestService) AddtoNotification(follower_id int64, message string) error {
 	return fr.FollowRequestStore.AddtoNotification(follower_id, message)
 }
+
+func (fr *FollowRequestService) CancelFollowRequest(followConnectionID int64) error {
+	return fr.FollowRequestStore.FollowRequestCancel(followConnectionID)
+}

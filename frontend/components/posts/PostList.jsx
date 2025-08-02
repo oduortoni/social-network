@@ -4,6 +4,7 @@ import { fetchPosts, deletePost, updatePost } from '../../lib/auth';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
+import ReactionButtons from './ReactionButtons';
 
 const PostList = ({ refreshTrigger, user }) => {
   const [posts, setPosts] = useState([]);
@@ -21,10 +22,10 @@ const PostList = ({ refreshTrigger, user }) => {
   const loadPosts = async () => {
     setLoading(true);
     setError('');
-    
+
     try {
       const result = await fetchPosts();
-      
+
       if (result.success) {
         setPosts(result.data || []);
       } else {
@@ -71,7 +72,7 @@ const PostList = ({ refreshTrigger, user }) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
-    
+
     if (diffInSeconds < 60) {
       return 'Just now';
     } else if (diffInSeconds < 3600) {
@@ -201,7 +202,7 @@ const PostList = ({ refreshTrigger, user }) => {
     return (
       <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'rgba(var(--danger-color-rgb), 0.2)', border: '1px solid var(--warning-color)' }}>
         <div style={{ color: 'var(--warning-color)' }} className="text-center">{error}</div>
-        <button 
+        <button
           onClick={loadPosts}
           className="mt-2 w-full py-2 px-4 rounded-lg transition-colors"
           style={{ backgroundColor: 'var(--warning-color)', color: 'var(--primary-text)' }}
@@ -234,7 +235,7 @@ const PostList = ({ refreshTrigger, user }) => {
                 <img
                   src={post.author?.avatar && post.author.avatar !== "no profile photo" ? `http://localhost:9000/avatar?avatar=${post.author.avatar}` : "http://localhost:9000/avatar?avatar=user-profile-circle-svgrepo-com.svg"}
                   alt={post.author?.nickname || `${post.author?.first_name || ''} ${post.author?.last_name || ''}`.trim() || 'User'}
-                  className="w-10 h-10 rounded-full" 
+                  className="w-10 h-10 rounded-full"
                 />
                 <div className="absolute -bottom-1 -right-1">
                   <VerifiedBadge />
@@ -279,47 +280,54 @@ const PostList = ({ refreshTrigger, user }) => {
                   style={{ backgroundColor: 'var(--primary-background)', border: '1px solid var(--border-color)' }}
                 >
                   <div className="py-1">
-                    {/* Edit Option */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditPost(post);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
-                      style={{ color: 'var(--primary-text)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <Edit className="w-4 h-4" />
-                      Edit
-                    </button>
+                    {user && user.id === post.user_id ? (
+                      <>
+                        {/* Edit Option */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditPost(post);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
+                          style={{ color: 'var(--primary-text)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
 
-                    {/* Delete Option */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteConfirmation(post.id);
-                        setOpenDropdown(null); // Close dropdown when opening modal
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
-                      style={{ color: 'var(--warning-color)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-
-                    {/* Follow Option */}
-                    <button
-                      className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
-                      style={{ color: 'var(--primary-text)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      Follow
-                    </button>
+                        {/* Delete Option */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirmation(post.id);
+                            setOpenDropdown(null); // Close dropdown when opening modal
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
+                          style={{ color: 'var(--warning-color)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Follow Option */}
+                        <button
+                          onClick={() => handleFollowUser(post.user_id)}
+                          className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
+                          style={{ color: 'var(--primary-text)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          Follow
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -329,13 +337,13 @@ const PostList = ({ refreshTrigger, user }) => {
           {/* Post Content */}
           <div className="mb-4">
             <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere" style={{ color: 'var(--primary-text)' }}>{post.content}</p>
-            
+
             {/* Post Image */}
             {post.image && (
               <div className="mt-3">
-                <img 
+                <img
                   src={`http://localhost:9000/avatar?avatar=${post.image}`}
-                  alt="Post image" 
+                  alt="Post image"
                   className="max-w-full rounded-lg"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -348,18 +356,7 @@ const PostList = ({ refreshTrigger, user }) => {
           {/* Post Actions */}
           <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                <ThumbsUpIcon className="w-4 h-4" />
-                <span>Like</span>
-              </button>
-              <button className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors" style={{ color: 'var(--secondary-text)' }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                <ThumbsDownIcon className="w-4 h-4" />
-                <span>Dislike</span>
-              </button>
+              <ReactionButtons post={post} user={user} />
               <button
                 onClick={() => toggleComments(post.id)}
                 className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-colors"
@@ -386,6 +383,7 @@ const PostList = ({ refreshTrigger, user }) => {
               <CommentList
                 postId={post.id}
                 newComment={newComments[post.id]}
+                user={user}
               />
             </div>
           )}
