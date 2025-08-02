@@ -83,7 +83,6 @@ func (s *AuthStore) DeleteSession(sessionID string) error {
 
 // CreateUser creates a new user in the database
 func (s *AuthStore) CreateUser(user *models.User) (int64, error) {
-
 	stmt, err := s.DB.Prepare(`
 		INSERT INTO Users (email, password, first_name, last_name, date_of_birth, nickname, about_me, is_profile_public, avatar, created_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

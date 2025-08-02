@@ -124,7 +124,14 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	dateOfBirth := r.FormValue("dob")
 	nickname := r.FormValue("nickname")
 	aboutMe := r.FormValue("aboutMe")
-	profileVisibility := r.FormValue("profileVisibility")
+
+	// convert profileVisibility to boolean
+	profileVisibility := false
+	if r.FormValue("profileVisibility") == "public" {
+		profileVisibility = true
+	} else {
+		profileVisibility = false
+	}
 
 	// Sanitize user input to prevent XSS attacks
 	email = html.EscapeString(email)
@@ -157,9 +164,6 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Determine profile visibility - ensure proper boolean conversion
-	profilePublic := profileVisibility == "public"
-
 	// Create user model
 	user := &models.User{
 		Email:           email,
@@ -169,7 +173,7 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth:     &dateOfBirth,
 		Nickname:        &nickname,
 		AboutMe:         &aboutMe,
-		IsProfilePublic: profilePublic,
+		IsProfilePublic: profileVisibility,
 		Avatar:          &userAvatar,
 	}
 
