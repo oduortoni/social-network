@@ -91,6 +91,7 @@ func (m *Manager) ReadPump(c *Client) {
 		}
 
 		msg.Timestamp = time.Now().Unix()
+		msg.From = c.ID // Add sender's ID to the message
 		encoded, err := json.Marshal(msg)
 		if err != nil {
 			continue
@@ -103,7 +104,10 @@ func (m *Manager) ReadPump(c *Client) {
 
 		switch msg.Type {
 		case "private":
+			// Send to recipient
 			m.SendToUser(msg.To, encoded)
+			// Also send back to the sender
+			m.SendToUser(c.ID, encoded)
 		case "group":
 			m.BroadcastToGroup(c.ID, msg.GroupID, encoded)
 		case "broadcast":
