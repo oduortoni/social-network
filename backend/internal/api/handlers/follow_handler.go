@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
@@ -144,53 +143,4 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 
 	serverResponse.Message = "Follow request sent. You will be able to follow once approved."
 	utils.RespondJSON(w, status, serverResponse)
-}
-
-func (f *FollowHandler) FollowStats(w http.ResponseWriter, r *http.Request) {
-	userIdstr := r.PathValue("userid")
-	userId, err := strconv.ParseInt(userIdstr, 10, 64)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid User Id"})
-		return
-	}
-	followers, following, err := f.FollowService.GetFollowFollowingStat(userId)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
-		return
-	}
-	var followfollowingstat models.FollowFollowingStat
-	followfollowingstat.NumberOfFollowers = followers
-	followfollowingstat.NumberOfFollowing = following
-
-	utils.RespondJSON(w, http.StatusOK, followfollowingstat)
-}
-
-func (f *FollowHandler) GetFollowers(w http.ResponseWriter, r *http.Request) {
-	userIdstr := r.PathValue("userid")
-	userId, err := strconv.ParseInt(userIdstr, 10, 64)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid User Id"})
-		return
-	}
-	followers, err := f.FollowService.GetFollowersList(userId)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
-		return
-	}
-	utils.RespondJSON(w, http.StatusOK, followers)
-}
-
-func (f *FollowHandler) GetFollowees(w http.ResponseWriter, r *http.Request) {
-	userIdstr := r.PathValue("userid")
-	userId, err := strconv.ParseInt(userIdstr, 10, 64)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid User Id"})
-		return
-	}
-	followers, err := f.FollowService.GetFolloweesList(userId)
-	if err != nil {
-		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
-		return
-	}
-	utils.RespondJSON(w, http.StatusOK, followers)
 }

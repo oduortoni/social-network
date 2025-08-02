@@ -264,8 +264,8 @@ func TestCreatePost(t *testing.T) {
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
 		fw, err := w.CreatePart(map[string][]string{
-			"Content-Disposition": []string{fmt.Sprintf(`form-data; name="%s"; filename="%s"`, "image", "test_image.jpeg")},
-			"Content-Type":        []string{"image/jpeg"},
+			"Content-Disposition": {fmt.Sprintf(`form-data; name="%s"; filename="%s"`, "image", "test_image.jpeg")},
+			"Content-Type":        {"image/jpeg"},
 		})
 		if err != nil {
 			t.Fatal(err)

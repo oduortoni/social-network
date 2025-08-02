@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"testing"
 	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
+	"testing"
 )
 
 func TestManagerRegisterUnregister(t *testing.T) {

@@ -1,6 +1,5 @@
 package websocket
 
-
 import (
 	"encoding/json"
 	"log"

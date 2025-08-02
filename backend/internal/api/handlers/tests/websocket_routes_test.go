@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
-	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 )
 
 func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
@@ -124,7 +124,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
 
 	// Create test server with routes
 	mux := http.NewServeMux()
-	
+
 	// WebSocket endpoint
 	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		// Add test session cookie for authentication
@@ -134,7 +134,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
 		}
 		handlers.NewWebSocketHandler(manager).HandleConnection(w, r)
 	})
-	
+
 	// HTTP API endpoints
 	mux.HandleFunc("/api/messages/private", chatHandler.GetPrivateMessages)
 	mux.HandleFunc("/api/messages/group", chatHandler.GetGroupMessages)
@@ -152,7 +152,7 @@ func TestWebSocketEndpoint(t *testing.T) {
 
 	// Test 1: Unauthorized access
 	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
-	
+
 	dialer := websocket.Dialer{HandshakeTimeout: 5 * time.Second}
 	_, _, err := dialer.Dial(wsURL, nil)
 	if err == nil {
@@ -162,7 +162,7 @@ func TestWebSocketEndpoint(t *testing.T) {
 	// Test 2: Authorized access
 	headers := http.Header{}
 	headers.Set("Cookie", "session_id=test-session-1")
-	
+
 	conn, _, err := dialer.Dial(wsURL, headers)
 	if err != nil {
 		t.Fatalf("Failed to connect with valid session: %v", err)
@@ -175,7 +175,7 @@ func TestWebSocketEndpoint(t *testing.T) {
 		To:      2,
 		Content: "Hello from user 1!",
 	}
-	
+
 	if err := conn.WriteJSON(privateMsg); err != nil {
 		t.Fatalf("Failed to send private message: %v", err)
 	}
@@ -186,7 +186,7 @@ func TestWebSocketEndpoint(t *testing.T) {
 		GroupID: "1",
 		Content: "Hello group!",
 	}
-	
+
 	if err := conn.WriteJSON(groupMsg); err != nil {
 		t.Fatalf("Failed to send group message: %v", err)
 	}
@@ -196,14 +196,14 @@ func TestWebSocketEndpoint(t *testing.T) {
 		Type:    "broadcast",
 		Content: "Hello everyone!",
 	}
-	
+
 	if err := conn.WriteJSON(broadcastMsg); err != nil {
 		t.Fatalf("Failed to send broadcast message: %v", err)
 	}
 
 	// Give time for message processing
 	time.Sleep(100 * time.Millisecond)
-	
+
 	t.Log("WebSocket endpoint tests passed!")
 }
 
@@ -229,13 +229,13 @@ func TestHTTPAPIEndpoints(t *testing.T) {
 	// Test 1: Get private messages
 	req, _ := http.NewRequest("GET", server.URL+"/api/messages/private?user=2&limit=10", nil)
 	req.Header.Set("Cookie", "session_id=test-session-1")
-	
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("Failed to get private messages: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
 	}
@@ -243,13 +243,13 @@ func TestHTTPAPIEndpoints(t *testing.T) {
 	// Test 2: Get group messages
 	req, _ = http.NewRequest("GET", server.URL+"/api/messages/group?group=1&limit=10", nil)
 	req.Header.Set("Cookie", "session_id=test-session-1")
-	
+
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("Failed to get group messages: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
 	}
@@ -261,17 +261,17 @@ func TestHTTPAPIEndpoints(t *testing.T) {
 		"group_name": "Test Group",
 	}
 	jsonData, _ := json.Marshal(inviteData)
-	
+
 	req, _ = http.NewRequest("POST", server.URL+"/api/groups/invite", bytes.NewBuffer(jsonData))
 	req.Header.Set("Cookie", "session_id=test-session-1")
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("Failed to send group invite: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusCreated {
 		t.Errorf("Expected status 201, got %d", resp.StatusCode)
 	}
@@ -279,13 +279,13 @@ func TestHTTPAPIEndpoints(t *testing.T) {
 	// Test 4: Get notifications
 	req, _ = http.NewRequest("GET", server.URL+"/api/notifications?limit=10", nil)
 	req.Header.Set("Cookie", "session_id=test-session-1")
-	
+
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("Failed to get notifications: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
 	}
@@ -301,7 +301,7 @@ func TestMessagePersistence(t *testing.T) {
 	// Connect two clients
 	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
 	dialer := websocket.Dialer{HandshakeTimeout: 5 * time.Second}
-	
+
 	headers1 := http.Header{}
 	headers1.Set("Cookie", "session_id=test-session-1")
 	conn1, _, err := dialer.Dial(wsURL, headers1)
@@ -332,7 +332,7 @@ func TestMessagePersistence(t *testing.T) {
 		To:      2,
 		Content: "Test persistence message",
 	}
-	
+
 	if err := conn1.WriteJSON(privateMsg); err != nil {
 		t.Fatalf("Failed to send message: %v", err)
 	}
@@ -342,12 +342,12 @@ func TestMessagePersistence(t *testing.T) {
 
 	// Verify message was persisted
 	var count int
-	err = db.QueryRow("SELECT COUNT(*) FROM Messages WHERE sender_id = 1 AND receiver_id = 2 AND content = ?", 
+	err = db.QueryRow("SELECT COUNT(*) FROM Messages WHERE sender_id = 1 AND receiver_id = 2 AND content = ?",
 		"Test persistence message").Scan(&count)
 	if err != nil {
 		t.Fatalf("Failed to query messages: %v", err)
 	}
-	
+
 	if count != 1 {
 		t.Errorf("Expected 1 persisted message, got %d", count)
 	}
