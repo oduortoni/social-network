@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -16,14 +17,16 @@ type Manager struct {
 	Resolver   SessionResolver
 	groupQuery GroupMemberFetcher
 	persister  MessagePersister
+	DB         *sql.DB
 }
 
-func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister) *Manager {
+func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister, db *sql.DB) *Manager {
 	return &Manager{
 		clients:    make(map[int64]*Client),
 		Resolver:   resolver,
 		groupQuery: groupFetcher,
 		persister:  persister,
+		DB:         db,
 	}
 }
 
@@ -59,8 +62,8 @@ func (m *Manager) Unregister(id int64) {
 			"type":      "notification",
 			"subtype":   "user_disconnected",
 			"user_id":   id,
-			"nickname": client.Nickname,
-			"avatar":   client.Avatar,
+			"nickname":  client.Nickname,
+			"avatar":    client.Avatar,
 			"message":   client.Nickname + " went offline",
 			"timestamp": time.Now().Unix(),
 		}
@@ -97,23 +100,64 @@ func (m *Manager) ReadPump(c *Client) {
 			continue
 		}
 
-		// Save to DB if persister is configured
-		if m.persister != nil {
-			_ = m.persister.SaveMessage(c.ID, msg)
-		}
-
 		switch msg.Type {
 		case "private":
-			// Send to recipient
-			m.SendToUser(msg.To, encoded)
-			// Also send back to the sender
-			m.SendToUser(c.ID, encoded)
+			// Requirement #2 & #4: Validate if users are allowed to chat
+			allowed, err := m.canUsersChat(c.ID, msg.To)
+			if err != nil {
+				log.Printf("Error checking chat permissions for user %d to %d: %v", c.ID, msg.To, err)
+				continue // Silently drop on error
+			}
+
+			if allowed {
+				// Requirement #3: Save to DB if persister is configured
+				if m.persister != nil {
+					_ = m.persister.SaveMessage(c.ID, msg)
+				}
+				// Requirement #3: Forward to recipient and sender
+				m.SendToUser(msg.To, encoded)
+				m.SendToUser(c.ID, encoded)
+			} else {
+				// Requirement #4: Return error response for unauthorized message
+				errorMsg, _ := json.Marshal(Message{
+					Type:      "error",
+					Content:   "You are not permitted to message this user.",
+					Timestamp: time.Now().Unix(),
+				})
+				m.SendToUser(c.ID, errorMsg)
+			}
 		case "group":
 			m.BroadcastToGroup(c.ID, msg.GroupID, encoded)
 		case "broadcast":
 			m.BroadcastToAll(encoded)
 		}
 	}
+}
+
+func (m *Manager) canUsersChat(userA, userB int64) (bool, error) {
+	// 1. check that two users have a mutual following
+	var count int
+	err := m.DB.QueryRow(`
+		SELECT COUNT(*) FROM Followers
+		WHERE (follower_id = ? AND followee_id = ? AND status = 'accepted')
+		   OR (follower_id = ? AND followee_id = ? AND status = 'accepted')
+	`, userA, userB, userB, userA).Scan(&count)
+
+	if err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	if count == 2 { // mutually follow each other
+		return true, nil
+	}
+
+	// 2. does the receiver has a public profile
+	var isPublic bool
+	err = m.DB.QueryRow(`SELECT isprofilepublic FROM Users WHERE id = ?`, userB).Scan(&isPublic)
+	if err != nil {
+		return false, err
+	}
+
+	return isPublic, nil
 }
 
 func (m *Manager) WritePump(c *Client) {
@@ -250,7 +294,7 @@ func (m *Manager) GetOnlineUsers() []map[string]interface{} {
 	for _, client := range m.clients {
 		users = append(users, map[string]interface{}{
 			"user_id":   client.ID,
-			"nickname": client.Nickname,
+			"nickname":  client.Nickname,
 			"connected": client.Connected.Unix(),
 			"avatar":    client.Avatar,
 		})

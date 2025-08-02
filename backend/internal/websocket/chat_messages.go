@@ -27,6 +27,34 @@ func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessag
 	}
 }
 
+// canUsersChat checks if userA is allowed to communicate with userB.
+// This is true if they are mutual followers or if userB's profile is public.
+func (h *ChatHandler) CanUsersChat(userA, userB int64) (bool, error) {
+	// 1. Check for mutual follow
+	var count int
+	err := h.DB.QueryRow(`
+		SELECT COUNT(*) FROM Followers
+		WHERE (follower_id = ? AND followee_id = ? AND status = 'accepted')
+		   OR (follower_id = ? AND followee_id = ? AND status = 'accepted')
+	`, userA, userB, userB, userA).Scan(&count)
+
+	if err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	if count == 2 { // They mutually follow each other
+		return true, nil
+	}
+
+	// 2. Check if receiver has a public profile
+	var isPublic bool
+	err = h.DB.QueryRow(`SELECT isprofilepublic FROM Users WHERE id = ?`, userB).Scan(&isPublic)
+	if err != nil {
+		return false, err
+	}
+
+	return isPublic, nil
+}
+
 // GET /api/messages/private?user=123&limit=50&offset=0
 func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request) {
 	userID, _, _, err := h.Resolver.GetUserFromRequest(r)
@@ -38,6 +66,17 @@ func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request)
 	targetID, err := strconv.ParseInt(r.URL.Query().Get("user"), 10, 64)
 	if err != nil || targetID <= 0 {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	// Requirement #2 & #4: Validate that the users are allowed to chat
+	allowed, err := h.CanUsersChat(userID, targetID)
+	if err != nil {
+		http.Error(w, "Could not verify relationship", http.StatusInternalServerError)
+		return
+	}
+	if !allowed {
+		http.Error(w, "You are not permitted to view messages with this user", http.StatusForbidden)
 		return
 	}
 

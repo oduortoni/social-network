@@ -71,6 +71,16 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
 			description TEXT,
 			creator_id INTEGER
 		);
+		CREATE TABLE Followers (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			follower_id INTEGER NOT NULL,
+			followee_id INTEGER NOT NULL,
+			status TEXT CHECK(status IN ('pending', 'accepted', 'rejected')) DEFAULT 'pending',
+			requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			accepted_at DATETIME,
+			FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+			FOREIGN KEY (followee_id) REFERENCES users(id) ON DELETE CASCADE
+		);
 	`)
 	if err != nil {
 		t.Fatalf("Failed to create test tables: %v", err)
@@ -91,6 +101,9 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
 
 		INSERT INTO Group_Members (user_id, group_id, is_accepted) VALUES
 		(1, 1, 1), (2, 1, 1);
+
+		INSERT INTO Followers (follower_id, followee_id, status) VALUES
+		(1, 2, 'accepted'), (2, 1, 'accepted');
 	`)
 	if err != nil {
 		t.Fatalf("Failed to insert test data: %v", err)
@@ -101,6 +114,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB, *ws.Manager) {
 		ws.NewDBSessionResolver(db),
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
+		db,
 	)
 
 	// Create chat handler

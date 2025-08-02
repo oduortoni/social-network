@@ -20,6 +20,7 @@ func NewRouter(db *sql.DB) http.Handler {
 		ws.NewDBSessionResolver(db),
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
+		db,
 	)
 
 	mux.Handle("GET /ws", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewWebSocketHandler(wsManager).HandleConnection)))

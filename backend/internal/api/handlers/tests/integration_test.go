@@ -77,6 +77,7 @@ func TestWebSocketConnection(t *testing.T) {
 		ws.NewDBSessionResolver(db),
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
+		db,
 	)
 
 	// Create test server with session cookie
