@@ -47,19 +47,27 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
   }, [messages]);
 
   const handlePrivateMessage = (message) => {
-    console.log('Received private message:', message);
-    console.log('Current activeChat:', activeChat);
-    console.log('Current user ID:', user.id);
-
     // A private message is relevant if the active chat is private
     // and the message is either from me to the active user, or from the active user to me.
     if (activeChat?.type === 'private' &&
         ((message.from === user.id && message.to === activeChat.id) ||
          (message.from === activeChat.id && message.to === user.id))) {
-      console.log('Adding message to chat');
-      setMessages(prev => [...prev, message]);
-    } else {
-      console.log('Message not relevant for current chat');
+
+      // Remove any optimistic message with the same content and timestamp (within 2 seconds)
+      setMessages(prev => {
+        const filteredMessages = prev.filter(msg => {
+          if (msg.isOptimistic &&
+              msg.content === message.content &&
+              msg.from === message.from &&
+              Math.abs(msg.timestamp - message.timestamp) < 2) {
+            return false; // Remove optimistic message
+          }
+          return true;
+        });
+
+        // Add the real message
+        return [...filteredMessages, message];
+      });
     }
   };
 
@@ -121,6 +129,21 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
       return;
     }
 
+    // Create optimistic message for immediate UI update
+    const optimisticMessage = {
+      from: user.id,
+      to: activeChat.type === 'private' ? activeChat.id : null,
+      group_id: activeChat.type === 'group' ? activeChat.id : null,
+      content: newMessage,
+      timestamp: Date.now() / 1000, // Convert to seconds to match backend
+      type: activeChat.type,
+      isOptimistic: true // Flag to identify optimistic messages
+    };
+
+    // Immediately add message to UI (optimistic update)
+    setMessages(prev => [...prev, optimisticMessage]);
+
+    // Send message via WebSocket
     if (activeChat.type === 'private') {
       wsService.sendMessage('private', newMessage, activeChat.id);
     } else if (activeChat.type === 'group') {
@@ -232,17 +255,19 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
               {messages.map((message, index) => {
                 const isSender = message.from === user.id;
                 const isBroadcast = message.isBroadcast;
+                const isOptimistic = message.isOptimistic;
                 return (
                   <div
                     key={`${message.timestamp}-${message.from}-${index}`}
-                    className={`flex mb-4 ${isSender ? 'justify-end' : 'justify-start'} ${isBroadcast ? 'justify-center' : ''}`}
+                    className={`flex mb-4 ${isSender ? 'justify-end' : 'justify-start'} ${isBroadcast ? 'justify-center' : ''} ${isOptimistic ? 'opacity-70' : ''}`}
                   >
                     {!isSender && !isBroadcast && <div className="w-8 h-8 rounded-full bg-gray-300 mr-3"></div> /* Avatar placeholder */}
                     <div className={isBroadcast ? 'text-center text-blue-600' : ''}>
                       <div className={`text-xs mb-1 ${isSender ? 'text-right' : 'text-left'} text-gray-500`}>
                         {new Date(message.timestamp * 1000).toLocaleTimeString()}
+                        {isOptimistic && <span className="ml-1 text-yellow-500">⏳</span>}
                       </div>
-                      <div className={`p-3 rounded-lg ${isSender ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+                      <div className={`p-3 rounded-lg ${isSender ? 'bg-blue-500 text-white' : 'bg-gray-200'} ${isOptimistic ? 'border-2 border-dashed border-yellow-400' : ''}`}>
                         {message.content}
                       </div>
                     </div>
