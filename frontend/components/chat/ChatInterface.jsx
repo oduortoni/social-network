@@ -6,7 +6,7 @@ import { chatAPI } from '../../lib/api';
 import { notificationService } from '../../lib/notificationService';
 import Picker from 'emoji-picker-react';
 
-const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = null }) => {
+const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = null, showSidebar = true }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [activeChat, setActiveChat] = useState(null); // { type: 'private', id: userId } or { type: 'group', id: groupId }
@@ -155,50 +155,71 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
   };
 
   return (
-    <div className="flex h-96 bg-white rounded-lg shadow-lg">
-      {/* Chat Sidebar */}
-      <div className="w-1/3 border-r border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Chats</h3>
-          <div className={`w-3 h-3 rounded-full ${
-            connectionStatus === 'connected' ? 'bg-green-500' :
-            connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
-          }`} title={`WebSocket ${connectionStatus}`}></div>
-        </div>
-        
-        {/* Private Chats */}
-        <div className="mb-4">
-          <h4 className="text-sm text-gray-600 mb-2">Private Messages</h4>
-          {messageableUsers.map((chatUser) => (
+    <div className={`flex h-96 bg-white rounded-lg shadow-lg ${!showSidebar ? 'h-[500px]' : ''}`}>
+      {/* Chat Sidebar - Only show if showSidebar is true */}
+      {showSidebar && (
+        <div className="w-1/3 border-r border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Chats</h3>
+            <div className={`w-3 h-3 rounded-full ${
+              connectionStatus === 'connected' ? 'bg-green-500' :
+              connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
+            }`} title={`WebSocket ${connectionStatus}`}></div>
+          </div>
+
+          {/* Private Chats */}
+          <div className="mb-4">
+            <h4 className="text-sm text-gray-600 mb-2">Private Messages</h4>
+            {messageableUsers.map((chatUser) => (
+              <button
+                key={chatUser.id}
+                onClick={() => loadChatHistory('private', chatUser.id)}
+                className="w-full text-left p-2 hover:bg-gray-100 rounded flex items-center justify-between"
+              >
+                <span>{chatUser.nickname}</span>
+                <div className={`w-2 h-2 rounded-full ${
+                  onlineUsers.has(chatUser.id) ? 'bg-green-500' : 'bg-gray-300'
+                }`} title={onlineUsers.has(chatUser.id) ? 'Online' : 'Offline'}></div>
+              </button>
+            ))}
+          </div>
+
+          {/* Group Chats */}
+          <div>
+            <h4 className="text-sm text-gray-600 mb-2">Groups</h4>
             <button
-              key={chatUser.id}
-              onClick={() => loadChatHistory('private', chatUser.id)}
-              className="w-full text-left p-2 hover:bg-gray-100 rounded flex items-center justify-between"
+              onClick={() => loadChatHistory('group', 1)} // Example group ID
+              className="w-full text-left p-2 hover:bg-gray-100 rounded"
             >
-              <span>{chatUser.nickname}</span>
-              <div className={`w-2 h-2 rounded-full ${
-                onlineUsers.has(chatUser.id) ? 'bg-green-500' : 'bg-gray-300'
-              }`} title={onlineUsers.has(chatUser.id) ? 'Online' : 'Offline'}></div>
+              Test Group
             </button>
-          ))}
+          </div>
         </div>
-        
-        {/* Group Chats */}
-        <div>
-          <h4 className="text-sm text-gray-600 mb-2">Groups</h4>
-          <button
-            onClick={() => loadChatHistory('group', 1)} // Example group ID
-            className="w-full text-left p-2 hover:bg-gray-100 rounded"
-          >
-            Test Group
-          </button>
-        </div>
-      </div>
-      
+      )}
+
       {/* Chat Messages */}
-      <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex flex-col ${!showSidebar ? 'w-full' : ''}`}>
         {activeChat ? (
           <>
+            {/* Chat Header - Only show when no sidebar */}
+            {!showSidebar && (
+              <div className="border-b border-gray-200 p-3 bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                    {initialChat?.nickname?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {initialChat?.nickname || 'User'}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {connectionStatus === 'connected' ? 'Online' : 'Offline'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Messages Area */}
             <div className="flex-1 p-4 overflow-y-auto">
               {messages.map((message, index) => {
@@ -281,7 +302,7 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
-            Select a chat to start messaging
+            {showSidebar ? 'Select a chat to start messaging' : 'Loading chat...'}
           </div>
         )}
       </div>

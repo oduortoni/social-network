@@ -130,10 +130,11 @@ const ChatPage = ({ user }) => {
 
         {/* Chat Interface */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <ChatInterface 
-            user={user} 
+          <ChatInterface
+            user={user}
             connectionStatus={connectionStatus}
             initialChat={{ type: 'private', id: targetUser.id, nickname: targetUser.nickname }}
+            showSidebar={false}
           />
         </div>
 
