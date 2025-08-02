@@ -11,20 +11,20 @@ import (
 )
 
 type Manager struct {
-	clients    map[int64]*Client
-	mu         sync.RWMutex
-	Resolver   SessionResolver
-	groupQuery GroupMemberFetcher
-	persister  MessagePersister
+	clients           map[int64]*Client
+	mu                sync.RWMutex
+	Resolver          SessionResolver
+	groupQuery        GroupMemberFetcher
+	persister         MessagePersister
 	PermissionChecker PermissionChecker
 }
 
 func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister, permissionChecker PermissionChecker) *Manager {
 	return &Manager{
-		clients:    make(map[int64]*Client),
-		Resolver:   resolver,
-		groupQuery: groupFetcher,
-		persister:  persister,
+		clients:           make(map[int64]*Client),
+		Resolver:          resolver,
+		groupQuery:        groupFetcher,
+		persister:         persister,
 		PermissionChecker: permissionChecker,
 	}
 }
@@ -101,22 +101,31 @@ func (m *Manager) ReadPump(c *Client) {
 
 		switch msg.Type {
 		case "private":
+			log.Printf("MSG: Received private message from user %d to user %d: %s", c.ID, msg.To, msg.Content)
+
 			// Requirement #2 & #4: Validate if users are allowed to chat
 			allowed, err := m.PermissionChecker.CanUsersChat(c.ID, msg.To)
 			if err != nil {
-				log.Printf("Error checking chat permissions for user %d to %d: %v", c.ID, msg.To, err)
+				log.Printf("MSG: Error checking chat permissions for user %d to %d: %v", c.ID, msg.To, err)
 				continue // Silently drop on error
 			}
 
 			if allowed {
+				log.Printf("MSG: Users %d and %d are allowed to chat", c.ID, msg.To)
+
 				// Requirement #3: Save to DB if persister is configured
 				if m.persister != nil {
 					_ = m.persister.SaveMessage(c.ID, msg)
+					log.Printf("MSG: Message saved to database")
 				}
+
 				// Requirement #3: Forward to recipient and sender
+				log.Printf("MSG: Sending message to recipient %d and sender %d", msg.To, c.ID)
 				m.SendToUser(msg.To, encoded)
 				m.SendToUser(c.ID, encoded)
 			} else {
+				log.Printf("MSG: Users %d and %d are NOT allowed to chat", c.ID, msg.To)
+
 				// Requirement #4: Return error response for unauthorized message
 				errorMsg, _ := json.Marshal(Message{
 					Type:      "error",

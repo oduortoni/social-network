@@ -117,7 +117,32 @@ class WebSocketService {
     if (!this.messageHandlers.has(type)) {
       this.messageHandlers.set(type, []);
     }
-    this.messageHandlers.get(type).push(handler);
+
+    // Prevent duplicate handlers
+    const handlers = this.messageHandlers.get(type);
+    if (!handlers.includes(handler)) {
+      handlers.push(handler);
+    }
+  }
+
+  removeHandler(type, handler) {
+    if (this.messageHandlers.has(type)) {
+      const handlers = this.messageHandlers.get(type);
+      const index = handlers.indexOf(handler);
+      if (index > -1) {
+        handlers.splice(index, 1);
+      }
+    }
+  }
+
+  clearHandlers(type) {
+    if (this.messageHandlers.has(type)) {
+      this.messageHandlers.set(type, []);
+    }
+  }
+
+  clearAllHandlers() {
+    this.messageHandlers.clear();
   }
 
   removeMessageHandler(type, handler) {

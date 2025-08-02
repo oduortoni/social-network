@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { wsService } from '../../lib/websocket';
 import { chatAPI } from '../../lib/api';
 import { notificationService } from '../../lib/notificationService';
@@ -9,12 +9,93 @@ import Picker from 'emoji-picker-react';
 const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = null, showSidebar = true }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [activeChat, setActiveChat] = useState(null); // { type: 'private', id: userId } or { type: 'group', id: groupId }
+  // { type: 'private', id: userId } or { type: 'group', id: groupId }
+  const [activeChat, setActiveChat] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [messageableUsers, setMessageableUsers] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
+  const activeChatRef = useRef(activeChat);
+  const userRef = useRef(user);
 
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+    userRef.current = user;
+  }, [activeChat, user]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handlePrivateMessage = useCallback((message) => {
+    console.log('Received private message:', message);
+
+    // Use refs to get current values and avoid stale closures
+    const currentActiveChat = activeChatRef.current;
+    const currentUser = userRef.current;
+
+    console.log('Current activeChat:', currentActiveChat);
+    console.log('Message from:', message.from, 'to:', message.to);
+    console.log('User ID:', currentUser.id);
+
+    // A private message is relevant if the active chat is private
+    // and the message is either from me to the active user, or from the active user to me.
+    if (currentActiveChat?.type === 'private' &&
+        ((message.from === currentUser.id && message.to === currentActiveChat.id) ||
+         (message.from === currentActiveChat.id && message.to === currentUser.id))) {
+
+      console.log('Message is relevant, adding to chat');
+
+      // remove any optimistic message with the same content and timestamp (within 2 seconds)
+      setMessages(prev => {
+        const filteredMessages = prev.filter(msg => {
+          if (msg.isOptimistic &&
+              msg.content === message.content &&
+              msg.from === message.from &&
+              Math.abs(msg.timestamp - message.timestamp) < 2) {
+            console.log('Removing optimistic message');
+            return false; // Remove optimistic message
+          }
+          return true;
+        });
+
+        return [...filteredMessages, message];
+      });
+    } else {
+      console.log('Message not relevant for current chat');
+    }
+  }, []);
+
+  const handleGroupMessage = useCallback((message) => {
+    const currentActiveChat = activeChatRef.current;
+    if (currentActiveChat?.type === 'group' && message.group_id === currentActiveChat.id) {
+      setMessages(prev => [...prev, message]);
+    }
+  }, []);
+
+  const handleBroadcastMessage = useCallback((message) => {
+    // Show broadcast messages in all chats
+    setMessages(prev => [...prev, { ...message, isBroadcast: true }]);
+  }, []);
+
+  const handleNotification = useCallback((notification) => {
+    // Pass notification to notification service for processing
+    notificationService.handleNotification(notification);
+  }, []);
+
+  const handleUserConnected = useCallback((notification) => {
+    setOnlineUsers(prev => new Set([...prev, notification.user_id]));
+  }, []);
+
+  const handleUserDisconnected = useCallback((notification) => {
+    setOnlineUsers(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(notification.user_id);
+      return newSet;
+    });
+  }, []);
+
+  // Set up WebSocket handlers after all handlers are defined
   useEffect(() => {
     // Set up message handlers only (connection is managed by parent)
     wsService.onMessage('private', handlePrivateMessage);
@@ -36,70 +117,17 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
     }
 
     return () => {
+      // Clean up WebSocket message handlers
+      wsService.removeHandler('private', handlePrivateMessage);
+      wsService.removeHandler('group', handleGroupMessage);
+      wsService.removeHandler('broadcast', handleBroadcastMessage);
+      wsService.removeHandler('notification', handleNotification);
+
       // Clean up notification handlers
       notificationService.removeHandler('user_connected', handleUserConnected);
       notificationService.removeHandler('user_disconnected', handleUserDisconnected);
     };
-  }, [initialChat]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handlePrivateMessage = (message) => {
-    // A private message is relevant if the active chat is private
-    // and the message is either from me to the active user, or from the active user to me.
-    if (activeChat?.type === 'private' &&
-        ((message.from === user.id && message.to === activeChat.id) ||
-         (message.from === activeChat.id && message.to === user.id))) {
-
-      // Remove any optimistic message with the same content and timestamp (within 2 seconds)
-      setMessages(prev => {
-        const filteredMessages = prev.filter(msg => {
-          if (msg.isOptimistic &&
-              msg.content === message.content &&
-              msg.from === message.from &&
-              Math.abs(msg.timestamp - message.timestamp) < 2) {
-            return false; // Remove optimistic message
-          }
-          return true;
-        });
-
-        // Add the real message
-        return [...filteredMessages, message];
-      });
-    }
-  };
-
-  const handleGroupMessage = (message) => {
-    if (activeChat?.type === 'group' && message.group_id === activeChat.id) {
-      setMessages(prev => [...prev, message]);
-    }
-  };
-
-  const handleBroadcastMessage = (message) => {
-    // Show broadcast messages in all chats
-    setMessages(prev => [...prev, { ...message, isBroadcast: true }]);
-  };
-
-  const handleNotification = (notification) => {
-    // Pass notification to notification service for processing
-    notificationService.handleNotification(notification);
-  };
-
-  const handleUserConnected = (notification) => {
-    setOnlineUsers(prev => new Set([...prev, notification.user_id]));
-    console.log(`${notification.nickname} connected`);
-  };
-
-  const handleUserDisconnected = (notification) => {
-    setOnlineUsers(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(notification.user_id);
-      return newSet;
-    });
-    console.log(`${notification.nickname} disconnected`);
-  };
+  }, [initialChat, handlePrivateMessage, handleGroupMessage, handleBroadcastMessage, handleNotification, handleUserConnected, handleUserDisconnected]);
 
   const loadOnlineUsers = async () => {
     try {
