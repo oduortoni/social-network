@@ -40,6 +40,10 @@ export const chatAPI = {
   // Mark notifications as read
   markNotificationsRead: () =>
     apiCall('/api/notifications/read', { method: 'POST' }),
+  
+  // Get users the current user can message
+  getMessageableUsers: () =>
+    apiCall('/api/users/messageable'),
 };
 
 

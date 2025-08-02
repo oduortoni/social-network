@@ -10,6 +10,7 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
   const [newMessage, setNewMessage] = useState('');
   const [activeChat, setActiveChat] = useState(null); // { type: 'private', id: userId } or { type: 'group', id: groupId }
   const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [messageableUsers, setMessageableUsers] = useState([]);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
 
     // Load initial online users
     loadOnlineUsers();
+    loadMessageableUsers();
 
     return () => {
       // Clean up notification handlers
@@ -38,8 +40,11 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
   }, [messages]);
 
   const handlePrivateMessage = (message) => {
-    if (activeChat?.type === 'private' && 
-        (message.to === user.id || message.from === activeChat.id)) {
+    // A private message is relevant if the active chat is private
+    // and the message is either from me to the active user, or from the active user to me.
+    if (activeChat?.type === 'private' &&
+        ((message.from === user.id && message.to === activeChat.id) ||
+         (message.from === activeChat.id && message.to === user.id))) {
       setMessages(prev => [...prev, message]);
     }
   };
@@ -84,6 +89,15 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
     }
   };
 
+  const loadMessageableUsers = async () => {
+    try {
+      const users = await chatAPI.getMessageableUsers();
+      setMessageableUsers(users || []);
+    } catch (error) {
+      console.error('Failed to load messageable users:', error);
+    }
+  };
+
   const sendMessage = () => {
     if (!newMessage.trim() || !activeChat) return;
 
@@ -100,6 +114,11 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
     }
 
     setNewMessage('');
+  };
+
+  const onEmojiClick = (emojiObject) => {
+    setNewMessage(prevInput => prevInput + emojiObject.emoji);
+    setShowEmojiPicker(false);
   };
 
   const loadChatHistory = async (chatType, chatId) => {
@@ -136,15 +155,18 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
         {/* Private Chats */}
         <div className="mb-4">
           <h4 className="text-sm text-gray-600 mb-2">Private Messages</h4>
-          <button
-            onClick={() => loadChatHistory('private', 1)} // Example user ID
-            className="w-full text-left p-2 hover:bg-gray-100 rounded flex items-center justify-between"
-          >
-            <span>User 1</span>
-            <div className={`w-2 h-2 rounded-full ${
-              onlineUsers.has(1) ? 'bg-green-500' : 'bg-gray-300'
-            }`} title={onlineUsers.has(1) ? 'Online' : 'Offline'}></div>
-          </button>
+          {messageableUsers.map((chatUser) => (
+            <button
+              key={chatUser.id}
+              onClick={() => loadChatHistory('private', chatUser.id)}
+              className="w-full text-left p-2 hover:bg-gray-100 rounded flex items-center justify-between"
+            >
+              <span>{chatUser.nickname}</span>
+              <div className={`w-2 h-2 rounded-full ${
+                onlineUsers.has(chatUser.id) ? 'bg-green-500' : 'bg-gray-300'
+              }`} title={onlineUsers.has(chatUser.id) ? 'Online' : 'Offline'}></div>
+            </button>
+          ))}
         </div>
         
         {/* Group Chats */}
@@ -165,21 +187,26 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
           <>
             {/* Messages Area */}
             <div className="flex-1 p-4 overflow-y-auto">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`mb-2 ${
-                    message.isBroadcast ? 'text-center text-blue-600' : ''
-                  }`}
-                >
-                  <div className="text-sm text-gray-500">
-                    {new Date(message.timestamp * 1000).toLocaleTimeString()}
+              {messages.map((message, index) => {
+                const isSender = message.from === user.id;
+                const isBroadcast = message.isBroadcast;
+                return (
+                  <div
+                    key={`${message.timestamp}-${message.from}-${index}`}
+                    className={`flex mb-4 ${isSender ? 'justify-end' : 'justify-start'} ${isBroadcast ? 'justify-center' : ''}`}
+                  >
+                    {!isSender && !isBroadcast && <div className="w-8 h-8 rounded-full bg-gray-300 mr-3"></div> /* Avatar placeholder */}
+                    <div className={isBroadcast ? 'text-center text-blue-600' : ''}>
+                      <div className={`text-xs mb-1 ${isSender ? 'text-right' : 'text-left'} text-gray-500`}>
+                        {new Date(message.timestamp * 1000).toLocaleTimeString()}
+                      </div>
+                      <div className={`p-3 rounded-lg ${isSender ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+                        {message.content}
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-gray-100 p-2 rounded">
-                    {message.content}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
             
@@ -194,18 +221,28 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
                   </span>
                 </div>
               )}
-              <div className="flex">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder={connectionStatus === 'connected' ? "Type a message..." : "Waiting for connection..."}
-                  disabled={connectionStatus !== 'connected'}
-                  className={`flex-1 p-2 border border-gray-300 rounded-l ${
-                    connectionStatus !== 'connected' ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
-                />
+              <div className="relative flex">
+                <div className="relative flex-grow">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder={connectionStatus === 'connected' ? "Type a message..." : "Waiting for connection..."}
+                    disabled={connectionStatus !== 'connected'}
+                    className={`w-full p-2 border border-gray-300 rounded-l ${
+                      connectionStatus !== 'connected' ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
+                  />
+                  <button
+                    onClick={() => setShowEmojiPicker(val => !val)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xl"
+                    title="Add emoji"
+                    disabled={connectionStatus !== 'connected'}
+                  >
+                    😊
+                  </button>
+                </div>
                 <button
                   onClick={sendMessage}
                   disabled={connectionStatus !== 'connected'}
@@ -218,6 +255,14 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
                   Send
                 </button>
               </div>
+              {showEmojiPicker && (
+                <div className="absolute bottom-20 right-4 z-10">
+                  <Picker
+                    onEmojiClick={onEmojiClick}
+                    pickerStyle={{ width: '100%', boxShadow: 'none' }}
+                  />
+                </div>
+              )}
             </div>
           </>
         ) : (

@@ -110,5 +110,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("POST /api/notifications/read", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.MarkNotificationsRead)))
 	mux.Handle("GET /api/users/online", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetOnlineUsers)))
 
+	mux.Handle("GET /api/users/messageable", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetMessageableUsers)))
+	
 	return mux
 }
