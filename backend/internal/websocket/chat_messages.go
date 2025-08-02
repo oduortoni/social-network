@@ -228,3 +228,54 @@ func (h *ChatHandler) GetOnlineUsers(w http.ResponseWriter, r *http.Request) {
 		"count":        len(onlineUsers),
 	})
 }
+
+// GET /api/users/messageable
+
+/*
+/* GetMessageableUsers: finds all users that the current user can message
+/* It combines two groups:
+/* 1. Mutual followers.
+/* 2. Users with public profiles.
+/* The UNION operator automatically handles duplicates.
+*/
+func (h *ChatHandler) GetMessageableUsers(w http.ResponseWriter, r *http.Request) {
+	userID, _, _, err := h.Resolver.GetUserFromRequest(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	rows, err := h.DB.Query(`
+		SELECT u.id, u.nickname, u.avatar
+		FROM Users u
+		INNER JOIN Followers f1 ON u.id = f1.followee_id AND f1.follower_id = ? AND f1.status = 'accepted'
+		INNER JOIN Followers f2 ON u.id = f2.follower_id AND f2.followee_id = ? AND f2.status = 'accepted'
+		WHERE u.id != ?
+		UNION
+		SELECT u.id, u.nickname, u.avatar
+		FROM Users u
+		WHERE u.is_profile_public = 1 AND u.id != ?
+	`, userID, userID, userID, userID)
+	if err != nil {
+		http.Error(w, "Failed to fetch messageable users", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type MessageableUser struct {
+		ID     int64  `json:"id"`
+		Nickname string `json:"nickname"`
+		Avatar   string `json:"avatar"`
+	}
+
+	var users []MessageableUser
+	for rows.Next() {
+		var u MessageableUser
+		if err := rows.Scan(&u.ID, &u.Nickname, &u.Avatar); err == nil {
+			users = append(users, u)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(users)
+}
