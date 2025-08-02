@@ -16,14 +16,16 @@ type Manager struct {
 	Resolver   SessionResolver
 	groupQuery GroupMemberFetcher
 	persister  MessagePersister
+	PermissionChecker PermissionChecker
 }
 
-func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister) *Manager {
+func NewManager(resolver SessionResolver, groupFetcher GroupMemberFetcher, persister MessagePersister, permissionChecker PermissionChecker) *Manager {
 	return &Manager{
 		clients:    make(map[int64]*Client),
 		Resolver:   resolver,
 		groupQuery: groupFetcher,
 		persister:  persister,
+		PermissionChecker: permissionChecker,
 	}
 }
 
@@ -91,19 +93,38 @@ func (m *Manager) ReadPump(c *Client) {
 		}
 
 		msg.Timestamp = time.Now().Unix()
+		msg.From = c.ID // Add sender's ID to the message
 		encoded, err := json.Marshal(msg)
 		if err != nil {
 			continue
 		}
 
-		// Save to DB if persister is configured
-		if m.persister != nil {
-			_ = m.persister.SaveMessage(c.ID, msg)
-		}
-
 		switch msg.Type {
 		case "private":
-			m.SendToUser(msg.To, encoded)
+			// Requirement #2 & #4: Validate if users are allowed to chat
+			allowed, err := m.PermissionChecker.CanUsersChat(c.ID, msg.To)
+			if err != nil {
+				log.Printf("Error checking chat permissions for user %d to %d: %v", c.ID, msg.To, err)
+				continue // Silently drop on error
+			}
+
+			if allowed {
+				// Requirement #3: Save to DB if persister is configured
+				if m.persister != nil {
+					_ = m.persister.SaveMessage(c.ID, msg)
+				}
+				// Requirement #3: Forward to recipient and sender
+				m.SendToUser(msg.To, encoded)
+				m.SendToUser(c.ID, encoded)
+			} else {
+				// Requirement #4: Return error response for unauthorized message
+				errorMsg, _ := json.Marshal(Message{
+					Type:      "error",
+					Content:   "You are not permitted to message this user.",
+					Timestamp: time.Now().Unix(),
+				})
+				m.SendToUser(c.ID, errorMsg)
+			}
 		case "group":
 			m.BroadcastToGroup(c.ID, msg.GroupID, encoded)
 		case "broadcast":

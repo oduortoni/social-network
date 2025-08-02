@@ -17,3 +17,9 @@ type GroupMemberFetcher interface {
 type MessagePersister interface {
 	SaveMessage(senderID int64, msg *Message) error
 }
+
+// PermissionChecker allows checking if a user has a certain permission.
+// some of these permissions might be ones that allow a user to send a message to someone else
+type PermissionChecker interface {
+	CanUsersChat(userID, targetID int64) (bool, error)
+}

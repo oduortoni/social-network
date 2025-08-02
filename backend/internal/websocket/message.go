@@ -4,6 +4,7 @@ import "encoding/json"
 
 type Message struct {
 	Type      string `json:"type"`
+	From      int64  `json:"from,omitempty"`
 	To        int64  `json:"to,omitempty"`
 	GroupID   string `json:"group_id,omitempty"`
 	Content   string `json:"content"`
