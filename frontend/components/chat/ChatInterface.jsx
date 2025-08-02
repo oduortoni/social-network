@@ -4,13 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import { wsService } from '../../lib/websocket';
 import { chatAPI } from '../../lib/api';
 import { notificationService } from '../../lib/notificationService';
+import Picker from 'emoji-picker-react';
 
-const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
+const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = null }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [activeChat, setActiveChat] = useState(null); // { type: 'private', id: userId } or { type: 'group', id: groupId }
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [messageableUsers, setMessageableUsers] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -28,12 +30,17 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
     loadOnlineUsers();
     loadMessageableUsers();
 
+    // If initialChat is provided, automatically load that chat
+    if (initialChat) {
+      loadChatHistory(initialChat.type, initialChat.id);
+    }
+
     return () => {
       // Clean up notification handlers
       notificationService.removeHandler('user_connected', handleUserConnected);
       notificationService.removeHandler('user_disconnected', handleUserDisconnected);
     };
-  }, []);
+  }, [initialChat]);
 
   useEffect(() => {
     scrollToBottom();
@@ -133,6 +140,13 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected' }) => {
       setActiveChat({ type: chatType, id: chatId });
     } catch (error) {
       console.error('Failed to load chat history:', error);
+      // If we get a 403 (permission denied), still allow the chat to open with empty history
+      // This enables users to start new conversations
+      if (error.message.includes('403')) {
+        console.log('No existing chat history or permission denied - starting fresh chat');
+        setMessages([]);
+        setActiveChat({ type: chatType, id: chatId });
+      }
     }
   };
 
