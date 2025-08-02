@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { SearchIcon, PlusIcon } from 'lucide-react';
 import CommunityItem from '../homepage/CommunityItem';
@@ -12,7 +13,7 @@ const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
   };
 
   // TODO: Use useEffect to call fetchProfileImage, fetchVerifiedBadge, fetchFollowers, fetchFollowing, fetchProfileStatus, and fetchCommunities when backend is available
-
+    
   // This component is a sidebar for user profile 
   return <div className="w-72 flex flex-col gap-6">
       {/* Profile Card */}

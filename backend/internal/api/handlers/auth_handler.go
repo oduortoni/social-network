@@ -84,12 +84,12 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// only used for UI checks to avoid flashing protected routes
 	fmt.Println("Setting login confirmation cookie:")
 	http.SetCookie(w, &http.Cookie{
-		Name:  "logged_in",
-		Value: "true",
-		Path:  "/",
+		Name:     "logged_in",
+		Value:    "true",
+		Path:     "/",
 		HttpOnly: false,
 		SameSite: http.SameSiteLaxMode,
-		Secure: true,
+		Secure:   true,
 	})
 
 	// used to actually authenticate users
