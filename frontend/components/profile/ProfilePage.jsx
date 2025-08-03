@@ -6,20 +6,21 @@ import ProfileMainContent from './ProfileMainContent';
 
 import { profileAPI } from '../../lib/api';
 
-const ProfilePage = ({ user }) => {
+const ProfilePage = ({ user, userId }) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [profileData, setProfileData] = useState(null);
 
   const fetchProfileData = useCallback(async () => {
-    if (user && user.id) {
+    const targetUserId = userId || (user && user.id);
+    if (targetUserId) {
       try {
-        const data = await profileAPI.getProfile(user.id);
+        const data = await profileAPI.getProfile(targetUserId);
         setProfileData(data);
       } catch (error) {
         console.error('Error fetching profile data:', error);
       }
     }
-  }, [user]);
+  }, [user, userId]);
 
   useEffect(() => {
     fetchProfileData();
