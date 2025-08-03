@@ -4,13 +4,32 @@ import { useState, useEffect } from 'react';
 import withAuth from '../../../lib/withAuth';
 import MainHomepage from '../../../components/homepage/MainHomepage';
 import { wsService } from '../../../lib/websocket';
+//import { profileAPI } from '../../../lib/api';
 
 const Me = ({ user }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectedUsers, setConnectedUsers] = useState([]);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     let mounted = true;
+
+    // const fetchProfile = async () => {
+    //   try {
+    //     const response = await profileAPI.fetchProfile(user.id);
+    //     if (mounted) {
+    //       setProfile(response);
+    //     }
+    //   } catch (error) {
+    //     console.error('Failed to fetch profile:', error);
+    //   }
+    // };
+    console.log('User ID:', user);
+
+
+    if (user && user.id) {
+      fetchProfile();
+    }
 
     // Load connected users from API
     const loadConnectedUsers = async () => {
@@ -88,7 +107,7 @@ const Me = ({ user }) => {
       mounted = false;
       clearTimeout(connectTimer);
     };
-  }, []);
+  }, [user]);
 
   return (
     <div className="min-h-screen">

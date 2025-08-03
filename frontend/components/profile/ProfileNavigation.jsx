@@ -4,7 +4,8 @@ const ProfileNavigation = ({ activeTab, setActiveTab }) => {
   const tabs = [
     { id: 'posts', label: 'Posts', count: 1234 },
     { id: 'about', label: 'About' },
-    { id: 'friends', label: 'Friends', count: 12 },
+    { id: 'followers', label: 'Followers', count: 12 },
+    { id: 'following', label: 'Following', count: 8 },
     { id: 'photos', label: 'Photos', count: 89 },
     { id: 'videos', label: 'My Groups', count: 8 }
   ];

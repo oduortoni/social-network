@@ -1,7 +1,8 @@
 import React from 'react';
 import ProfilePosts from './ProfilePosts';
 import ProfileAbout from './ProfileAbout';
-import ProfileFriends from './ProfileFriends';
+import ProfileFollowers from './ProfileFollowers';
+import ProfileFollowing from './ProfileFollowing';
 import ProfilePhotos from './ProfilePhotos';
 import ProfileVideos from './ProfileVideos';
 
@@ -12,8 +13,10 @@ const ProfileMainContent = ({ user, activeTab }) => {
         return <ProfilePosts user={user} />;
       case 'about':
         return <ProfileAbout user={user} />;
-      case 'friends':
-        return <ProfileFriends user={user} />;
+      case 'followers':
+        return <ProfileFollowers user={user} />;
+      case 'following':
+        return <ProfileFollowing user={user} />;
       case 'photos':
         return <ProfilePhotos user={user} />;
       case 'videos':
