@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { profileAPI } from '../../lib/api';
+import { useRouter } from 'next/navigation';
 
 const ProfileFollowers = ({ user, currentUser, isOwnProfile }) => {
   const [followers, setFollowers] = useState([]);
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchFollowers = async () => {
@@ -20,6 +23,12 @@ const ProfileFollowers = ({ user, currentUser, isOwnProfile }) => {
     fetchFollowers();
   }, [user]);
 
+  // Handle view profile
+  const handleViewProfile = (userId) => {
+    router.push(`/profile/${userId}`);
+  };
+
+
   return (
     <div className="space-y-4">
       <div
@@ -31,9 +40,10 @@ const ProfileFollowers = ({ user, currentUser, isOwnProfile }) => {
           {followers && followers.length > 0 ? (
             followers.map((follower) => (
               <div
-                key={follower.id}
+                key={follower.follower_id}
                 className="rounded-lg p-4 text-center cursor-pointer hover:opacity-80 transition-opacity"
                 style={{ backgroundColor: 'var(--secondary-background)' }}
+                onClick={() => handleViewProfile(follower.follower_id)}
               >
                 <img
                   src={profileAPI.fetchProfileImage(follower.avatar)}
