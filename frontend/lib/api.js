@@ -82,6 +82,7 @@ export const profileAPI = {
   getFollowing: (userId) => apiCall(`/profile/${userId}/followees`),
   follow: (followeeid) => apiCall('/follow', { method: 'POST', body: JSON.stringify({ followeeid }) }),
   unfollow: (followeeid) => apiCall('/unfollow', { method: 'DELETE', body: JSON.stringify({ followeeid }) }),
+  updateProfile: (profileData) => apiCall('/profile/update', { method: 'PUT', body: JSON.stringify(profileData) }),
   fetchProfileImage,
   fetchFollowers,
   fetchFollowing,
