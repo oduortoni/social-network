@@ -7,6 +7,7 @@ import ProfilePhotos from './ProfilePhotos';
 import ProfileVideos from './ProfileVideos';
 
 const ProfileMainContent = ({ user, activeTab }) => {
+  console.log('ProfileMainContent rendered with user:', user, 'and activeTab:', activeTab);
   const renderContent = () => {
     switch (activeTab) {
       case 'posts':

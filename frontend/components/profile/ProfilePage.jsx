@@ -31,14 +31,14 @@ const ProfilePage = ({ user, userId }) => {
       <Header user={user}/>
       <div className="flex-1 w-full mt-4">
         {/* Cover and Profile Info Section */}
-        <ProfileCover user={profileData || user} refreshProfile={fetchProfileData} />
+        <ProfileCover user={profileData} refreshProfile={fetchProfileData} />
         
         {/* Navigation Tabs */}
         <ProfileNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
         
         {/* Main Content Area */}
         <div className="w-full px-12 py-6">
-          <ProfileMainContent user={profileData || user} activeTab={activeTab} />
+          <ProfileMainContent user={profileData} activeTab={activeTab} />
         </div>
       </div>
     </div>
