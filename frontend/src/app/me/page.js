@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import withAuth from '../../../lib/withAuth';
 import MainHomepage from '../../../components/homepage/MainHomepage';
 import { wsService } from '../../../lib/websocket';
-//import { profileAPI } from '../../../lib/api';
+import { profileAPI } from '../../../lib/api';
 
 const Me = ({ user }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
@@ -14,16 +14,16 @@ const Me = ({ user }) => {
   useEffect(() => {
     let mounted = true;
 
-    // const fetchProfile = async () => {
-    //   try {
-    //     const response = await profileAPI.fetchProfile(user.id);
-    //     if (mounted) {
-    //       setProfile(response);
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to fetch profile:', error);
-    //   }
-    // };
+    const fetchProfile = async () => {
+      try {
+        const response = await profileAPI.getProfile(user.id);
+        if (mounted) {
+          setProfile(response);
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      }
+    };
     console.log('User ID:', user);
 
 

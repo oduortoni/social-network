@@ -2,12 +2,12 @@ import React from 'react';
 
 const ProfileNavigation = ({ activeTab, setActiveTab }) => {
   const tabs = [
-    { id: 'posts', label: 'Posts', count: 1234 },
+    { id: 'posts', label: 'Posts'},
     { id: 'about', label: 'About' },
-    { id: 'followers', label: 'Followers', count: 12 },
-    { id: 'following', label: 'Following', count: 8 },
-    { id: 'photos', label: 'Photos', count: 89 },
-    { id: 'videos', label: 'My Groups', count: 8 }
+    { id: 'followers', label: 'Followers' },
+    { id: 'following', label: 'Following'},
+    { id: 'photos', label: 'Photos' },
+    { id: 'videos', label: 'My Groups'}
   ];
 
   return (
@@ -28,11 +28,7 @@ const ProfileNavigation = ({ activeTab, setActiveTab }) => {
               }}
             >
               {tab.label}
-              {tab.count && (
-                <span className="ml-2 text-sm" style={{ color: 'var(--secondary-text)' }}>
-                  ({tab.count})
-                </span>
-              )}
+             
               {activeTab === tab.id && (
                 <div
                   className="absolute bottom-0 left-0 right-0 h-0.5"

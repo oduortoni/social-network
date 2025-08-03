@@ -6,7 +6,7 @@ import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 import ReactionButtons from './ReactionButtons';
 
-const PostList = ({ refreshTrigger, user }) => {
+const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,8 +39,13 @@ const PostList = ({ refreshTrigger, user }) => {
   };
 
   useEffect(() => {
-    loadPosts();
-  }, [refreshTrigger]);
+    if (initialPosts) {
+      setPosts(initialPosts);
+      setLoading(false);
+    } else {
+      loadPosts();
+    }
+  }, [refreshTrigger, initialPosts]);
 
   const getPrivacyIcon = (privacy) => {
     switch (privacy) {

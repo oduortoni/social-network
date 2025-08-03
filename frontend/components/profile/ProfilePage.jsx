@@ -1,24 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../layout/Header';
 import ProfileCover from './ProfileCover';
 import ProfileNavigation from './ProfileNavigation';
 import ProfileMainContent from './ProfileMainContent';
 
+import { profileAPI } from '../../lib/api';
+
 const ProfilePage = ({ user }) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [profileData, setProfileData] = useState(null);
 
-  useEffect(() => {
-    // TODO: Fetch profile data from backend
-    setProfileData(user);
+  const fetchProfileData = useCallback(async () => {
+    if (user && user.id) {
+      try {
+        const data = await profileAPI.getProfile(user.id);
+        setProfileData(data);
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      }
+    }
   }, [user]);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
 
   return (
     <div className="w-2/3 flex flex-col text-white px-4 py-2 mt-4">
       <Header user={user}/>
       <div className="flex-1 w-full mt-4">
         {/* Cover and Profile Info Section */}
-        <ProfileCover user={profileData || user} />
+        <ProfileCover user={profileData || user} refreshProfile={fetchProfileData} />
         
         {/* Navigation Tabs */}
         <ProfileNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -33,3 +45,5 @@ const ProfilePage = ({ user }) => {
 };
 
 export default ProfilePage;
+
+

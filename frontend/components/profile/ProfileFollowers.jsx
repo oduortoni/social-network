@@ -1,16 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { profileAPI } from '../../lib/api';
 
 const ProfileFollowers = ({ user }) => {
-  // Mock followers data
-  const followers = Array.from({ length: 12 }, (_, i) => ({
-    id: i + 1,
-    first_name: `Follower ${i + 1}`,
-    last_name: 'User',
-    nickname: `follower${i + 1}`,
-    avatar: '',
-    mutualFollowers: Math.floor(Math.random() * 50)
-  }));
+  const [followers, setFollowers] = useState([]);
+
+  useEffect(() => {
+    const fetchFollowers = async () => {
+      if (user && user.profile_details && user.profile_details.id) {
+        try {
+          const data = await profileAPI.getFollowers(user.profile_details.id);
+          setFollowers(data.user || []);
+        } catch (error) {
+          console.error('Error fetching followers:', error);
+        }
+      }
+    };
+
+    
+    fetchFollowers();
+  }, [user]);
 
   return (
     <div className="space-y-4">

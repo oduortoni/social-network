@@ -9,7 +9,7 @@ const ProfilePosts = ({ user }) => {
       <PostCreation user={user} />
       
       {/* User's Posts */}
-      <PostList user={user} profileView={true} />
+      <PostList user={user} posts={user?.posts} profileView={true} />
     </div>
   );
 };

@@ -55,10 +55,6 @@ export function fetchProfileImage(avatar) {
   return `${API_BASE}/avatar?avatar=${encodeURIComponent(avatar)}`;
 }
 
-function fetchVerifiedBadge() {
-  // TODO: Fetch verified badge status from backend
-  return null;
-}
 
 function fetchFollowers() {
   // TODO: Fetch followers count from backend
@@ -81,8 +77,12 @@ function fetchCommunities() {
 }
 
 export const profileAPI = {
+  getProfile: (userId) => apiCall(`/profile/${userId}`),
+  getFollowers: (userId) => apiCall(`/profile/${userId}/followers`),
+  getFollowing: (userId) => apiCall(`/profile/${userId}/followees`),
+  follow: (followeeid) => apiCall('/follow', { method: 'POST', body: JSON.stringify({ followeeid }) }),
+  unfollow: (followeeid) => apiCall('/unfollow', { method: 'DELETE', body: JSON.stringify({ followeeid }) }),
   fetchProfileImage,
-  fetchVerifiedBadge,
   fetchFollowers,
   fetchFollowing,
   fetchProfileStatus,
