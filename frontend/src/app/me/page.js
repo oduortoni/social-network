@@ -4,33 +4,15 @@ import { useState, useEffect } from 'react';
 import withAuth from '../../../lib/withAuth';
 import MainHomepage from '../../../components/homepage/MainHomepage';
 import { wsService } from '../../../lib/websocket';
-import { profileAPI } from '../../../lib/api';
 
-const Me = ({ user }) => {
+const Me = ({ user, profile }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectedUsers, setConnectedUsers] = useState([]);
-  const [profile, setProfile] = useState(null);
+
+  console.log('Me component mounted with user:', profile.profile_details);
 
   useEffect(() => {
     let mounted = true;
-
-    const fetchProfile = async () => {
-      try {
-        const response = await profileAPI.getProfile(user.id);
-        if (mounted) {
-          setProfile(response);
-        }
-      } catch (error) {
-        console.error('Failed to fetch profile:', error);
-      }
-    };
-    console.log('User ID:', user);
-
-
-    if (user && user.id) {
-      fetchProfile();
-    }
-
     // Load connected users from API
     const loadConnectedUsers = async () => {
       try {
@@ -109,10 +91,12 @@ const Me = ({ user }) => {
     };
   }, [user]);
 
+  
+
   return (
     <div className="min-h-screen">
       <main className="flex flex-col items-center justify-center p-6">
-        <MainHomepage user={user} connectionStatus={connectionStatus} connectedUsers={connectedUsers} />
+        <MainHomepage user={user} profile={profile.profile_details} connectionStatus={connectionStatus} connectedUsers={connectedUsers} />
       </main>
     </div>
   );
