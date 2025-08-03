@@ -3,6 +3,7 @@ import { HomeIcon, BellIcon, UsersIcon, MessageCircleIcon, SearchIcon, ChevronDo
 import { handleLogout } from '../../lib/auth';
 import { useSimpleNotifications } from '../../hooks/useNotifications';
 import { profileAPI } from '../../lib/api';
+import { useRouter } from 'next/navigation';
 
 const Header = ({ user = null }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -10,6 +11,7 @@ const Header = ({ user = null }) => {
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
   const { unreadCount, notifications, markAllAsRead } = useSimpleNotifications();
+  const router = useRouter();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -111,7 +113,10 @@ const Header = ({ user = null }) => {
         </div>
 
         {/* Chats Icon */}
-        <div className="flex flex-col items-center cursor-pointer">
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => router.push('/chats')}
+        >
           <MessageCircleIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
           <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Chats</span>
         </div>
