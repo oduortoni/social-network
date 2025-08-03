@@ -10,6 +10,9 @@ const ProfilePage = ({ user, userId }) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [profileData, setProfileData] = useState(null);
 
+  // Determine if this is the current user's own profile
+  const isOwnProfile = !userId || (user && user.id && userId === user.id.toString());
+  
   const fetchProfileData = useCallback(async () => {
     const targetUserId = userId || (user && user.id);
     if (targetUserId) {
@@ -31,14 +34,24 @@ const ProfilePage = ({ user, userId }) => {
       <Header user={user}/>
       <div className="flex-1 w-full mt-4">
         {/* Cover and Profile Info Section */}
-        <ProfileCover user={profileData} refreshProfile={fetchProfileData} />
+        <ProfileCover
+          user={profileData}
+          currentUser={user}
+          isOwnProfile={isOwnProfile}
+          refreshProfile={fetchProfileData}
+        />
         
         {/* Navigation Tabs */}
         <ProfileNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
         
         {/* Main Content Area */}
         <div className="w-full px-12 py-6">
-          <ProfileMainContent user={profileData} activeTab={activeTab} />
+          <ProfileMainContent
+            user={profileData}
+            currentUser={user}
+            isOwnProfile={isOwnProfile}
+            activeTab={activeTab}
+          />
         </div>
       </div>
     </div>

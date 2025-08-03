@@ -1,7 +1,7 @@
 import React from 'react';
 import { EyeIcon } from 'lucide-react';
 
-const ProfileGroups = ({ user }) => {
+const ProfileGroups = ({ user, currentUser, isOwnProfile }) => {
   // Mock groups data
   const groups = Array.from({ length: 6 }, (_, i) => ({
     id: i + 1,

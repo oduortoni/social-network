@@ -2,7 +2,7 @@
 import React from 'react';
 import { UserIcon, CalendarIcon, AtSignIcon, MailIcon } from 'lucide-react';
 
-const ProfileAbout = ({ user }) => {
+const ProfileAbout = ({ user, currentUser, isOwnProfile }) => {
   const profileDetails = user?.profile_details || {};
 
   return (

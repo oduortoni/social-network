@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { profileAPI } from '../../lib/api';
 
-const ProfileFollowers = ({ user }) => {
+const ProfileFollowers = ({ user, currentUser, isOwnProfile }) => {
   const [followers, setFollowers] = useState([]);
 
   useEffect(() => {

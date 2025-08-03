@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CameraIcon, EditIcon, UserPlusIcon, X, Save } from 'lucide-react';
 import { profileAPI } from '../../lib/api';
 
-const ProfileCover = ({ user, refreshProfile }) => {
+const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
   const profileDetails = user?.profile_details || {};
   const [showEditForm, setShowEditForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -115,10 +115,12 @@ const ProfileCover = ({ user, refreshProfile }) => {
           }}
         />
         
-        {/* Cover Photo Edit Button */}
-        <button className="absolute top-4 right-4 p-2 rounded-lg bg-black bg-opacity-50 hover:bg-opacity-70 transition-all">
-          <CameraIcon className="w-5 h-5 text-white" />
-        </button>
+        {/* Cover Photo Edit Button - Only show for own profile */}
+        {isOwnProfile && (
+          <button className="absolute top-4 right-4 p-2 rounded-lg bg-black bg-opacity-50 hover:bg-opacity-70 transition-all">
+            <CameraIcon className="w-5 h-5 text-white" />
+          </button>
+        )}
       </div>
 
       {/* Profile Info Section */}
@@ -138,9 +140,12 @@ const ProfileCover = ({ user, refreshProfile }) => {
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
-              <button className="absolute bottom-2 right-2 p-2 rounded-full" style={{ backgroundColor: 'var(--tertiary-text)' }}>
-                <CameraIcon className="w-4 h-4 text-white" />
-              </button>
+              {/* Profile Picture Edit Button - Only show for own profile */}
+              {isOwnProfile && (
+                <button className="absolute bottom-2 right-2 p-2 rounded-full" style={{ backgroundColor: 'var(--tertiary-text)' }}>
+                  <CameraIcon className="w-4 h-4 text-white" />
+                </button>
+              )}
             </div>
 
             {/* User Info */}
@@ -177,17 +182,20 @@ const ProfileCover = ({ user, refreshProfile }) => {
 
           {/* Action Buttons */}
           <div className="flex gap-3 mt-4 md:mt-0">
-            <button
-              className="px-6 py-2 rounded-lg font-medium flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-              style={{
-                backgroundColor: 'var(--tertiary-text)',
-                color: 'var(--primary-text)',
-              }}
-              onClick={handleEditProfile}
-            >
-              <EditIcon className="w-4 h-4" />
-              Edit Profile
-            </button>
+            {/* Edit Profile Button - Only show for own profile */}
+            {isOwnProfile && (
+              <button
+                className="px-6 py-2 rounded-lg font-medium flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                style={{
+                  backgroundColor: 'var(--tertiary-text)',
+                  color: 'var(--primary-text)',
+                }}
+                onClick={handleEditProfile}
+              >
+                <EditIcon className="w-4 h-4" />
+                Edit Profile
+              </button>
+            )}
             {renderFollowButton()}
           </div>
         </div>
