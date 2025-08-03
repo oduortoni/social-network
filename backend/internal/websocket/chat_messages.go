@@ -15,15 +15,17 @@ type ChatHandler struct {
 	Persister *DBMessagePersister
 	Notifier  *NotificationSender
 	WSManager *Manager
+	PermissionChecker PermissionChecker
 }
 
-func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager) *ChatHandler {
+func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager, permissionChecker PermissionChecker) *ChatHandler {
 	return &ChatHandler{
 		DB:        db,
 		Resolver:  resolver,
 		Persister: persister,
 		Notifier:  notifier,
 		WSManager: wsManager,
+		PermissionChecker: permissionChecker,
 	}
 }
 
@@ -38,6 +40,17 @@ func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request)
 	targetID, err := strconv.ParseInt(r.URL.Query().Get("user"), 10, 64)
 	if err != nil || targetID <= 0 {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	// Requirement #2 & #4: Validate that the users are allowed to chat
+	allowed, err := h.PermissionChecker.CanUsersChat(userID, targetID)
+	if err != nil {
+		http.Error(w, "Could not verify relationship", http.StatusInternalServerError)
+		return
+	}
+	if !allowed {
+		http.Error(w, "You are not permitted to view messages with this user", http.StatusForbidden)
 		return
 	}
 
