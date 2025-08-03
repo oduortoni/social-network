@@ -33,7 +33,7 @@ const ProfileSidebar = ({ profile, connectionStatus = 'disconnected' }) => {
 
            <div className="mt-2 text-center">
           <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'var(--tertiary-text)', color: 'var(--primary-text)' }}>
-                 {profile.is_private ? 'Private Account' : 'Public Account'}
+                 {profile.profile ? 'Public Account' : 'Private Account'}
            </span>
            </div>
 

@@ -151,9 +151,10 @@ const ProfileCover = ({ user, refreshProfile }) => {
               <p className="text-lg" style={{ color: 'var(--secondary-text)' }}>
                 @{profileDetails.nickname}
               </p>
-               <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'var(--tertiary-text)', color: 'var(--primary-text)' }}>
-                 {profileDetails.is_private ? 'Private Account' : 'Public Account'}
-             </span>
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'var(--tertiary-text)', color: 'var(--primary-text)' }}>
+                 {profileDetails.profile ? 'Public Account' : 'Private Account'}
+           </span>
+          
            
               
               {/* Stats */}
