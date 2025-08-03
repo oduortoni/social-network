@@ -97,8 +97,12 @@ const ProfileCover = ({ user, refreshProfile }) => {
                 @{profileDetails.nickname}
               </p>
               <p className="mt-2 max-w-md" style={{ color: 'var(--primary-text)' }}>
-                {profileDetails.about || "No bio available"}
+                {profileDetails.about || "This user hasn't written a bio yet."}
               </p>
+               <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'var(--tertiary-text)', color: 'var(--primary-text)' }}>
+                 {profileDetails.is_private ? 'Private Account' : 'Public Account'}
+             </span>
+           
               
               {/* Stats */}
               <div className="flex gap-6 mt-3">

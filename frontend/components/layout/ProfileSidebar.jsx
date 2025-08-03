@@ -31,6 +31,13 @@ const ProfileSidebar = ({ profile, connectionStatus = 'disconnected' }) => {
     
           </div>
 
+           <div className="mt-2 text-center">
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'var(--tertiary-text)', color: 'var(--primary-text)' }}>
+                 {profile.is_private ? 'Private Account' : 'Public Account'}
+           </span>
+           </div>
+
+
           {/* WebSocket Connection Status Indicator */}
           <div
             className={`absolute top-0 right-0 w-4 h-4 rounded-full border-2 border-white ${
