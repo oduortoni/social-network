@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
-	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
+	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
 )
 
 func setupTestDB(t *testing.T) *sql.DB {
@@ -72,11 +72,13 @@ func TestWebSocketConnection(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
+	permissionChecker := ws.NewDBPermissionChecker(db)
 	// Create manager with real dependencies
 	manager := ws.NewManager(
 		ws.NewDBSessionResolver(db),
 		ws.NewDBGroupMemberFetcher(db),
 		ws.NewDBMessagePersister(db),
+		permissionChecker,
 	)
 
 	// Create test server with session cookie

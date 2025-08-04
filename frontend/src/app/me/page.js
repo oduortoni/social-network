@@ -5,13 +5,14 @@ import withAuth from '../../../lib/withAuth';
 import MainHomepage from '../../../components/homepage/MainHomepage';
 import { wsService } from '../../../lib/websocket';
 
-const Me = ({ user }) => {
+const Me = ({ user, profile }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectedUsers, setConnectedUsers] = useState([]);
 
+  console.log('Me component mounted with user:', profile.profile_details);
+
   useEffect(() => {
     let mounted = true;
-
     // Load connected users from API
     const loadConnectedUsers = async () => {
       try {
@@ -88,12 +89,14 @@ const Me = ({ user }) => {
       mounted = false;
       clearTimeout(connectTimer);
     };
-  }, []);
+  }, [user]);
+
+  
 
   return (
     <div className="min-h-screen">
       <main className="flex flex-col items-center justify-center p-6">
-        <MainHomepage user={user} connectionStatus={connectionStatus} connectedUsers={connectedUsers} />
+        <MainHomepage user={user} profile={profile.profile_details} connectionStatus={connectionStatus} connectedUsers={connectedUsers} />
       </main>
     </div>
   );

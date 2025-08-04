@@ -15,15 +15,17 @@ type ChatHandler struct {
 	Persister *DBMessagePersister
 	Notifier  *NotificationSender
 	WSManager *Manager
+	PermissionChecker PermissionChecker
 }
 
-func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager) *ChatHandler {
+func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager, permissionChecker PermissionChecker) *ChatHandler {
 	return &ChatHandler{
 		DB:        db,
 		Resolver:  resolver,
 		Persister: persister,
 		Notifier:  notifier,
 		WSManager: wsManager,
+		PermissionChecker: permissionChecker,
 	}
 }
 
@@ -38,6 +40,19 @@ func (h *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request)
 	targetID, err := strconv.ParseInt(r.URL.Query().Get("user"), 10, 64)
 	if err != nil || targetID <= 0 {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	// Requirement #2 & #4: Validate that the users are allowed to chat
+	allowed, err := h.PermissionChecker.CanUsersChat(userID, targetID)
+	if err != nil {
+		http.Error(w, "Could not verify relationship", http.StatusInternalServerError)
+		return
+	}
+	if !allowed {
+		// Instead of blocking access, return empty history to allow new conversations
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]interface{}{})
 		return
 	}
 
@@ -214,4 +229,72 @@ func (h *ChatHandler) GetOnlineUsers(w http.ResponseWriter, r *http.Request) {
 		"online_users": onlineUsers,
 		"count":        len(onlineUsers),
 	})
+}
+
+// GET /api/users/messageable
+
+/*
+/* GetMessageableUsers: finds all users that the current user can message
+/* It combines two groups:
+/* 1. Mutual followers.
+/* 2. Users with public profiles.
+/* The UNION operator automatically handles duplicates.
+*/
+func (h *ChatHandler) GetMessageableUsers(w http.ResponseWriter, r *http.Request) {
+	userID, _, _, err := h.Resolver.GetUserFromRequest(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// [ RESTRICTIVE: IF FOLLOW AND PUBLIC PROFILE WORK AND MUTUAL FOLLOWERS ]
+	// ===================================================================================
+	// rows, err := h.DB.Query(`
+	// 	SELECT u.id, u.nickname, u.avatar
+	// 	FROM Users u
+	// 	INNER JOIN Followers f1 ON u.id = f1.followee_id AND f1.follower_id = ? AND f1.status = 'accepted'
+	// 	INNER JOIN Followers f2 ON u.id = f2.follower_id AND f2.followee_id = ? AND f2.status = 'accepted'
+	// 	WHERE u.id != ?
+	// 	UNION
+	// 	SELECT u.id, u.nickname, u.avatar
+	// 	FROM Users u
+	// 	WHERE u.is_profile_public = 1 AND u.id != ?
+	// `, userID, userID, userID, userID)
+	// if err != nil {
+	// 	http.Error(w, "Failed to fetch messageable users", http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// [ PERMISSIBLE PERMISSIONS ]
+	rows, err := h.DB.Query(`
+		SELECT u.id, u.nickname, u.avatar
+		FROM Users u
+		WHERE u.id != ?
+	`, userID)
+	if err != nil {
+		http.Error(w, "Failed to fetch messageable users", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type MessageableUser struct {
+		ID     int64  `json:"id"`
+		Nickname string `json:"nickname"`
+		Avatar   string `json:"avatar"`
+	}
+
+	var users []MessageableUser
+	for rows.Next() {
+		fmt.Println("Scanning row")
+		var u MessageableUser
+		if err := rows.Scan(&u.ID, &u.Nickname, &u.Avatar); err == nil {
+			users = append(users, u)
+			fmt.Printf("Found messageable user: %+v\n", u)
+		}
+	}
+
+	fmt.Printf("Found %d messageable users: %+v\n", len(users), users)
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(users)
 }

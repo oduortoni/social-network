@@ -1,12 +1,12 @@
 package tests
 
 import (
-	"testing"
 	ws "github.com/tajjjjr/social-network/backend/internal/websocket"
+	"testing"
 )
 
 func TestManagerRegisterUnregister(t *testing.T) {
-	manager := ws.NewManager(nil, nil, nil)
+	manager := ws.NewManager(nil, nil, nil, nil)
 
 	client := ws.NewClient(123, "test-client-123", "", nil)
 
@@ -24,7 +24,7 @@ func TestManagerRegisterUnregister(t *testing.T) {
 }
 
 func TestManagerBroadcast(t *testing.T) {
-	manager := ws.NewManager(nil, nil, nil)
+	manager := ws.NewManager(nil, nil, nil, nil)
 
 	// Create mock clients
 	client1 := ws.NewClient(1, "test-client-1", "", nil)

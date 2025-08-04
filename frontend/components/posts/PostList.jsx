@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock, Edit, Trash2, UserPlus } from 'lucide-react';
 import { fetchPosts, fetchPostsPaginated, deletePost, updatePost } from '../../lib/auth';
+import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock, Edit, Trash2, UserPlus, User } from 'lucide-react';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 import ReactionButtons from './ReactionButtons';
+import { useRouter } from 'next/navigation';
 
-const PostList = ({ refreshTrigger, user }) => {
+const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
+  const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -59,8 +61,13 @@ const PostList = ({ refreshTrigger, user }) => {
   };
 
   useEffect(() => {
-    loadPosts();
-  }, [refreshTrigger]);
+    if (initialPosts) {
+      setPosts(initialPosts);
+      setLoading(false);
+    } else {
+      loadPosts();
+    }
+  }, [refreshTrigger, initialPosts]);
 
   const loadMorePosts = () => {
     if (loadingRef.current || loadingMore || !hasMore) return;
@@ -225,6 +232,12 @@ const PostList = ({ refreshTrigger, user }) => {
     }
   };
 
+  // Handle view profile
+  const handleViewProfile = (userId) => {
+    router.push(`/profile/${userId}`);
+    setOpenDropdown(null);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -366,6 +379,21 @@ const PostList = ({ refreshTrigger, user }) => {
                       </>
                     ) : (
                       <>
+                        {/* View Profile Option */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewProfile(post.user_id);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
+                          style={{ color: 'var(--primary-text)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <User className="w-4 h-4" />
+                          View Profile
+                        </button>
+
                         {/* Follow Option */}
                         <button
                           onClick={() => handleFollowUser(post.user_id)}

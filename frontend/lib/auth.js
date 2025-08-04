@@ -255,6 +255,7 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
       firstName,
       lastName,
       dob,
+      profileVisibility,
       avatar,
       nickname,
       aboutMe
@@ -278,6 +279,7 @@ export const handleRegistrationFormSubmit = async (e, formData, setFormError) =>
     form.append("firstName", firstName.trim());
     form.append("lastName", lastName.trim());
     form.append("dob", dob); // In 'yyyy-mm-dd' format
+    form.append("profileVisibility", profileVisibility); // Add profile visibility
     if (avatar) form.append("avatar", avatar);
     if (nickname) form.append("nickname", nickname.trim());
     if (aboutMe) form.append("aboutMe", aboutMe.trim());

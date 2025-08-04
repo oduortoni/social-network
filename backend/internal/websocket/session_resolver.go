@@ -16,7 +16,7 @@ func NewDBSessionResolver(db *sql.DB) *DBSessionResolver {
 /*
 *  Gets the user id from the request ans uses it to get the user's nickname and avatar from the database.
 *  Returns the user id, nickname, and avatar.
-*/
+ */
 func (r *DBSessionResolver) GetUserFromRequest(req *http.Request) (int64, string, string, error) {
 	var sessionID string
 

@@ -3,6 +3,7 @@ import { HomeIcon, BellIcon, UsersIcon, MessageCircleIcon, SearchIcon, ChevronDo
 import { handleLogout } from '../../lib/auth';
 import { useSimpleNotifications } from '../../hooks/useNotifications';
 import { profileAPI } from '../../lib/api';
+import { useRouter } from 'next/navigation';
 
 const Header = ({ user = null }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -10,6 +11,7 @@ const Header = ({ user = null }) => {
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
   const { unreadCount, notifications, markAllAsRead } = useSimpleNotifications();
+  const router = useRouter();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -26,10 +28,10 @@ const Header = ({ user = null }) => {
   }, []);
 
   return (
-    <div className="flex items-center justify-between w-full px-4 py-2">
+    <div className="flex items-center justify-between w-full px-4 py-2 mt-4 relative">
       
       {/* Logo and Search Bar */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 z-10">
         <div className="bg-white rounded-full p-1 cursor-pointer">
           <div className="w-6 h-6 rounded-full" style={{ backgroundColor: 'var(--primary-background)' }}></div>
         </div>
@@ -43,14 +45,15 @@ const Header = ({ user = null }) => {
           />
         </div>
       </div>
-      
-      {/* Navigation Icons */}
-      <div className="flex items-center gap-6">
+
+      {/* Navigation Icons - Centered absolutely */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-6 z-0">
         {/* Home Icon */}
-        <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Home click */ }}>
+        <div className="flex flex-col items-center cursor-pointer">
           <HomeIcon className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
           <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Home</span>
         </div>
+
         {/* Notifications Icon */}
         <div className="relative" ref={notificationRef}>
           <div
@@ -102,27 +105,30 @@ const Header = ({ user = null }) => {
             </div>
           )}
         </div>
-        
+
         {/* Groups Icon */}
-        <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Groups click */ }}>
+        <div className="flex flex-col items-center cursor-pointer">
           <UsersIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
           <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Groups</span>
         </div>
-        
+
         {/* Chats Icon */}
-        <div className="flex flex-col items-center cursor-pointer" onClick={() => { /* TODO: handle Chats click */ }}>
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => router.push('/chats')}
+        >
           <MessageCircleIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
           <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Chats</span>
         </div>
       </div>
-      
+
       {/* Profile Dropdown */}
-      <div className="relative" ref={profileRef}>
+      <div className="relative z-10" ref={profileRef}>
         <button
           className="flex items-center gap-2 focus:outline-none"
           onClick={() => setDropdownOpen((open) => !open)}
         >
-          <img src={profileAPI.fetchProfileImage(user.avatar? user.avatar : '')} alt="Profile" className="w-8 h-8 rounded-full" />
+          <img src={profileAPI.fetchProfileImage(user.avatar ? user.avatar : '')} alt="Profile" className="w-8 h-8 rounded-full" />
           <span className="text-sm font-medium">{user.nickname}</span>
           <ChevronDownIcon className="w-4 h-4" />
         </button>

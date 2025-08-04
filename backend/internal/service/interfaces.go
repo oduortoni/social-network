@@ -48,7 +48,16 @@ type UnfollowServiceInterface interface {
 type FollowRequestServiceInterface interface {
 	AcceptedFollowConnection(followConnectionID int64) error
 	RejectedFollowConnection(followConnectionID int64) error
+	CancelFollowRequest(followConnectionID int64) error
 	RetrieveUserName(userID int64) (string, string, error)
 	GetRequestInfo(requestID int64) (int64, int64, error)
 	AddtoNotification(follower_id int64, message string) error
+}
+
+type ProfileServiceInterface interface {
+	GetUserOwnProfile(userid int64) (models.ProfileDetails, error)
+	GetUserProfile(userid, LoggedInUser int64) (models.ProfileDetails, error)
+	GetUserPosts(userid int64) ([]models.Post, error)
+	GetFollowersList(userid int64) (models.FollowListResponse, error)
+	GetFolloweesList(userid int64) (models.FollowListResponse, error)
 }

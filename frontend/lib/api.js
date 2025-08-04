@@ -40,6 +40,10 @@ export const chatAPI = {
   // Mark notifications as read
   markNotificationsRead: () =>
     apiCall('/api/notifications/read', { method: 'POST' }),
+  
+  // Get users the current user can message
+  getMessageableUsers: () =>
+    apiCall('/api/users/messageable'),
 };
 
 
@@ -51,10 +55,6 @@ export function fetchProfileImage(avatar) {
   return `${API_BASE}/avatar?avatar=${encodeURIComponent(avatar)}`;
 }
 
-function fetchVerifiedBadge() {
-  // TODO: Fetch verified badge status from backend
-  return null;
-}
 
 function fetchFollowers() {
   // TODO: Fetch followers count from backend
@@ -77,8 +77,13 @@ function fetchCommunities() {
 }
 
 export const profileAPI = {
+  getProfile: (userId) => apiCall(`/profile/${userId}`),
+  getFollowers: (userId) => apiCall(`/profile/${userId}/followers`),
+  getFollowing: (userId) => apiCall(`/profile/${userId}/followees`),
+  follow: (followeeid) => apiCall('/follow', { method: 'POST', body: JSON.stringify({ followeeid }) }),
+  unfollow: (followeeid) => apiCall('/unfollow', { method: 'DELETE', body: JSON.stringify({ followeeid }) }),
+  updateProfile: (profileData) => apiCall('/profile/update', { method: 'PUT', body: JSON.stringify(profileData) }),
   fetchProfileImage,
-  fetchVerifiedBadge,
   fetchFollowers,
   fetchFollowing,
   fetchProfileStatus,

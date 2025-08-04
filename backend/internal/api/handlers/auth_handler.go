@@ -84,12 +84,12 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// only used for UI checks to avoid flashing protected routes
 	fmt.Println("Setting login confirmation cookie:")
 	http.SetCookie(w, &http.Cookie{
-		Name:  "logged_in",
-		Value: "true",
-		Path:  "/",
+		Name:     "logged_in",
+		Value:    "true",
+		Path:     "/",
 		HttpOnly: false,
 		SameSite: http.SameSiteLaxMode,
-		Secure: true,
+		Secure:   true,
 	})
 
 	// used to actually authenticate users
@@ -124,7 +124,14 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	dateOfBirth := r.FormValue("dob")
 	nickname := r.FormValue("nickname")
 	aboutMe := r.FormValue("aboutMe")
-	isProfilePublic := r.FormValue("profileVisibility")
+
+	// convert profileVisibility to boolean
+	profileVisibility := false
+	if r.FormValue("profileVisibility") == "public" {
+		profileVisibility = true
+	} else {
+		profileVisibility = false
+	}
 
 	// Sanitize user input to prevent XSS attacks
 	email = html.EscapeString(email)
@@ -166,7 +173,7 @@ func (auth *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth:     &dateOfBirth,
 		Nickname:        &nickname,
 		AboutMe:         &aboutMe,
-		IsProfilePublic: isProfilePublic == "public",
+		IsProfilePublic: profileVisibility,
 		Avatar:          &userAvatar,
 	}
 
