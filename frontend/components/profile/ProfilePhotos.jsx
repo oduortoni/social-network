@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ProfilePhotos = ({ user }) => {
+const ProfilePhotos = ({ user, currentUser, isOwnProfile }) => {
   // Mock photos data
   const photos = Array.from({ length: 15 }, (_, i) => ({
     id: i + 1,

@@ -5,16 +5,13 @@ import CommunityItem from '../homepage/CommunityItem';
 import { profileAPI } from '../../lib/api';
 import { useRouter } from 'next/navigation';
 
-const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
+const ProfileSidebar = ({ profile, connectionStatus = 'disconnected' }) => {
   const router = useRouter();
 
   const handleProfileClick = () => {
     router.push('/profile');
   };
-
-  // TODO: Use useEffect to call fetchProfileImage, fetchVerifiedBadge, fetchFollowers, fetchFollowing, fetchProfileStatus, and fetchCommunities when backend is available
-    
-  // This component is a sidebar for user profile 
+  
   return <div className="w-72 flex flex-col gap-6">
       {/* Profile Card */}
       <div
@@ -27,12 +24,19 @@ const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
             style={{ backgroundColor: 'var(--primary-accent)' }}
           >
             <img
-              src={profileAPI.fetchProfileImage(user.avatar? user.avatar : '')}
+              src={profileAPI.fetchProfileImage(profile.avatar? profile.avatar : '')}
               alt="Profile"
               className="w-20 h-20 rounded-full"
             />
-            {/* TODO: Show verified badge if user is verified */}
+    
           </div>
+
+           <div className="mt-2 text-center">
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'var(--tertiary-text)', color: 'var(--primary-text)' }}>
+                 {profile.profile ? 'Public Account' : 'Private Account'}
+           </span>
+           </div>
+
 
           {/* WebSocket Connection Status Indicator */}
           <div
@@ -61,13 +65,13 @@ const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
 
         <div className="flex justify-between w-full mt-4">
           <div className="text-center">
-            <div className="text-xl font-bold">1984</div>
+            <div className="text-xl font-bold">{profile.numberoffollowers}</div>
             <div className="text-xs" style={{ color: 'var(--secondary-text)' }}>
               Followers
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xl font-bold">1002</div>
+            <div className="text-xl font-bold">{profile.numberoffollowees}</div>
             <div className="text-xs" style={{ color: 'var(--secondary-text)' }}>
               Following
             </div>
@@ -75,14 +79,14 @@ const ProfileSidebar = ({ user, connectionStatus = 'disconnected' }) => {
         </div>
 
         <div className="mt-4 text-center">
-          <h2 className="text-lg font-bold">{user.first_name} {user.last_name}</h2>
+          <h2 className="text-lg font-bold">{profile.firstname} {profile.lastname}</h2>
           <p className="text-sm" style={{ color: 'var(--secondary-text)' }}>
-            @{user.nickname}
+            @{profile.nickname}
           </p>
         </div>
 
         <div className="mt-4 text-center text-sm">
-          <p>✨ {user.about_me} ✨</p>
+          <p>✨ {profile.about_me} ✨</p>
           {/* TODO: Replace with profile status from backend */}
         </div>
 
