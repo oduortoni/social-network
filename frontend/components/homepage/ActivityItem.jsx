@@ -1,4 +1,5 @@
 import React from 'react';
+
 const ActivityItem = ({
   image,
   name,
@@ -20,6 +21,7 @@ const ActivityItem = ({
       </div>
     );
   }
+
   return (
     <div className="flex items-start gap-3">
       <div className="relative">
