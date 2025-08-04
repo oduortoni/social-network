@@ -81,6 +81,12 @@ async function fetchPendingFollowRequests() {
   return apiCall("/pending-follow-requests", { method: "GET" });
 }
 
+const acceptFollowRequest = (requestId) =>
+  apiCall(`/follow-request/${requestId}/request`, { method: "POST" });
+
+const declineFollowRequest = (requestId) =>
+  apiCall(`/follow-request/${requestId}/cancel`, { method: "POST" });
+
 
 
 export const profileAPI = {
@@ -96,4 +102,6 @@ export const profileAPI = {
   fetchProfileStatus,
   fetchCommunities,
   fetchPendingFollowRequests,
+  acceptFollowRequest,
+  declineFollowRequest,
 };

@@ -6,7 +6,10 @@ const ActivityItem = ({
   action,
   time,
   isGroup = false,
-  isPartial = false
+  isPartial = false,
+  requestId,
+  onAccept,
+  onDecline,
 }) => {
   if (isPartial) {
     return (
@@ -45,6 +48,7 @@ const ActivityItem = ({
           <button
             className="px-4 py-1 rounded-full text-xs flex-1"
             style={{ backgroundColor: 'var(--primary-accent)', color: 'black' }}
+            onClick={() => onAccept(requestId)} // Pass requestId to onAccept
           >
             Accept
           </button>
@@ -55,6 +59,7 @@ const ActivityItem = ({
               borderColor: 'var(--tertiary-text)',
               color: 'var(--primary-text)',
             }}
+            onClick={() => onDecline(requestId)} // Pass requestId to onDecline
           >
             Decline
           </button>

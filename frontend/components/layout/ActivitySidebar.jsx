@@ -30,6 +30,7 @@ const formatTimeSince = (timestamp) => {
       avatar,
       timestamp,
       user_id,
+      request_id, // Extract request_id from notification
     } = notification;
 
     const activity = {
@@ -40,6 +41,7 @@ const formatTimeSince = (timestamp) => {
       isGroup: false,
       isPartial: false,
       userId: user_id,
+      requestId: request_id, // Assign request_id
     };
 
     setActivities((prev) => [activity, ...prev]);
@@ -48,6 +50,26 @@ const formatTimeSince = (timestamp) => {
   const handleNotification = useCallback((notification) => {
     notificationService.handleNotification(notification);
   }, []);
+
+  const handleAccept = (requestId) => {
+    profileAPI.acceptFollowRequest(requestId)
+      .then(() => {
+        setActivities((prev) => prev.filter((a) => a.requestId !== requestId));
+      })
+      .catch((err) => {
+        console.error('Failed to accept follow request:', err);
+      });
+  };
+
+  const handleDecline = (requestId) => {
+    profileAPI.declineFollowRequest(requestId)
+      .then(() => {
+        setActivities((prev) => prev.filter((a) => a.requestId !== requestId));
+      })
+      .catch((err) => {
+        console.error('Failed to decline follow request:', err);
+      });
+  };
 
   useEffect(() => {
     // WebSocket handlers
@@ -68,6 +90,7 @@ const formatTimeSince = (timestamp) => {
           isGroup: false,
           isPartial: false,
           userId: req.follower_id,
+          requestId: req.request_id, // Assign request_id from fetched data
         }));
 
         setActivities((prev) => [...formatted, ...prev]);
@@ -89,8 +112,13 @@ const formatTimeSince = (timestamp) => {
           {activities.length === 0 ? (
             <p className="text-sm text-gray-500">No recent activity</p>
           ) : (
-            activities.map((activity, idx) => (
-              <ActivityItem key={idx} {...activity} />
+            activities.map((activity) => (
+              <ActivityItem
+                key={activity.requestId} // Use requestId as key
+                {...activity}
+                onAccept={handleAccept}
+                onDecline={handleDecline}
+              />
             ))
           )}
         </div>
