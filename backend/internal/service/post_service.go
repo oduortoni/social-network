@@ -96,6 +96,14 @@ func (s *PostService) GetPosts(userID int64) ([]*models.Post, error) {
 	return s.PostStore.GetPosts(userID)
 }
 
+func (s *PostService) GetPostsPaginated(userID int64, limit, offset int) ([]*models.Post, error) {
+	return s.PostStore.GetPostsPaginated(userID, limit, offset)
+}
+
+func (s *PostService) GetPostsCount(userID int64) (int, error) {
+	return s.PostStore.GetPostsCount(userID)
+}
+
 func (s *PostService) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) {
 	return s.PostStore.GetCommentsByPostID(postID, userID)
 }

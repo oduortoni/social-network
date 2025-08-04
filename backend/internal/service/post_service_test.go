@@ -73,6 +73,14 @@ func (s *MockPostStore) GetCommentByID(commentID int64) (*models.Comment, error)
 	return nil, nil
 }
 
+func (s *MockPostStore) GetPostsPaginated(userID int64, limit, offset int) ([]*models.Post, error) {
+	return nil, nil
+}
+
+func (s *MockPostStore) GetPostsCount(userID int64) (int, error) {
+	return 0, nil
+}
+
 func TestCreatePost(t *testing.T) {
 	// Test case 1: Successful post creation
 	t.Run("Successful post creation", func(t *testing.T) {
