@@ -71,7 +71,7 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 
 		// Send notification for public account follow
 		if follow.Notifier != nil {
-			followerName, _, err := follow.FollowService.GetUserInfo(followerId)
+			followerName, avatar, err := follow.FollowService.GetUserInfo(followerId)
 			if err == nil {
 				// Store notification in database
 				err = follow.FollowService.AddtoNotification(int64(followee.FolloweeId), followerName+" started following you")
@@ -89,6 +89,7 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 						"subtype":   "follow",
 						"user_id":   followerId,
 						"user_name": followerName,
+						"avatar":    avatar,
 						"message":   followerName + " started following you",
 						"timestamp": time.Now().Unix(),
 					})
@@ -112,7 +113,7 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 
 	// Send notification for follow request
 	if follow.Notifier != nil {
-		followerName, _, err := follow.FollowService.GetUserInfo(followerId)
+		followerName, avatar, err := follow.FollowService.GetUserInfo(followerId)
 		if err == nil {
 			// Store notification in database
 			err = follow.FollowService.AddtoNotification(int64(followee.FolloweeId), followerName+" sent you a follow request")
@@ -132,6 +133,7 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 					"user_name": followerName,
 					"message":   followerName + " sent you a follow request",
 					"timestamp": time.Now().Unix(),
+					"avatar":    avatar,
 					"additional_data": map[string]interface{}{
 						"request_id": followID,
 						"actions":    []string{"accept", "reject"},

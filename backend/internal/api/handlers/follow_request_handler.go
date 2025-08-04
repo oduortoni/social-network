@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -398,4 +399,28 @@ func (fr *FollowRequestHandler) CancelFollowRequest(w http.ResponseWriter, r *ht
 
 	serverResponse.Message = "Successfully cancelled follow request"
 	utils.RespondJSON(w, status, serverResponse)
+}
+
+func (fr *FollowRequestHandler) GetPendingFollowRequest(w http.ResponseWriter, r *http.Request) {
+	var serverResponse utils.Response
+	status := http.StatusOK
+
+	fmt.Println("am herre")
+
+	// Get current user id from session (to verify they can cancel this request)
+	userID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		serverResponse.Message = "User not found in context"
+		utils.RespondJSON(w, http.StatusUnauthorized, serverResponse)
+		return
+	}
+	users, err := fr.FollowRequestService.GetPendingFollowRequest(userID)
+	if err != nil {
+		serverResponse.Message = "Error getting users"
+		fmt.Println("ther error", err)
+		utils.RespondJSON(w, http.StatusInternalServerError, serverResponse)
+		return
+	}
+	fmt.Println("pending users", err)
+	utils.RespondJSON(w, status, users)
 }

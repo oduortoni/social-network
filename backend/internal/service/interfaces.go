@@ -50,6 +50,7 @@ type FollowRequestServiceInterface interface {
 	RetrieveUserName(userID int64) (string, string, error)
 	GetRequestInfo(requestID int64) (int64, int64, error)
 	AddtoNotification(follower_id int64, message string) error
+	GetPendingFollowRequest(userid int64)(models.FollowRequestUserResponse,error)
 }
 
 type ProfileServiceInterface interface {

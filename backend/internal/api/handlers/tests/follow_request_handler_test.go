@@ -22,6 +22,7 @@ type MockFollowRequestService struct {
 	GetRequestInfoFunc           func(requestID int64) (int64, int64, error)
 	AddtoNotificationFunc        func(follower_id int64, message string) error
 	CancelFollowRequestFunc      func(followConnectionID int64) error
+	GetPendingFollowRequestFunc  func(userid int64) (models.FollowRequestUserResponse, error)
 }
 
 func (s *MockFollowRequestService) AcceptedFollowConnection(followConnectionID int64) error {
@@ -29,6 +30,13 @@ func (s *MockFollowRequestService) AcceptedFollowConnection(followConnectionID i
 		return s.AcceptedFollowConnectionFunc(followConnectionID)
 	}
 	return nil
+}
+
+func (s *MockFollowRequestService) GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error) {
+	if s.GetPendingFollowRequestFunc != nil {
+		return s.GetPendingFollowRequestFunc(userid)
+	}
+	return models.FollowRequestUserResponse{}, nil
 }
 
 func (s *MockFollowRequestService) RejectedFollowConnection(followConnectionID int64) error {
