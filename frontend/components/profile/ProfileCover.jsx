@@ -102,7 +102,7 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
   return (
     <div className="w-full">
       {/* Cover Photo */}
-      <div className="relative h-80 w-full overflow-hidden rounded-lg">
+      <div className="relative h-80 w-full overflow-hidden rounded-lg -z-50">
         <div
           className="absolute inset-0"
           style={{
