@@ -6,20 +6,21 @@ import { profileAPI } from '../../lib/api';
 
 const ActivitySidebar = () => {
   const [activities, setActivities] = useState([]);
+const formatTimeSince = (timestamp) => {
+  const date = new Date(timestamp);           // parses timestamp
+  const now = Date.now();                     // current time in ms
+  const diffMs = now - date.getTime();        // correct: both in ms
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
 
-  const formatTimeSince = (timestamp) => {
-    const now = Date.now();
-    const diffMs = now - timestamp * 1000; // assuming timestamp is in seconds
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHr = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHr / 24);
+  if (diffSec < 60) return 'Just now';
+  if (diffMin < 60) return `${diffMin} min ago`;
+  if (diffHr < 24) return `${diffHr} hr${diffHr > 1 ? 's' : ''} ago`;
+  return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+};
 
-    if (diffSec < 60) return 'Just now';
-    if (diffMin < 60) return `${diffMin} min ago`;
-    if (diffHr < 24) return `${diffHr} hr${diffHr > 1 ? 's' : ''} ago`;
-    return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
-  };
 
   const handleRequest = useCallback((notification) => {
     console.log('Received follow_request notification:', notification);
@@ -56,18 +57,17 @@ const ActivitySidebar = () => {
     // Initial pending follow requests
     profileAPI.fetchPendingFollowRequests()
       .then((requests) => {
+        const pendingRequests = Array.isArray(requests) ? requests : requests.user || [];
+        if (!Array.isArray(pendingRequests)) return;
 
-        console.log(requests)
-        if (!Array.isArray(requests)) return;
-
-        const formatted = requests.map((req) => ({
+        const formatted = pendingRequests.map((req) => ({
           image: profileAPI.fetchProfileImage(req.avatar || ''),
-          name: req.user_name || 'Unknown User',
+          name: req.firstname || 'Unknown User',
           action: 'sent a follow request',
-          time: formatTimeSince(req.timestamp),
+          time: formatTimeSince(req.requested_at),
           isGroup: false,
           isPartial: false,
-          userId: req.user_id,
+          userId: req.follower_id,
         }));
 
         setActivities((prev) => [...formatted, ...prev]);

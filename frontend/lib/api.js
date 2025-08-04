@@ -78,9 +78,7 @@ function fetchCommunities() {
 }
 
 async function fetchPendingFollowRequests() {
-     let my=apiCall("/pending-follow-requests", {method:"GET"})
-      console.log("ueiufevw",my)
-      return await my
+  return apiCall("/pending-follow-requests", { method: "GET" });
 }
 
 
