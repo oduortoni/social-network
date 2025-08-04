@@ -1,6 +1,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const apiCall = async (endpoint, options = {}) => {
+  console.log(endpoint)
   const response = await fetch(`${API_BASE}${endpoint}`, {
     credentials: 'include',
     headers: {
@@ -76,6 +77,14 @@ function fetchCommunities() {
   return null;
 }
 
+async function fetchPendingFollowRequests() {
+     let my=apiCall("/pending-follow-requests", {method:"GET"})
+      console.log("ueiufevw",my)
+      return await my
+}
+
+
+
 export const profileAPI = {
   getProfile: (userId) => apiCall(`/profile/${userId}`),
   getFollowers: (userId) => apiCall(`/profile/${userId}/followers`),
@@ -88,4 +97,5 @@ export const profileAPI = {
   fetchFollowing,
   fetchProfileStatus,
   fetchCommunities,
+  fetchPendingFollowRequests,
 };

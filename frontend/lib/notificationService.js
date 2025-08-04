@@ -25,7 +25,13 @@ class NotificationService {
     
     // Handle user connection/disconnection notifications
     if (type === 'notification') {
+      console.log("100000")
       if (subtype === 'user_connected' || subtype === 'user_disconnected') {
+        const handlers = this.handlers.get(subtype) || [];
+        handlers.forEach(handler => handler(notification));
+      }
+      if (subtype == 'follow_request') {
+        console.log("5000")
         const handlers = this.handlers.get(subtype) || [];
         handlers.forEach(handler => handler(notification));
       }
