@@ -8,6 +8,8 @@ type PostStoreInterface interface {
 	CreateComment(comment *models.Comment) (int64, error)
 	GetPostByID(id int64) (*models.Post, error)
 	GetPosts(userID int64) ([]*models.Post, error)
+	GetPostsPaginated(userID int64, limit, offset int) ([]*models.Post, error)
+	GetPostsCount(userID int64) (int, error)
 	UpdatePost(postID int64, content, imagePath string) (*models.Post, error)
 	GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error)
 	DeletePost(postID int64) error

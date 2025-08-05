@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { fetchPosts, fetchPostsPaginated, deletePost, updatePost } from '../../lib/auth';
 import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock, Edit, Trash2, UserPlus, User } from 'lucide-react';
-import { fetchPosts, deletePost, updatePost } from '../../lib/auth';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
@@ -11,7 +11,10 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [expandedComments, setExpandedComments] = useState(new Set());
   const [newComments, setNewComments] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -20,16 +23,31 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   const [editContent, setEditContent] = useState('');
   const [editImage, setEditImage] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
+  const loadingRef = useRef(false);
 
-  const loadPosts = async () => {
-    setLoading(true);
+  const loadPosts = async (pageNum = 1, append = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setPosts([]);
+      setPage(1);
+      setHasMore(true);
+    }
     setError('');
 
     try {
-      const result = await fetchPosts();
+      const result = await fetchPostsPaginated(pageNum, 10);
 
       if (result.success) {
-        setPosts(result.data || []);
+        const { posts: newPosts, pagination } = result.data;
+        if (append) {
+          setPosts(prev => [...prev, ...newPosts]);
+        } else {
+          setPosts(newPosts);
+        }
+        setHasMore(pagination.hasMore);
+        setPage(pageNum + 1);
       } else {
         setError(result.error);
       }
@@ -37,6 +55,8 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
       setError('Failed to load posts');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+      loadingRef.current = false;
     }
   };
 
@@ -48,6 +68,37 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
       loadPosts();
     }
   }, [refreshTrigger, initialPosts]);
+
+  const loadMorePosts = () => {
+    if (loadingRef.current || loadingMore || !hasMore) return;
+    loadingRef.current = true;
+    loadPosts(page, true);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loadingMore || !hasMore) return;
+      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
+        loadMorePosts();
+      }
+    };
+
+    const debouncedScroll = debounce(handleScroll, 200);
+    window.addEventListener('scroll', debouncedScroll);
+    return () => window.removeEventListener('scroll', debouncedScroll);
+  }, [page, loadingMore, hasMore]);
+
+  const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
 
   const getPrivacyIcon = (privacy) => {
     switch (privacy) {
@@ -417,6 +468,20 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
           )}
         </div>
       ))}
+
+      {/* Loading more indicator */}
+      {loadingMore && (
+        <div className="flex justify-center py-4">
+          <div style={{ color: 'var(--secondary-text)' }}>Loading more posts...</div>
+        </div>
+      )}
+
+      {/* End of posts */}
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center py-4" style={{ color: 'var(--secondary-text)' }}>
+          No more posts to show
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmation && (

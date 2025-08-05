@@ -164,13 +164,67 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := h.PostService.GetPosts(userID)
+	// Check for pagination parameters
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	// If no pagination parameters, return all posts (backward compatibility)
+	if pageStr == "" && limitStr == "" {
+		posts, err := h.PostService.GetPosts(userID)
+		if err != nil {
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
+			return
+		}
+		utils.RespondJSON(w, http.StatusOK, posts)
+		return
+	}
+
+	// Parse pagination parameters
+	page := 1
+	limit := 15
+
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 50 {
+			limit = l
+		}
+	}
+
+	offset := (page - 1) * limit
+
+	// Get paginated posts and total count
+	posts, err := h.PostService.GetPostsPaginated(userID, limit, offset)
 	if err != nil {
 		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
 		return
 	}
 
-	utils.RespondJSON(w, http.StatusOK, posts)
+	totalPosts, err := h.PostService.GetPostsCount(userID)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Internal server error"})
+		return
+	}
+
+	totalPages := (totalPosts + limit - 1) / limit
+	hasMore := page < totalPages
+
+	response := utils.PostsResponse{
+		Posts: posts,
+		Pagination: utils.PaginationMeta{
+			CurrentPage: page,
+			TotalPages:  totalPages,
+			TotalPosts:  totalPosts,
+			HasMore:     hasMore,
+			Limit:       limit,
+		},
+	}
+
+	utils.RespondJSON(w, http.StatusOK, response)
 }
 
 func (h *PostHandler) GetCommentsByPostID(w http.ResponseWriter, r *http.Request) {

@@ -56,6 +56,27 @@ export const fetchPosts = async () => {
   }
 };
 
+// Fetch posts with pagination
+export const fetchPostsPaginated = async (page = 1, limit = 10) => {
+  try {
+    const response = await fetch(`http://localhost:9000/posts?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    } else {
+      return { success: false, error: data.message || 'Failed to fetch posts' };
+    }
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
 // Create comment function
 export const createComment = async (postId, formData) => {
   try {
