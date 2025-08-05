@@ -103,6 +103,14 @@ func (s *MockPostService) GetCommentByID(commentID int64) (*models.Comment, erro
 	return nil, fmt.Errorf("GetCommentByIDFunc not implemented")
 }
 
+func (s *MockPostService) GetPostsPaginated(userID int64, limit, offset int) ([]*models.Post, error) {
+	return nil, fmt.Errorf("GetPostsPaginated not implemented")
+}
+
+func (s *MockPostService) GetPostsCount(userID int64) (int, error) {
+	return 0, fmt.Errorf("GetPostsCount not implemented")
+}
+
 func TestDeletePost(t *testing.T) {
 	// Test case 1: Successful deletion
 	t.Run("Successful deletion", func(t *testing.T) {

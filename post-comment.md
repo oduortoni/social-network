@@ -125,6 +125,6 @@ Validate frontend forms and feed components for functionality, responsiveness, a
 Document Posts and Comments Features:
 
 Update README.md with instructions for creating, viewing, and deleting posts/comments, including privacy settings and image support.
-Document API endpoints (POST /api/posts, GET /api/posts, DELETE /api/posts/{postId}, POST /api/posts/{postId}/comments, GET /api/posts/{postId}/comments, GET /api/uploads/:type/:filename) in docs/api.md, detailing inputs, outputs, and access controls, as per endpoint.md.
+Document API endpoints (POST /posts, GET /posts, DELETE /posts/{postId}, POST /posts/{postId}/comments, GET /posts/{postId}/comments, GET attachments/posts/:type/:filename) in docs/api.md, detailing inputs, outputs, and access controls, as per endpoint.md.
 Describe frontend components (PostForm.js, CommentForm.js, PostFeed.js) in README.md, including styling (Tailwind CSS) and responsiveness notes.
-Note image handling setup (filesystem storage in backend/uploads/, supported formats: JPEG, PNG, GIF).
+Note image handling setup (filesystem storage in attachments/, supported formats: JPEG, PNG, GIF).

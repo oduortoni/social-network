@@ -14,6 +14,41 @@ A Facebook-like social network with features like profiles, posts, groups, real-
 * **Real-time Chat:** Private messaging between followers/following users, Group chat rooms, Emoji support, Instant delivery via WebSockets.
 * **Notifications:** Follow requests, Group invitations, Group join requests (for creators), New group events.
 
+## Posts and Comments Features
+
+### Creating Posts
+
+Users can create new posts with text content and an optional image. Posts can have different privacy settings:
+
+-   **Public:** Visible to all users.
+-   **Followers:** Visible only to your followers.
+-   **Private:** Visible only to specific users you select.
+
+**Frontend Component:** `frontend/components/posts/PostCreation.jsx`
+This component handles the input form, image selection, privacy setting, and user search for private posts.
+
+### Viewing Posts and Comments
+
+Posts are displayed in a feed, and comments can be viewed for each post. Access to posts is controlled by their privacy settings.
+
+**Frontend Components:**
+-   `frontend/components/posts/PostList.jsx`: Displays a list of posts.
+-   `frontend/components/posts/CommentList.jsx`: Displays comments for a specific post.
+
+### Deleting Posts and Comments
+
+Users can delete their own posts and comments.
+
+### Image Handling
+
+-   **Supported Formats:** JPEG, PNG, GIF.
+-   **Storage:** Images are stored on the filesystem in the `backend/attachments/` directory, organized by type (e.g., `attachments/posts/`, `attachments/comments/`).
+-   **Validation:** Image size and format are validated on upload.
+
+### Styling and Responsiveness
+
+The frontend is styled using Tailwind CSS, ensuring a responsive design that adapts to various screen sizes.
+
 ## API Contract
 
 ### Authentication

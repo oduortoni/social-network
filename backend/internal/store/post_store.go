@@ -106,7 +106,11 @@ func (s *PostStore) UpdatePost(postID int64, content, imagePath string) (*models
 }
 
 func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
-	rows, err := s.DB.Query(`
+	return s.GetPostsPaginated(userID, 0, 0)
+}
+
+func (s *PostStore) GetPostsPaginated(userID int64, limit, offset int) ([]*models.Post, error) {
+	query := `
         SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at,
                u.first_name, u.last_name, u.nickname, u.avatar,
                COALESCE(likes.count, 0) as likes_count,
@@ -114,9 +118,9 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
                ur.reaction_type as user_reaction
         FROM Posts p
         JOIN Users u ON p.user_id = u.id
-        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM post_reactions WHERE reaction_type = 'like' GROUP BY post_id) likes ON p.id = likes.post_id
-        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM post_reactions WHERE reaction_type = 'dislike' GROUP BY post_id) dislikes ON p.id = dislikes.post_id
-        LEFT JOIN post_reactions ur ON p.id = ur.post_id AND ur.user_id = ?
+        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM Post_Reactions WHERE reaction_type = 'like' GROUP BY post_id) likes ON p.id = likes.post_id
+        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM Post_Reactions WHERE reaction_type = 'dislike' GROUP BY post_id) dislikes ON p.id = dislikes.post_id
+        LEFT JOIN Post_Reactions ur ON p.id = ur.post_id AND ur.user_id = ?
         WHERE p.privacy = 'public'
         OR (p.privacy = 'almost_private' AND p.user_id = ? OR p.user_id IN (
             SELECT follower_id FROM Followers WHERE followee_id = ?
@@ -124,13 +128,27 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
         OR (p.privacy = 'private' AND EXISTS (
             SELECT 1 FROM Post_visibility pv WHERE pv.post_id = p.id AND pv.viewer_id = ?
         ))
-        ORDER BY p.created_at DESC
-    `, userID, userID, userID, userID)
+        ORDER BY p.created_at DESC`
+
+	if limit > 0 {
+		query += ` LIMIT ? OFFSET ?`
+		rows, err := s.DB.Query(query, userID, userID, userID, userID, limit, offset)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		return s.scanPosts(rows)
+	}
+
+	rows, err := s.DB.Query(query, userID, userID, userID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+	return s.scanPosts(rows)
+}
 
+func (s *PostStore) scanPosts(rows *sql.Rows) ([]*models.Post, error) {
 	var posts []*models.Post
 	for rows.Next() {
 		var post models.Post
@@ -155,8 +173,26 @@ func (s *PostStore) GetPosts(userID int64) ([]*models.Post, error) {
 
 		posts = append(posts, &post)
 	}
-
 	return posts, nil
+}
+
+// GetPostsCount returns the total count of posts visible to a user
+func (s *PostStore) GetPostsCount(userID int64) (int, error) {
+	row := s.DB.QueryRow(`
+        SELECT COUNT(*)
+        FROM Posts p
+        WHERE p.privacy = 'public'
+        OR (p.privacy = 'almost_private' AND p.user_id = ? OR p.user_id IN (
+            SELECT follower_id FROM Followers WHERE followee_id = ?
+        ))
+        OR (p.privacy = 'private' AND EXISTS (
+            SELECT 1 FROM Post_visibility pv WHERE pv.post_id = p.id AND pv.viewer_id = ?
+        ))
+    `, userID, userID, userID)
+
+	var count int
+	err := row.Scan(&count)
+	return count, err
 }
 
 func (s *PostStore) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) {
@@ -168,9 +204,9 @@ func (s *PostStore) GetCommentsByPostID(postID, userID int64) ([]*models.Comment
                ur.reaction_type as user_reaction
         FROM Comments c
         JOIN Users u ON c.user_id = u.id
-        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM comment_reactions WHERE reaction_type = 'like' GROUP BY comment_id) likes ON c.id = likes.comment_id
-        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM comment_reactions WHERE reaction_type = 'dislike' GROUP BY comment_id) dislikes ON c.id = dislikes.comment_id
-        LEFT JOIN comment_reactions ur ON c.id = ur.comment_id AND ur.user_id = ?
+        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM Comment_Reactions WHERE reaction_type = 'like' GROUP BY comment_id) likes ON c.id = likes.comment_id
+        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM Comment_Reactions WHERE reaction_type = 'dislike' GROUP BY comment_id) dislikes ON c.id = dislikes.comment_id
+        LEFT JOIN Comment_Reactions ur ON c.id = ur.comment_id AND ur.user_id = ?
         WHERE c.post_id = ?
         ORDER BY c.created_at DESC
     `, userID, postID)
