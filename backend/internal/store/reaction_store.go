@@ -17,7 +17,7 @@ func NewReactionStore(db *sql.DB) *ReactionStore {
 // AddPostReaction adds a reaction to a post.
 func (s *ReactionStore) AddPostReaction(reaction *models.Reaction) error {
 	_, err := s.Exec(`
-		INSERT INTO post_reactions (user_id, post_id, reaction_type)
+		INSERT INTO Post_Reactions (user_id, post_id, reaction_type)
 		VALUES (?, ?, ?)
 		ON CONFLICT(user_id, post_id) DO UPDATE SET reaction_type = excluded.reaction_type;
 	`, reaction.UserID, reaction.PostID, reaction.ReactionType)
@@ -27,7 +27,7 @@ func (s *ReactionStore) AddPostReaction(reaction *models.Reaction) error {
 // RemovePostReaction removes a reaction from a post.
 func (s *ReactionStore) RemovePostReaction(userID, postID int) error {
 	_, err := s.Exec(`
-		DELETE FROM post_reactions
+		DELETE FROM Post_Reactions
 		WHERE user_id = ? AND post_id = ?;
 	`, userID, postID)
 	return err
@@ -36,7 +36,7 @@ func (s *ReactionStore) RemovePostReaction(userID, postID int) error {
 // AddCommentReaction adds a reaction to a comment.
 func (s *ReactionStore) AddCommentReaction(reaction *models.Reaction) error {
 	_, err := s.Exec(`
-		INSERT INTO comment_reactions (user_id, comment_id, reaction_type)
+		INSERT INTO Comment_Reactions (user_id, comment_id, reaction_type)
 		VALUES (?, ?, ?)
 		ON CONFLICT(user_id, comment_id) DO UPDATE SET reaction_type = excluded.reaction_type;
 	`, reaction.UserID, reaction.CommentID, reaction.ReactionType)
@@ -46,7 +46,7 @@ func (s *ReactionStore) AddCommentReaction(reaction *models.Reaction) error {
 // RemoveCommentReaction removes a reaction from a comment.
 func (s *ReactionStore) RemoveCommentReaction(userID, commentID int) error {
 	_, err := s.Exec(`
-		DELETE FROM comment_reactions
+		DELETE FROM Comment_Reactions
 		WHERE user_id = ? AND comment_id = ?;
 	`, userID, commentID)
 	return err
