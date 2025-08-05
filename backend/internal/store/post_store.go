@@ -118,9 +118,9 @@ func (s *PostStore) GetPostsPaginated(userID int64, limit, offset int) ([]*model
                ur.reaction_type as user_reaction
         FROM Posts p
         JOIN Users u ON p.user_id = u.id
-        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM post_reactions WHERE reaction_type = 'like' GROUP BY post_id) likes ON p.id = likes.post_id
-        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM post_reactions WHERE reaction_type = 'dislike' GROUP BY post_id) dislikes ON p.id = dislikes.post_id
-        LEFT JOIN post_reactions ur ON p.id = ur.post_id AND ur.user_id = ?
+        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM Post_Reactions WHERE reaction_type = 'like' GROUP BY post_id) likes ON p.id = likes.post_id
+        LEFT JOIN (SELECT post_id, COUNT(*) as count FROM Post_Reactions WHERE reaction_type = 'dislike' GROUP BY post_id) dislikes ON p.id = dislikes.post_id
+        LEFT JOIN Post_Reactions ur ON p.id = ur.post_id AND ur.user_id = ?
         WHERE p.privacy = 'public'
         OR (p.privacy = 'almost_private' AND p.user_id = ? OR p.user_id IN (
             SELECT follower_id FROM Followers WHERE followee_id = ?
@@ -204,9 +204,9 @@ func (s *PostStore) GetCommentsByPostID(postID, userID int64) ([]*models.Comment
                ur.reaction_type as user_reaction
         FROM Comments c
         JOIN Users u ON c.user_id = u.id
-        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM comment_reactions WHERE reaction_type = 'like' GROUP BY comment_id) likes ON c.id = likes.comment_id
-        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM comment_reactions WHERE reaction_type = 'dislike' GROUP BY comment_id) dislikes ON c.id = dislikes.comment_id
-        LEFT JOIN comment_reactions ur ON c.id = ur.comment_id AND ur.user_id = ?
+        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM Comment_Reactions WHERE reaction_type = 'like' GROUP BY comment_id) likes ON c.id = likes.comment_id
+        LEFT JOIN (SELECT comment_id, COUNT(*) as count FROM Comment_Reactions WHERE reaction_type = 'dislike' GROUP BY comment_id) dislikes ON c.id = dislikes.comment_id
+        LEFT JOIN Comment_Reactions ur ON c.id = ur.comment_id AND ur.user_id = ?
         WHERE c.post_id = ?
         ORDER BY c.created_at DESC
     `, userID, postID)
