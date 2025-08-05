@@ -29,6 +29,15 @@ class NotificationService {
         const handlers = this.handlers.get(subtype) || [];
         handlers.forEach(handler => handler(notification));
       }
+      if (subtype === 'follow_request') {
+        const handlers = this.handlers.get(subtype) || [];
+        handlers.forEach(handler => handler(notification));
+      }
+      
+      if (subtype === "follow"){
+      const handlers = this.handlers.get(subtype) || [];
+        handlers.forEach(handler => handler(notification));
+      }
     }
   }
 

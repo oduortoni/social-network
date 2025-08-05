@@ -58,11 +58,11 @@ func (ps *ProfileStore) MyProfileDetails(userid int64) (models.ProfileDetails, e
 func (followStore *ProfileStore) GetFollowersStat(userid int64) (int, int, error) {
 	followers := 0
 	following := 0
-	err := followStore.DB.QueryRow("SELECT COUNT(*) FROM Followers WHERE follower_id = ? AND status = 'accepted'", userid).Scan(&followers)
+	err := followStore.DB.QueryRow("SELECT COUNT(*) FROM Followers WHERE follower_id = ? AND status = 'accepted'", userid).Scan(&following)
 	if err != nil {
 		return 0, 0, err
 	}
-	err = followStore.DB.QueryRow("SELECT COUNT(*) FROM Followers WHERE followee_id = ? AND status = 'accepted'", userid).Scan(&following)
+	err = followStore.DB.QueryRow("SELECT COUNT(*) FROM Followers WHERE followee_id = ? AND status = 'accepted'", userid).Scan(&followers)
 	if err != nil {
 		return 0, 0, err
 	}

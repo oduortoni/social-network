@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"strings"
 	"time"
+
+	"github.com/tajjjjr/social-network/backend/internal/models"
 )
 
 // FollowRequestStore handles database operations for follow request.
@@ -97,4 +99,45 @@ func (followstore *FollowRequestStore) AddtoNotification(follower_id int64, mess
 func (fr *FollowRequestStore) FollowRequestCancel(requestID int64) error {
 	_, err := fr.DB.Exec("DELETE FROM Followers WHERE id = ? AND status = 'pending'", requestID)
 	return err
+}
+
+func (fr *FollowRequestStore) GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error) {
+	var response models.FollowRequestUserResponse
+
+	query := `
+        SELECT f.id, f.follower_id, u.first_name, u.last_name, u.avatar, f.requested_at
+        FROM Followers f
+        JOIN Users u ON f.follower_id = u.id
+        WHERE f.followee_id = ? AND f.status = 'pending'
+        ORDER BY f.requested_at DESC
+    `
+
+	rows, err := fr.DB.Query(query, userid)
+	if err != nil {
+		return response, err
+	}
+	defer rows.Close()
+
+	var requests []models.FollowUserRequest
+	for rows.Next() {
+		var request models.FollowUserRequest
+		if err := rows.Scan(
+			&request.RequestID,
+			&request.FollowerID,
+			&request.FirstName,
+			&request.LastName,
+			&request.Avatar,
+			&request.RequestedAt,
+		); err != nil {
+			return response, err
+		}
+		requests = append(requests, request)
+	}
+
+	if err := rows.Err(); err != nil {
+		return response, err
+	}
+
+	response.Followers = requests
+	return response, nil
 }
