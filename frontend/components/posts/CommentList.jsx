@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { fetchComments, updateComment, deleteComment, followUser } from "../../lib/auth";
 import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, Edit, Trash2, UserPlus } from 'lucide-react';
 import CommentReactionButtons from './CommentReactionButtons';
+import ClientDate from '../common/ClientDate';
 
 const CommentList = ({ postId, newComment, user }) => {
   const [comments, setComments] = useState([]);
@@ -14,27 +15,7 @@ const CommentList = ({ postId, newComment, user }) => {
   const [editImage, setEditImage] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
 
-  // Format date helper
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
 
-    if (diffInSeconds < 60) {
-      return 'Just now';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes}m ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours}h ago`;
-    } else if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days}d ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
 
   // Get display name for user
   const getDisplayName = (author) => {
@@ -328,7 +309,7 @@ const CommentList = ({ postId, newComment, user }) => {
               className="text-xs mt-1 ml-3"
               style={{ color: 'var(--secondary-text)' }}
             >
-              {formatDate(comment.created_at)}
+              <ClientDate dateString={comment.created_at} />
               {comment.is_edited && (
                 <span className="ml-2 text-xs" style={{ color: 'var(--secondary-text)' }}>
                   • edited

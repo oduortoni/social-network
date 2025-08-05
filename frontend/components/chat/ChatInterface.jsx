@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { wsService } from '../../lib/websocket';
 import { chatAPI } from '../../lib/api';
 import { notificationService } from '../../lib/notificationService';
+import ClientDate from '../common/ClientDate';
 import Picker from 'emoji-picker-react';
 
 const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = null, showSidebar = true }) => {
@@ -292,7 +293,7 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', initialChat = 
                     {!isSender && !isBroadcast && <div className="w-8 h-8 rounded-full bg-gray-300 mr-3"></div> /* Avatar placeholder */}
                     <div className={isBroadcast ? 'text-center text-blue-600' : ''}>
                       <div className={`text-xs mb-1 ${isSender ? 'text-right' : 'text-left'} text-gray-500`}>
-                        {new Date(message.timestamp * 1000).toLocaleTimeString()}
+                        <ClientDate dateString={new Date(message.timestamp * 1000).toISOString()} format="time" />
                         {isOptimistic && <span className="ml-1 text-yellow-500">⏳</span>}
                       </div>
                       <div className={`p-3 rounded-lg ${isSender ? 'bg-blue-500 text-white' : 'bg-gray-200'} ${isOptimistic ? 'border-2 border-dashed border-yellow-400' : ''}`}>
