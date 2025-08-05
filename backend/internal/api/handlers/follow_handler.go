@@ -134,10 +134,7 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 					"message":   followerName + " sent you a follow request",
 					"timestamp": time.Now().Unix(),
 					"avatar":    avatar,
-					"additional_data": map[string]interface{}{
-						"request_id": followID,
-						"actions":    []string{"accept", "reject"},
-					},
+					"request_id": followID,
 				})
 			}
 		}
