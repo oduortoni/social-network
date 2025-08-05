@@ -3,6 +3,7 @@ import { HomeIcon, BellIcon, UsersIcon, MessageCircleIcon, SearchIcon, ChevronDo
 import { handleLogout } from '../../lib/auth';
 import { useSimpleNotifications } from '../../hooks/useNotifications';
 import { profileAPI } from '../../lib/api';
+import ClientDate from '../common/ClientDate';
 import { useRouter } from 'next/navigation';
 
 const Header = ({ user = null }) => {
@@ -92,7 +93,7 @@ const Header = ({ user = null }) => {
                     >
                       <div className="text-sm text-gray-800">{notification.message}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {new Date(notification.timestamp * 1000).toLocaleString()}
+                        <ClientDate dateString={new Date(notification.timestamp * 1000).toISOString()} />
                       </div>
                     </div>
                   ))

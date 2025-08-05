@@ -5,6 +5,7 @@ import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 import ReactionButtons from './ReactionButtons';
+import ClientDate from '../common/ClientDate';
 import { useRouter } from 'next/navigation';
 
 const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
@@ -126,24 +127,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
 
-    if (diffInSeconds < 60) {
-      return 'Just now';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes}m ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours}h ago`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days}d ago`;
-    }
-  };
 
   // Toggle comments visibility for a post
   const toggleComments = (postId) => {
@@ -279,7 +263,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
     );
   }
 
-  if (posts.length === 0) {
+  if (!posts || posts.length === 0) {
     return (
       <div className="rounded-xl p-8 text-center" style={{ backgroundColor: 'var(--primary-background)' }}>
         <div style={{ color: 'var(--secondary-text)' }} className="mb-2">No posts yet</div>
@@ -316,7 +300,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
                   </div>
                 </div>
                 <div className="text-xs" style={{ color: 'var(--secondary-text)' }}>
-                  {formatDate(post.created_at)}
+                  <ClientDate dateString={post.created_at} />
                   {post.is_edited && (
                     <span className="ml-2 text-xs" style={{ color: 'var(--secondary-text)' }}>
                       • edited
