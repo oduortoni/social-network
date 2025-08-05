@@ -10,6 +10,7 @@ type FollowUserRequest struct {
 	Avatar      string `json:"avatar"`
 	FollowerID  int64  `json:"follower_id"`
 	RequestedAt string `json:"requested_at"`
+	RequestID   int64  `json:"request_id"`
 }
 
 type FollowRequestUserResponse struct {

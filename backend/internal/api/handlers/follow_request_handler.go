@@ -43,6 +43,7 @@ func (fr *FollowRequestHandler) FollowRequestRespond(w http.ResponseWriter, r *h
 	requestIDStr := r.PathValue("requestId")
 	requestID, err := strconv.ParseInt(requestIDStr, 10, 64)
 	if err != nil {
+		fmt.Println("error parsing request ID:", err)
 		serverResponse.Message = "Invalid request ID"
 		utils.RespondJSON(w, http.StatusBadRequest, serverResponse)
 		return
@@ -52,12 +53,14 @@ func (fr *FollowRequestHandler) FollowRequestRespond(w http.ResponseWriter, r *h
 	var requestStatus models.FollowRequestResponseStatus
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		fmt.Println("error reading request body:", err)
 		serverResponse.Message = "Failed to read request body"
 		utils.RespondJSON(w, http.StatusBadRequest, serverResponse)
 		return
 	}
 
 	if err = json.Unmarshal(body, &requestStatus); err != nil {
+		fmt.Println("error unmarshalling request body:", err)
 		serverResponse.Message = "Invalid JSON format"
 		utils.RespondJSON(w, http.StatusBadRequest, serverResponse)
 		return
@@ -65,6 +68,7 @@ func (fr *FollowRequestHandler) FollowRequestRespond(w http.ResponseWriter, r *h
 
 	// Validate status value
 	if requestStatus.Status != "accepted" && requestStatus.Status != "rejected" {
+		fmt.Println("invalid status value:", requestStatus.Status)
 		serverResponse.Message = "Invalid status. Must be 'accepted' or 'rejected'"
 		utils.RespondJSON(w, http.StatusBadRequest, serverResponse)
 		return
@@ -404,8 +408,6 @@ func (fr *FollowRequestHandler) CancelFollowRequest(w http.ResponseWriter, r *ht
 func (fr *FollowRequestHandler) GetPendingFollowRequest(w http.ResponseWriter, r *http.Request) {
 	var serverResponse utils.Response
 	status := http.StatusOK
-
-	fmt.Println("am herre")
 
 	// Get current user id from session (to verify they can cancel this request)
 	userID, ok := r.Context().Value(utils.User_id).(int64)

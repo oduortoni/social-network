@@ -105,7 +105,7 @@ func (fr *FollowRequestStore) GetPendingFollowRequest(userid int64) (models.Foll
 	var response models.FollowRequestUserResponse
 
 	query := `
-        SELECT f.follower_id, u.first_name, u.last_name, u.avatar, f.requested_at
+        SELECT f.id, f.follower_id, u.first_name, u.last_name, u.avatar, f.requested_at
         FROM Followers f
         JOIN Users u ON f.follower_id = u.id
         WHERE f.followee_id = ? AND f.status = 'pending'
@@ -122,6 +122,7 @@ func (fr *FollowRequestStore) GetPendingFollowRequest(userid int64) (models.Foll
 	for rows.Next() {
 		var request models.FollowUserRequest
 		if err := rows.Scan(
+			&request.RequestID,
 			&request.FollowerID,
 			&request.FirstName,
 			&request.LastName,
