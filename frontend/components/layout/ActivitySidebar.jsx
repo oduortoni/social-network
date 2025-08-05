@@ -6,6 +6,7 @@ import { profileAPI } from '../../lib/api';
 
 const ActivitySidebar = () => {
   const [activities, setActivities] = useState([]);
+
   const formatTimeSince = (timestamp) => {
     const date = new Date(timestamp);
     const now = Date.now();
@@ -32,6 +33,8 @@ const ActivitySidebar = () => {
       request_id,
     } = notification;
 
+    if (!request_id) return;
+
     const activity = {
       image: profileAPI.fetchProfileImage(avatar || ''),
       name: user_name || 'Unknown User',
@@ -44,7 +47,39 @@ const ActivitySidebar = () => {
     };
 
     setActivities((prev) => {
-      if (prev.some((a) => a.requestId === activity.requestId)) {
+      if (prev.some((a) => a.requestId === activity.requestId && a.action === activity.action)) {
+        return prev;
+      }
+      return [activity, ...prev];
+    });
+  }, []);
+
+  const handleFollow = useCallback((notification) => {
+    console.log('Received follow notification:', notification);
+
+    const {
+      user_name,
+      avatar,
+      timestamp,
+      user_id,
+      request_id,
+    } = notification;
+
+    if (!request_id) return;
+
+    const activity = {
+      image: profileAPI.fetchProfileImage(avatar || ''),
+      name: user_name || 'Unknown User',
+      action: 'followed you',
+      time: formatTimeSince(timestamp),
+      isGroup: false,
+      isPartial: true,
+      userId: user_id,
+      requestId: request_id,
+    };
+
+    setActivities((prev) => {
+      if (prev.some((a) => a.requestId === activity.requestId && a.action === activity.action)) {
         return prev;
       }
       return [activity, ...prev];
@@ -56,7 +91,7 @@ const ActivitySidebar = () => {
   }, []);
 
   const handleAccept = (requestId) => {
-    profileAPI.acceptFollowRequest(requestId,"accepted")
+    profileAPI.acceptFollowRequest(requestId, 'accepted')
       .then(() => {
         setActivities((prev) => prev.filter((a) => a.requestId !== requestId));
       })
@@ -66,7 +101,7 @@ const ActivitySidebar = () => {
   };
 
   const handleDecline = (requestId) => {
-    profileAPI.acceptFollowRequest(requestId,"rejected")
+    profileAPI.acceptFollowRequest(requestId, 'rejected')
       .then(() => {
         setActivities((prev) => prev.filter((a) => a.requestId !== requestId));
       })
@@ -78,11 +113,11 @@ const ActivitySidebar = () => {
   useEffect(() => {
     wsService.onMessage('notification', handleNotification);
     notificationService.onNotification('follow_request', handleRequest);
+    notificationService.onNotification('follow', handleFollow);
 
     profileAPI.fetchPendingFollowRequests()
       .then((requests) => {
-        const pendingRequests = Array.isArray(requests) ? requests : requests.user || [];
-        if (!Array.isArray(pendingRequests)) return;
+        const pendingRequests = Array.isArray(requests?.user) ? requests.user : [];
 
         const formatted = pendingRequests.map((req) => ({
           image: profileAPI.fetchProfileImage(req.avatar || ''),
@@ -96,7 +131,9 @@ const ActivitySidebar = () => {
         }));
 
         setActivities((prev) => {
-          const uniqueFormatted = formatted.filter((f) => !prev.some((p) => p.requestId === f.requestId));
+          const uniqueFormatted = formatted.filter(
+            (f) => !prev.some((p) => p.requestId === f.requestId && p.action === f.action)
+          );
           return [...uniqueFormatted, ...prev];
         });
       })
@@ -106,10 +143,11 @@ const ActivitySidebar = () => {
 
     return () => {
       wsService.removeHandler('notification', handleNotification);
+      notificationService.removeHandler('follow_request', handleRequest);
+      notificationService.removeHandler('follow', handleFollow);
     };
-  }, [handleRequest, handleNotification]);
+  }, [handleRequest, handleNotification, handleFollow]);
 
-  console.log('ActivitySidebar activities:', activities);
   return (
     <div className="w-72">
       <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>
@@ -118,14 +156,16 @@ const ActivitySidebar = () => {
           {activities.length === 0 ? (
             <p className="text-sm text-gray-500">No recent activity</p>
           ) : (
-            activities.map((activity) => (
-              <ActivityItem
-                key={activity.requestId}
-                {...activity}
-                onAccept={handleAccept}
-                onDecline={handleDecline}
-              />
-            ))
+            activities
+              .filter((activity) => activity?.requestId != null)
+              .map((activity) => (
+                <ActivityItem
+                  key={`${activity.requestId}-${activity.action}`}
+                  {...activity}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                />
+              ))
           )}
         </div>
       </div>
