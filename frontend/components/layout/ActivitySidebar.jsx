@@ -6,21 +6,20 @@ import { profileAPI } from '../../lib/api';
 
 const ActivitySidebar = () => {
   const [activities, setActivities] = useState([]);
-const formatTimeSince = (timestamp) => {
-  const date = new Date(timestamp);           // parses timestamp
-  const now = Date.now();                     // current time in ms
-  const diffMs = now - date.getTime();        // correct: both in ms
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHr = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHr / 24);
+  const formatTimeSince = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = Date.now();
+    const diffMs = now - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
 
-  if (diffSec < 60) return 'Just now';
-  if (diffMin < 60) return `${diffMin} min ago`;
-  if (diffHr < 24) return `${diffHr} hr${diffHr > 1 ? 's' : ''} ago`;
-  return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
-};
-
+    if (diffSec < 60) return 'Just now';
+    if (diffMin < 60) return `${diffMin} min ago`;
+    if (diffHr < 24) return `${diffHr} hr${diffHr > 1 ? 's' : ''} ago`;
+    return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  };
 
   const handleRequest = useCallback((notification) => {
     console.log('Received follow_request notification:', notification);
@@ -30,7 +29,7 @@ const formatTimeSince = (timestamp) => {
       avatar,
       timestamp,
       user_id,
-      request_id, // Extract request_id from notification
+      request_id,
     } = notification;
 
     const activity = {
@@ -41,10 +40,15 @@ const formatTimeSince = (timestamp) => {
       isGroup: false,
       isPartial: false,
       userId: user_id,
-      requestId: request_id, // Assign request_id
+      requestId: request_id,
     };
 
-    setActivities((prev) => [activity, ...prev]);
+    setActivities((prev) => {
+      if (prev.some((a) => a.requestId === activity.requestId)) {
+        return prev;
+      }
+      return [activity, ...prev];
+    });
   }, []);
 
   const handleNotification = useCallback((notification) => {
@@ -52,7 +56,7 @@ const formatTimeSince = (timestamp) => {
   }, []);
 
   const handleAccept = (requestId) => {
-    profileAPI.acceptFollowRequest(requestId)
+    profileAPI.acceptFollowRequest(requestId,"accepted")
       .then(() => {
         setActivities((prev) => prev.filter((a) => a.requestId !== requestId));
       })
@@ -62,7 +66,7 @@ const formatTimeSince = (timestamp) => {
   };
 
   const handleDecline = (requestId) => {
-    profileAPI.declineFollowRequest(requestId)
+    profileAPI.acceptFollowRequest(requestId,"rejected")
       .then(() => {
         setActivities((prev) => prev.filter((a) => a.requestId !== requestId));
       })
@@ -72,11 +76,9 @@ const formatTimeSince = (timestamp) => {
   };
 
   useEffect(() => {
-    // WebSocket handlers
     wsService.onMessage('notification', handleNotification);
     notificationService.onNotification('follow_request', handleRequest);
 
-    // Initial pending follow requests
     profileAPI.fetchPendingFollowRequests()
       .then((requests) => {
         const pendingRequests = Array.isArray(requests) ? requests : requests.user || [];
@@ -90,10 +92,13 @@ const formatTimeSince = (timestamp) => {
           isGroup: false,
           isPartial: false,
           userId: req.follower_id,
-          requestId: req.request_id, // Assign request_id from fetched data
+          requestId: req.request_id,
         }));
 
-        setActivities((prev) => [...formatted, ...prev]);
+        setActivities((prev) => {
+          const uniqueFormatted = formatted.filter((f) => !prev.some((p) => p.requestId === f.requestId));
+          return [...uniqueFormatted, ...prev];
+        });
       })
       .catch((err) => {
         console.error('Failed to load pending follow requests:', err);
@@ -104,6 +109,7 @@ const formatTimeSince = (timestamp) => {
     };
   }, [handleRequest, handleNotification]);
 
+  console.log('ActivitySidebar activities:', activities);
   return (
     <div className="w-72">
       <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>
@@ -114,7 +120,7 @@ const formatTimeSince = (timestamp) => {
           ) : (
             activities.map((activity) => (
               <ActivityItem
-                key={activity.requestId} // Use requestId as key
+                key={activity.requestId}
                 {...activity}
                 onAccept={handleAccept}
                 onDecline={handleDecline}

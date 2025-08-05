@@ -81,8 +81,8 @@ async function fetchPendingFollowRequests() {
   return apiCall("/pending-follow-requests", { method: "GET" });
 }
 
-const acceptFollowRequest = (requestId) =>
-  apiCall(`/follow-request/${requestId}/request`, { method: "POST" });
+const acceptFollowRequest = (requestId,status) =>
+  apiCall(`/follow-request/${requestId}/request`, { method: "POST", body: JSON.stringify({ status }) });
 
 const declineFollowRequest = (requestId) =>
   apiCall(`/follow-request/${requestId}/cancel`, { method: "POST" });
