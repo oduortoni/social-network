@@ -61,7 +61,7 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isFolloweeAccountPublic {
-		err = follow.FollowService.CreateFollowForPublicAccount(followerId, int64(followee.FolloweeId))
+		requestid, err := follow.FollowService.CreateFollowForPublicAccount(followerId, int64(followee.FolloweeId))
 		if err != nil {
 			status = http.StatusInternalServerError
 			serverResponse.Message = "Failed to create follow connection"
@@ -85,13 +85,14 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 				// Send real-time notification if user is online
 				if follow.Notifier.IsOnline(int64(followee.FolloweeId)) {
 					follow.Notifier.SendNotification(int64(followee.FolloweeId), map[string]interface{}{
-						"type":      "notification",
-						"subtype":   "follow",
-						"user_id":   followerId,
-						"user_name": followerName,
-						"avatar":    avatar,
-						"message":   followerName + " started following you",
-						"timestamp": time.Now().Unix(),
+						"type":       "notification",
+						"subtype":    "follow",
+						"user_id":    followerId,
+						"user_name":  followerName,
+						"avatar":     avatar,
+						"message":    followerName + " started following you",
+						"timestamp":  time.Now().Unix(),
+						"request_id": requestid,
 					})
 				}
 			}
@@ -127,13 +128,13 @@ func (follow *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 			// Send real-time notification if user is online
 			if follow.Notifier.IsOnline(int64(followee.FolloweeId)) {
 				follow.Notifier.SendNotification(int64(followee.FolloweeId), map[string]interface{}{
-					"type":      "notification",
-					"subtype":   "follow_request",
-					"user_id":   followerId,
-					"user_name": followerName,
-					"message":   followerName + " sent you a follow request",
-					"timestamp": time.Now().Unix(),
-					"avatar":    avatar,
+					"type":       "notification",
+					"subtype":    "follow_request",
+					"user_id":    followerId,
+					"user_name":  followerName,
+					"message":    followerName + " sent you a follow request",
+					"timestamp":  time.Now().Unix(),
+					"avatar":     avatar,
 					"request_id": followID,
 				})
 			}
