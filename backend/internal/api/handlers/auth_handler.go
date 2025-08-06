@@ -324,31 +324,29 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 	LoggedInUser, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
 		serverResponse.Message = "User not found in context"
+		fmt.Println("User not found in context")
 		utils.RespondJSON(w, http.StatusUnauthorized, serverResponse)
 		return
 	}
 
 	// Parse multipart form (limit: 10MB)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		fmt.Println("Failed to parse form:", err)
 		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Failed to parse form"})
 		return
 	}
 
 	// Extract form values
 	email := r.FormValue("email")
-	// OldPassword := r.FormValue("oldPassword")
-	// NewPassword:=r.FormValue("newPassword")
-	firstName := r.FormValue("firstName")
-	lastName := r.FormValue("lastName")
-	dateOfBirth := r.FormValue("dob")
+	firstName := r.FormValue("firstname")
+	lastName := r.FormValue("lastname")
+	dateOfBirth := r.FormValue("dateofbirth")
 	nickname := r.FormValue("nickname")
-	aboutMe := r.FormValue("aboutMe")
+	aboutMe := r.FormValue("aboutme")
 
 	// convert profileVisibility to boolean
-	profileVisibility := false
-	if r.FormValue("profileVisibility") == "public" {
-		profileVisibility = true
-	} else {
+	profileVisibility := true
+	if r.FormValue("is_private") == "true" {
 		profileVisibility = false
 	}
 
@@ -380,7 +378,7 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Handle avatar upload
 	userAvatar := "no profile photo"
-	file, header, err := r.FormFile("avatar")
+	file, header, err := r.FormFile("profilePicture")
 	if err == nil && file != nil {
 		defer file.Close()
 		userAvatar, err = UploadAvatarImage(file, header)
@@ -407,6 +405,6 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("User created successfully:", user)
+	fmt.Println("User profile successfully updated:", user)
 	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Profile updated successfully"})
 }
