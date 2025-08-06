@@ -25,10 +25,10 @@ func (followstore *FollowStore) IsUserAccountPublic(userid int64) (bool, error) 
 	return num == 1, nil
 }
 
-func (followstore *FollowStore) CreatePublicFollowConnection(followerId, followeeId int64)(int64, error) {
+func (followstore *FollowStore) CreatePublicFollowConnection(followerId, followeeId int64) (int64, error) {
 	currentTime := time.Now()
 	result, err := followstore.DB.Exec("INSERT INTO Followers (follower_id, followee_id, status, requested_at, accepted_at) VALUES (?, ?, ?, ?, ?)", followerId, followeeId, "accepted", currentTime, currentTime)
-     if err != nil {
+	if err != nil {
 		return 0, err
 	}
 

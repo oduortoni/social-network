@@ -24,7 +24,6 @@ func TestSessionPersistence_ValidSession(t *testing.T) {
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return user, nil
 		},
-		
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 

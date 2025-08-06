@@ -13,7 +13,7 @@ type AuthServiceInterface interface {
 	ValidateEmail(email string) (bool, error)
 	UserExists(email string) (bool, error)
 	UserNewEditEmailExist(email string, userid int64) (bool, error)
-	EditUserProfile(user *models.User, userid int64) (error)
+	EditUserProfile(user *models.User, userid int64) error
 }
 
 // PostServiceInterface defines the interface for the post service.

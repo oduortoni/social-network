@@ -328,8 +328,6 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
-
 	// Parse multipart form (limit: 10MB)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Failed to parse form"})
@@ -395,7 +393,7 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Create user model
 	user := &models.User{
-		Email: email,
+		Email:           email,
 		FirstName:       &firstName,
 		LastName:        &lastName,
 		DateOfBirth:     &dateOfBirth,

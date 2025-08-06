@@ -119,7 +119,6 @@ func (s *AuthService) UserNewEditEmailExist(email string, userid int64) (bool, e
 	return s.AuthStore.NewEditEmailExist(email, userid)
 }
 
-
-func (s *AuthService)EditUserProfile(user *models.User, userid int64) (error){
-	  return  s.AuthStore.EditProfile(user,userid)
+func (s *AuthService) EditUserProfile(user *models.User, userid int64) error {
+	return s.AuthStore.EditProfile(user, userid)
 }

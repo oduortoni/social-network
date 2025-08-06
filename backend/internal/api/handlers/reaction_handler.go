@@ -46,7 +46,6 @@ func (h *ReactionHandler) ReactToPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	var reaction models.Reaction
 	if err := json.NewDecoder(r.Body).Decode(&reaction); err != nil {
 		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid request body"})
@@ -86,7 +85,6 @@ func (h *ReactionHandler) UnreactToPost(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-
 	if err := h.service.UnreactToPost(userID, postID); err != nil {
 		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to unreact to post"})
 		return
@@ -116,7 +114,6 @@ func (h *ReactionHandler) ReactToComment(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
-
 
 	var reaction models.Reaction
 	if err := json.NewDecoder(r.Body).Decode(&reaction); err != nil {
@@ -156,7 +153,6 @@ func (h *ReactionHandler) UnreactToComment(w http.ResponseWriter, r *http.Reques
 			return
 		}
 	}
-
 
 	if err := h.service.UnreactToComment(userID, commentID); err != nil {
 		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Failed to unreact to comment"})

@@ -10,21 +10,21 @@ import (
 )
 
 type ChatHandler struct {
-	DB        *sql.DB
-	Resolver  *DBSessionResolver
-	Persister *DBMessagePersister
-	Notifier  *NotificationSender
-	WSManager *Manager
+	DB                *sql.DB
+	Resolver          *DBSessionResolver
+	Persister         *DBMessagePersister
+	Notifier          *NotificationSender
+	WSManager         *Manager
 	PermissionChecker PermissionChecker
 }
 
 func NewChatHandler(db *sql.DB, resolver *DBSessionResolver, persister *DBMessagePersister, notifier *NotificationSender, wsManager *Manager, permissionChecker PermissionChecker) *ChatHandler {
 	return &ChatHandler{
-		DB:        db,
-		Resolver:  resolver,
-		Persister: persister,
-		Notifier:  notifier,
-		WSManager: wsManager,
+		DB:                db,
+		Resolver:          resolver,
+		Persister:         persister,
+		Notifier:          notifier,
+		WSManager:         wsManager,
 		PermissionChecker: permissionChecker,
 	}
 }
@@ -278,7 +278,7 @@ func (h *ChatHandler) GetMessageableUsers(w http.ResponseWriter, r *http.Request
 	defer rows.Close()
 
 	type MessageableUser struct {
-		ID     int64  `json:"id"`
+		ID       int64  `json:"id"`
 		Nickname string `json:"nickname"`
 		Avatar   string `json:"avatar"`
 	}

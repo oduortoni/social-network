@@ -52,7 +52,6 @@ func TestSignup_Success(t *testing.T) {
 		EditUserProfileFunc: func(user *models.User, userid int64) error {
 			return nil
 		},
-	
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 

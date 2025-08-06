@@ -16,18 +16,15 @@ import (
 
 // MockAuthService is a mock implementation of the AuthService for testing.
 type MockAuthService struct {
-	AuthenticateUserFunc   func(email, password string) (*models.User, string, error)
-	DeleteSessionFunc      func(sessionID string) (int, error)
-	GetUserIDBySessionFunc func(sessionID string) (int, error)
-	CreateUserFunc         func(user *models.User) (*models.User, error)
-	ValidateEmailFunc      func(email string) (bool, error)
-	UserExistsFunc         func(email string) (bool, error)
-	UserNewEditEmailExistFunc  func(email string, userid int64) (bool, error)
-	EditUserProfileFunc        func(user *models.User, userid int64) error
+	AuthenticateUserFunc      func(email, password string) (*models.User, string, error)
+	DeleteSessionFunc         func(sessionID string) (int, error)
+	GetUserIDBySessionFunc    func(sessionID string) (int, error)
+	CreateUserFunc            func(user *models.User) (*models.User, error)
+	ValidateEmailFunc         func(email string) (bool, error)
+	UserExistsFunc            func(email string) (bool, error)
+	UserNewEditEmailExistFunc func(email string, userid int64) (bool, error)
+	EditUserProfileFunc       func(user *models.User, userid int64) error
 }
-
-
-
 
 func (s *MockAuthService) AuthenticateUser(email, password string) (*models.User, string, error) {
 	return s.AuthenticateUserFunc(email, password)
@@ -60,7 +57,7 @@ func (s *MockAuthService) UserNewEditEmailExist(email string, userid int64) (boo
 	return s.UserNewEditEmailExistFunc(email, userid)
 }
 
-func (s *MockAuthService) EditUserProfile(user *models.User, userid int64) error {	
+func (s *MockAuthService) EditUserProfile(user *models.User, userid int64) error {
 	return s.EditUserProfileFunc(user, userid)
 }
 
