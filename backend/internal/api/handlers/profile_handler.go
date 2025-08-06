@@ -81,7 +81,7 @@ func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if profileDetails.Avatar != "" {
+	if profileDetails.Avatar != "" && profileDetails.Avatar != "no profile photo" {
 		photos = append([]models.Photo{{Image: profileDetails.Avatar}}, photos...)
 	}
 
