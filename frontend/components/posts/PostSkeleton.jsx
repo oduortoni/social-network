@@ -1,17 +1,19 @@
 import React from 'react';
 
 const PostSkeleton = ({ style = {} }) => {
-  return (
-    <div
-      className="rounded-xl p-4 animate-pulse post-skeleton"
-      style={{
-        backgroundColor: 'var(--primary-background)',
-        ...style
-      }}
-      role="status"
-      aria-label="Loading post content"
-      aria-live="polite"
-    >
+  // Fallback for any rendering errors
+  try {
+    return (
+      <div
+        className="rounded-xl p-4 animate-pulse post-skeleton"
+        style={{
+          backgroundColor: 'var(--primary-background)',
+          ...style
+        }}
+        role="status"
+        aria-label="Loading post content"
+        aria-live="polite"
+      >
       {/* Screen reader only text */}
       <span className="sr-only">Loading post content, please wait...</span>
       {/* Header */}
@@ -92,6 +94,49 @@ const PostSkeleton = ({ style = {} }) => {
       </div>
     </div>
   );
+  } catch (error) {
+    console.warn('PostSkeleton rendering failed:', error);
+    // Return a simple fallback skeleton
+    return (
+      <div 
+        className="rounded-xl p-4 animate-pulse" 
+        style={{ 
+          backgroundColor: 'var(--primary-background)',
+          minHeight: '140px',
+          ...style 
+        }}
+        role="status"
+        aria-label="Loading content"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <div 
+            className="w-10 h-10 rounded-full"
+            style={{ backgroundColor: 'var(--secondary-background)' }}
+          />
+          <div className="flex-1">
+            <div 
+              className="h-4 w-32 rounded mb-1"
+              style={{ backgroundColor: 'var(--secondary-background)' }}
+            />
+            <div 
+              className="h-3 w-20 rounded"
+              style={{ backgroundColor: 'var(--secondary-background)' }}
+            />
+          </div>
+        </div>
+        <div className="mb-4">
+          <div 
+            className="h-4 w-full rounded mb-2"
+            style={{ backgroundColor: 'var(--secondary-background)' }}
+          />
+          <div 
+            className="h-4 w-3/4 rounded"
+            style={{ backgroundColor: 'var(--secondary-background)' }}
+          />
+        </div>
+      </div>
+    );
+  }
 };
 
 export default PostSkeleton;

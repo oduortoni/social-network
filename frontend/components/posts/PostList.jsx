@@ -240,11 +240,20 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   }, [openDropdown]);
 
   if (loading && (!posts || posts.length === 0)) {
-    return (
-      <div className="space-y-4">
-        {generateInitialSkeletons()}
-      </div>
-    );
+    try {
+      return (
+        <div className="space-y-4">
+          {generateInitialSkeletons()}
+        </div>
+      );
+    } catch (error) {
+      console.warn('Skeleton loading failed, using fallback:', error);
+      return (
+        <div className="flex justify-center items-center py-8">
+          <div style={{ color: 'var(--secondary-text)' }}>Loading posts...</div>
+        </div>
+      );
+    }
   }
 
   if (error) {
@@ -456,9 +465,22 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
 
       {/* Loading more indicator */}
       {loadingMore && (
-        <div className="space-y-4">
-          {generatePaginationSkeletons()}
-        </div>
+        (() => {
+          try {
+            return (
+              <div className="space-y-4">
+                {generatePaginationSkeletons()}
+              </div>
+            );
+          } catch (error) {
+            console.warn('Pagination skeleton loading failed, using fallback:', error);
+            return (
+              <div className="flex justify-center py-4">
+                <div style={{ color: 'var(--secondary-text)' }}>Loading more posts...</div>
+              </div>
+            );
+          }
+        })()
       )}
 
       {/* End of posts */}
