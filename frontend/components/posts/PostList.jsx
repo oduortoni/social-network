@@ -276,7 +276,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <div key={post.id} className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>
+        <div key={post.id} className="rounded-xl p-4 post-content" style={{ backgroundColor: 'var(--primary-background)' }}>
           {/* Post Header */}
           <div className="flex justify-between mb-3">
             <div className="flex items-center gap-2">

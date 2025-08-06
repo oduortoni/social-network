@@ -56,7 +56,24 @@ body {
 
 /* Skeleton loading styles with reduced motion support */
 .post-skeleton {
-  /* Default animation for users who don't prefer reduced motion */
+  /* Ensure consistent dimensions to prevent layout shifts */
+  min-height: 140px; /* Approximate height of a typical post */
+}
+
+/* Smooth fade-in for post content */
+.post-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -66,6 +83,10 @@ body {
   
   .post-skeleton .loading-skeleton {
     opacity: 0.7;
+  }
+  
+  .post-content {
+    animation: none;
   }
 }
 
