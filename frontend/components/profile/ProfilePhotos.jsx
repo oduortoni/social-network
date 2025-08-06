@@ -3,7 +3,6 @@ import { profileAPI } from '../../lib/api';
 
 const ProfilePhotos = ({ user, isOwnProfile }) => {
   var photos = user?.photos || [];
- 
   console.log('ProfilePhotos rendered with user:', user, 'and photos:', user?.photos);
 
   return (
