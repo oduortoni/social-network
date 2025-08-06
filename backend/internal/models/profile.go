@@ -25,7 +25,12 @@ type ProfileDetails struct {
 	NumberOfPosts     int    `json:"numberofposts"`
 }
 
+type Photo struct {
+	Image string `json:"image"`
+}
+
 type ProfileResponse struct {
 	ProfileDetails ProfileDetails `json:"profile_details"`
 	UserPosts      []Post         `json:"posts"`
+	Photos         []Photo        `json:"photos"`
 }

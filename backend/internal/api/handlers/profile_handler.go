@@ -74,9 +74,21 @@ func (ps *ProfileHandler) ProfileHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	photos, err := ps.ProfileService.GetUserPhotos(userId)
+	if err != nil {
+		serverResponse.Message = "Error fetching photos"
+		utils.RespondJSON(w, http.StatusInternalServerError, serverResponse)
+		return
+	}
+
+	if profileDetails.Avatar != "" {
+		photos = append([]models.Photo{{Image: profileDetails.Avatar}}, photos...)
+	}
+
 	utils.RespondJSON(w, status, models.ProfileResponse{
 		ProfileDetails: profileDetails,
 		UserPosts:      posts,
+		Photos:         photos,
 	})
 }
 
