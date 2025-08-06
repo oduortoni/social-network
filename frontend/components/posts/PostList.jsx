@@ -7,7 +7,7 @@ import CommentList from './CommentList';
 import ReactionButtons from './ReactionButtons';
 import ClientDate from '../common/ClientDate';
 import { useRouter } from 'next/navigation';
-import { generateInitialSkeletons } from '../../lib/skeletonUtils';
+import { generateInitialSkeletons, generatePaginationSkeletons } from '../../lib/skeletonUtils';
 
 const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   const router = useRouter();
@@ -456,8 +456,8 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
 
       {/* Loading more indicator */}
       {loadingMore && (
-        <div className="flex justify-center py-4">
-          <div style={{ color: 'var(--secondary-text)' }}>Loading more posts...</div>
+        <div className="space-y-4">
+          {generatePaginationSkeletons()}
         </div>
       )}
 
