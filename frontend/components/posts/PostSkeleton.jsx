@@ -1,10 +1,13 @@
 import React from 'react';
 
-const PostSkeleton = () => {
+const PostSkeleton = ({ style = {} }) => {
   return (
     <div 
       className="rounded-xl p-4 animate-pulse post-skeleton" 
-      style={{ backgroundColor: 'var(--primary-background)' }}
+      style={{ 
+        backgroundColor: 'var(--primary-background)',
+        ...style 
+      }}
       role="status"
       aria-label="Loading post content"
       aria-live="polite"
