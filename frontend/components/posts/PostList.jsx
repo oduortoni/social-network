@@ -7,6 +7,7 @@ import CommentList from './CommentList';
 import ReactionButtons from './ReactionButtons';
 import ClientDate from '../common/ClientDate';
 import { useRouter } from 'next/navigation';
+import { generateInitialSkeletons } from '../../lib/skeletonUtils';
 
 const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   const router = useRouter();
@@ -238,10 +239,10 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
     };
   }, [openDropdown]);
 
-  if (loading) {
+  if (loading && (!posts || posts.length === 0)) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div style={{ color: 'var(--secondary-text)' }}>Loading posts...</div>
+      <div className="space-y-4">
+        {generateInitialSkeletons()}
       </div>
     );
   }
