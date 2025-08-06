@@ -47,11 +47,11 @@ const ProfileFollowers = ({ user, currentUser, isOwnProfile }) => {
               >
                 <img
                   src={profileAPI.fetchProfileImage(follower.avatar)}
-                  alt={follower.first_name}
+                  alt={follower.firstname}
                   className="w-20 h-20 rounded-full mx-auto mb-3"
                 />
                 <h4 className="font-medium text-white text-sm">
-                  {follower.first_name} {follower.last_name}
+                  {follower.firstname} {follower.lastname}
                 </h4>
                 <p className="text-xs mt-1" style={{ color: 'var(--secondary-text)' }}>
                   {follower.mutualFollowers} mutual followers
