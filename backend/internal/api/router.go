@@ -71,6 +71,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
 		authHandler.LogoutHandler(w, r)
 	})
+	mux.HandleFunc("PUT /EditProfile",authHandler.EditProfile) // Edit profile handler
 
 	// Mount handlers
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))

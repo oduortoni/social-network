@@ -328,8 +328,7 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(status)
-	fmt.Println(LoggedInUser)
+	
 
 	// Parse multipart form (limit: 10MB)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
@@ -397,7 +396,6 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 	// Create user model
 	user := &models.User{
 		Email: email,
-		// Password:        NewPassword, // Will be hashed in service layer
 		FirstName:       &firstName,
 		LastName:        &lastName,
 		DateOfBirth:     &dateOfBirth,
@@ -413,5 +411,5 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("User created successfully:", user)
-	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Registration successful"})
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Profile updated successfully"})
 }
