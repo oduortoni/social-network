@@ -12,6 +12,8 @@ type AuthServiceInterface interface {
 	CreateUser(user *models.User) (*models.User, error)
 	ValidateEmail(email string) (bool, error)
 	UserExists(email string) (bool, error)
+	UserNewEditEmailExist(email string, userid int64) (bool, error)
+	EditUserProfile(user *models.User, userid int64) (error)
 }
 
 // PostServiceInterface defines the interface for the post service.
@@ -34,7 +36,7 @@ type PostServiceInterface interface {
 
 type FollowServiceInterface interface {
 	IsAccountPublic(followeeID int64) (bool, error)
-	CreateFollowForPublicAccount(followerid, followeeid int64)(int64,error)
+	CreateFollowForPublicAccount(followerid, followeeid int64) (int64, error)
 	CreateFollowForPrivateAccount(followrid, followeeid int64) (int64, error)
 	GetUserInfo(userID int64) (string, string, error)
 	AddtoNotification(follower_id int64, message string) error
@@ -52,7 +54,7 @@ type FollowRequestServiceInterface interface {
 	RetrieveUserName(userID int64) (string, string, error)
 	GetRequestInfo(requestID int64) (int64, int64, error)
 	AddtoNotification(follower_id int64, message string) error
-	GetPendingFollowRequest(userid int64)(models.FollowRequestUserResponse,error)
+	GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error)
 }
 
 type ProfileServiceInterface interface {
