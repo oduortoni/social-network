@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { CameraIcon, EditIcon, UserPlusIcon, X, Save } from 'lucide-react';
-import { profileAPI } from '../../lib/api';
+import { profileAPI, updateProfile } from '../../lib/api';
 
 const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
   const profileDetails = user?.profile_details || {};
@@ -100,24 +100,20 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
         submitData.append('profilePicture', formData.profilePicture);
       }
       
-      console.log('Submitting form data:', {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        nickname: formData.nickname,
-        email: formData.email,
-        aboutme: formData.aboutme,
-        dateofbirth: formData.dateofbirth,
-        is_private: formData.is_private,
-        profilePicture: formData.profilePicture ? formData.profilePicture.name : 'No file selected'
-      });
       
-      await profileAPI.updateProfile(submitData);
-      console.log('Profile updated successfully');
-      
+      let response=await updateProfile(submitData);
+       if(response.status===200){ 
       setShowEditForm(false);
       setPreviewImage(null);
       setErrorMessage('');
       refreshProfile();
+       }else if (response.status === 409){
+
+         setErrorMessage("This email already exists for another user");
+       }else{
+        setErrorMessage("Failed to update profile. Please try again.");
+       }
+     
     } catch (error) {
       console.error('Error updating profile:', error);
       
@@ -134,6 +130,10 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
           errorMsg = 'File size too large. Please choose a smaller image.';
         } else if (error.response.data && error.response.data.message) {
           errorMsg = error.response.data.message;
+        }else if (error.response.status === 500) {
+          errorMsg = 'Internal Server Error';
+        }else if(error.response.status === 409){
+          errorMsg= "This email already exists for another user";
         }
       } else if (error.message) {
         errorMsg = error.message;
