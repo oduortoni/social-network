@@ -22,9 +22,12 @@ type MockAuthService struct {
 	CreateUserFunc         func(user *models.User) (*models.User, error)
 	ValidateEmailFunc      func(email string) (bool, error)
 	UserExistsFunc         func(email string) (bool, error)
-	UserNewEditEmailExist  func(email string, userid int64) (bool, error)
-	EditUserProfile        func(user *models.User, userid int64) error
+	UserNewEditEmailExistFunc  func(email string, userid int64) (bool, error)
+	EditUserProfileFunc        func(user *models.User, userid int64) error
 }
+
+
+
 
 func (s *MockAuthService) AuthenticateUser(email, password string) (*models.User, string, error) {
 	return s.AuthenticateUserFunc(email, password)
@@ -53,6 +56,14 @@ func (s *MockAuthService) UserExists(email string) (bool, error) {
 	return s.UserExistsFunc(email)
 }
 
+func (s *MockAuthService) UserNewEditEmailExist(email string, userid int64) (bool, error) {
+	return s.UserNewEditEmailExistFunc(email, userid)
+}
+
+func (s *MockAuthService) EditUserProfile(user *models.User, userid int64) error {	
+	return s.EditUserProfileFunc(user, userid)
+}
+
 func TestLogin(t *testing.T) {
 	// Create a new mock auth service
 	mockAuthService := &MockAuthService{
@@ -62,12 +73,12 @@ func TestLogin(t *testing.T) {
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return user, nil
 		},
-		UserNewEditEmailExist:  func(email string, userid int64) (bool, error){
-			    return email,nil
+		UserNewEditEmailExistFunc: func(email string, userid int64) (bool, error) {
+			return true, nil
 		},
-	       EditUserProfile :       func(user *models.User, userid int64) error{
+		EditUserProfileFunc: func(user *models.User, userid int64) error {
 			return nil
-		   }
+		},
 	}
 
 	// Create a new auth handler with the mock service
