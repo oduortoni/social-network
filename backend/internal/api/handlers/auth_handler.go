@@ -319,7 +319,7 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 
 func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 	var serverResponse utils.Response
-	status := http.StatusOK
+
 	// get  LOGGED IN USER
 	LoggedInUser, ok := r.Context().Value(utils.User_id).(int64)
 	if !ok {
@@ -366,8 +366,7 @@ func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
 	// Check if user already exists
 	if UserExists, err := auth.AuthService.UserNewEditEmailExist(email, LoggedInUser); err != nil || UserExists {
 		serverResponse.Message = "Email already exists"
-		status = http.StatusConflict
-		utils.RespondJSON(w, status, serverResponse)
+		utils.RespondJSON(w, http.StatusConflict, serverResponse)
 		return
 	}
 
