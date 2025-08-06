@@ -41,6 +41,55 @@ body {
   hyphens: auto;
 }
 
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skeleton loading styles with reduced motion support */
+.post-skeleton {
+  /* Ensure consistent dimensions to prevent layout shifts */
+  min-height: 140px; /* Approximate height of a typical post */
+}
+
+/* Smooth fade-in for post content */
+.post-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-skeleton {
+    animation: none;
+  }
+  
+  .post-skeleton .loading-skeleton {
+    opacity: 0.7;
+  }
+  
+  .post-content {
+    animation: none;
+  }
+}
+
 /* @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

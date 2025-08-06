@@ -7,6 +7,7 @@ import CommentList from './CommentList';
 import ReactionButtons from './ReactionButtons';
 import ClientDate from '../common/ClientDate';
 import { useRouter } from 'next/navigation';
+import { generateInitialSkeletons, generatePaginationSkeletons } from '../../lib/skeletonUtils';
 
 const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   const router = useRouter();
@@ -238,12 +239,21 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
     };
   }, [openDropdown]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div style={{ color: 'var(--secondary-text)' }}>Loading posts...</div>
-      </div>
-    );
+  if (loading && (!posts || posts.length === 0)) {
+    try {
+      return (
+        <div className="space-y-4">
+          {generateInitialSkeletons()}
+        </div>
+      );
+    } catch (error) {
+      console.warn('Skeleton loading failed, using fallback:', error);
+      return (
+        <div className="flex justify-center items-center py-8">
+          <div style={{ color: 'var(--secondary-text)' }}>Loading posts...</div>
+        </div>
+      );
+    }
   }
 
   if (error) {
@@ -275,7 +285,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <div key={post.id} className="rounded-xl p-4" style={{ backgroundColor: 'var(--primary-background)' }}>
+        <div key={post.id} className="rounded-xl p-4 post-content" style={{ backgroundColor: 'var(--primary-background)' }}>
           {/* Post Header */}
           <div className="flex justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -455,9 +465,22 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
 
       {/* Loading more indicator */}
       {loadingMore && (
-        <div className="flex justify-center py-4">
-          <div style={{ color: 'var(--secondary-text)' }}>Loading more posts...</div>
-        </div>
+        (() => {
+          try {
+            return (
+              <div className="space-y-4">
+                {generatePaginationSkeletons()}
+              </div>
+            );
+          } catch (error) {
+            console.warn('Pagination skeleton loading failed, using fallback:', error);
+            return (
+              <div className="flex justify-center py-4">
+                <div style={{ color: 'var(--secondary-text)' }}>Loading more posts...</div>
+              </div>
+            );
+          }
+        })()
       )}
 
       {/* End of posts */}
