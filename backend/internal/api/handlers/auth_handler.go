@@ -316,3 +316,97 @@ func (auth *AuthHandler) ValidateAccountStepOne(w http.ResponseWriter, r *http.R
 	serverresponse.Message = "Ok"
 	utils.RespondJSON(w, statusCode, serverresponse)
 }
+
+func (auth *AuthHandler) EditProfile(w http.ResponseWriter, r *http.Request) {
+	var serverResponse utils.Response
+
+	// get  LOGGED IN USER
+	LoggedInUser, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		serverResponse.Message = "User not found in context"
+		utils.RespondJSON(w, http.StatusUnauthorized, serverResponse)
+		return
+	}
+
+	// Parse multipart form (limit: 10MB)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Failed to parse form"})
+		return
+	}
+
+	// Extract form values
+	email := r.FormValue("email")
+	// OldPassword := r.FormValue("oldPassword")
+	// NewPassword:=r.FormValue("newPassword")
+	firstName := r.FormValue("firstName")
+	lastName := r.FormValue("lastName")
+	dateOfBirth := r.FormValue("dob")
+	nickname := r.FormValue("nickname")
+	aboutMe := r.FormValue("aboutMe")
+
+	// convert profileVisibility to boolean
+	profileVisibility := false
+	if r.FormValue("profileVisibility") == "public" {
+		profileVisibility = true
+	} else {
+		profileVisibility = false
+	}
+
+	// Validate email format
+	IsEmailValid, err := auth.AuthService.ValidateEmail(email)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: "Regex error in validating Email"})
+		return
+	}
+	if !IsEmailValid {
+		utils.RespondJSON(w, http.StatusBadRequest, utils.Response{Message: "Invalid email format"})
+		return
+	}
+
+	// Check if user already exists
+	if UserExists, err := auth.AuthService.UserNewEditEmailExist(email, LoggedInUser); err != nil || UserExists {
+		serverResponse.Message = "Email already exists"
+		utils.RespondJSON(w, http.StatusConflict, serverResponse)
+		return
+	}
+
+	// Sanitize user input to prevent XSS attacks
+	email = html.EscapeString(email)
+	firstName = html.EscapeString(firstName)
+	lastName = html.EscapeString(lastName)
+	dateOfBirth = html.EscapeString(dateOfBirth)
+	nickname = html.EscapeString(nickname)
+	aboutMe = html.EscapeString(aboutMe)
+
+	// Handle avatar upload
+	userAvatar := "no profile photo"
+	file, header, err := r.FormFile("avatar")
+	if err == nil && file != nil {
+		defer file.Close()
+		userAvatar, err = UploadAvatarImage(file, header)
+		if err != nil {
+			utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: userAvatar})
+			return
+		}
+	}
+
+	// Create user model
+	user := &models.User{
+		Email:           email,
+		FirstName:       &firstName,
+		LastName:        &lastName,
+		DateOfBirth:     &dateOfBirth,
+		Nickname:        &nickname,
+		AboutMe:         &aboutMe,
+		IsProfilePublic: profileVisibility,
+		Avatar:          &userAvatar,
+	}
+	err = auth.AuthService.EditUserProfile(user, LoggedInUser)
+	if err != nil {
+		utils.RespondJSON(w, http.StatusInternalServerError, utils.Response{Message: err.Error()})
+		return
+	}
+
+	fmt.Println("User created successfully:", user)
+	utils.RespondJSON(w, http.StatusOK, utils.Response{Message: "Profile updated successfully"})
+}

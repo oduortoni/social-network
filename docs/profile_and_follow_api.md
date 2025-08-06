@@ -98,6 +98,82 @@ This document explains the backend endpoints for user profile and follow functio
   }
   ```
 
+### 4. Edit User Profile
+- **Endpoint:** `PUT /EditProfile`
+- **Description:** Updates the authenticated user's profile information including personal details, avatar, and privacy settings.
+- **Authentication:** Required
+- **Content-Type:** `multipart/form-data`
+- **Request Parameters:**
+  - `email` (string, required): User's email address
+  - `firstName` (string, required): User's first name
+  - `lastName` (string, required): User's last name
+  - `dob` (string, required): Date of birth in YYYY-MM-DD format
+  - `nickname` (string, required): User's nickname/username
+  - `aboutMe` (string, optional): User's bio/description
+  - `profileVisibility` (string, required): Either "public" or "private"
+  - `avatar` (file, optional): Profile picture image file
+
+- **Success Response (200 OK):**
+  ```json
+  {
+    "message": "Profile updated successfully"
+  }
+  ```
+
+- **Error Responses:**
+  - **400 Bad Request:** Invalid email format or failed to parse form
+    ```json
+    {
+      "message": "Invalid email format"
+    }
+    ```
+  - **401 Unauthorized:** User not authenticated
+    ```json
+    {
+      "message": "User not found in context"
+    }
+    ```
+  - **409 Conflict:** Email already exists for another user
+    ```json
+    {
+      "message": "Email already exists"
+    }
+    ```
+  - **500 Internal Server Error:** Server error during profile update
+    ```json
+    {
+      "message": "Error message details"
+    }
+    ```
+
+- **Example Request (using curl):**
+  ```bash
+  curl -X PUT http://localhost:8080/EditProfile \
+    -H "Cookie: session_id=your_session_id" \
+    -F "email=newemail@example.com" \
+    -F "firstName=John" \
+    -F "lastName=Doe" \
+    -F "dob=1990-01-01" \
+    -F "nickname=johndoe" \
+    -F "aboutMe=Updated bio" \
+    -F "profileVisibility=public" \
+    -F "avatar=@/path/to/image.jpg"
+  ```
+
+- **Security Features:**
+  - Input sanitization to prevent XSS attacks
+  - Email validation using regex
+  - Duplicate email checking (excluding current user)
+  - File upload validation for avatar images
+  - Authentication required via session middleware
+
+- **Notes:**
+  - All text fields are HTML-escaped to prevent XSS attacks
+  - Profile visibility can be set to "public" (visible to all) or "private" (visible to followers only)
+  - Avatar upload is optional; if not provided, existing avatar is preserved
+  - Users can update their email to the same email they currently have
+  - Date of birth should be in YYYY-MM-DD format
+
 ## Follow Endpoints
 
 ### 1. Follow a User

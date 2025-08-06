@@ -71,7 +71,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.HandleFunc("POST /logout", func(w http.ResponseWriter, r *http.Request) {
 		authHandler.LogoutHandler(w, r)
 	})
-
+	
 	// Mount handlers
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))
 	mux.Handle("GET /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPostByID)))
@@ -83,7 +83,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("DELETE /posts/{postId}/comments/{commentId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeleteComment)))
 	mux.Handle("DELETE /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.DeletePost)))
 	mux.Handle("GET /users/search", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.SearchUsers)))
-
+	
 	// Reaction Handlers
 	mux.Handle("POST /posts/{postId}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.ReactToPost)))
 	mux.Handle("DELETE /posts/{postId}/reaction", middleware.AuthMiddleware(db)(http.HandlerFunc(reactionHandler.UnreactToPost)))
@@ -94,10 +94,12 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("DELETE /unfollow", middleware.AuthMiddleware(db)(http.HandlerFunc(unfollowHandler.Unfollow)))
 	mux.Handle("POST /follow-request/{requestId}/request", middleware.AuthMiddleware(db)(http.HandlerFunc(followRequestHandler.FollowRequestRespond)))
 	mux.Handle("DELETE /follow-request/{requestId}/cancel", middleware.AuthMiddleware(db)(http.HandlerFunc(followRequestHandler.CancelFollowRequest)))
+	mux.Handle("GET /pending-follow-requests", middleware.AuthMiddleware(db)(http.HandlerFunc(followRequestHandler.GetPendingFollowRequest)))
 
 	mux.Handle("GET /profile/{userid}", middleware.AuthMiddleware(db)(http.HandlerFunc(profileHandler.ProfileHandler)))
 	mux.Handle("GET /profile/{userid}/followers", middleware.AuthMiddleware(db)(http.HandlerFunc(profileHandler.GetFollowers)))
 	mux.Handle("GET /profile/{userid}/followees", middleware.AuthMiddleware(db)(http.HandlerFunc(profileHandler.GetFollowees)))
+	mux.Handle("PUT /EditProfile",middleware.AuthMiddleware(db)(http.HandlerFunc(authHandler.EditProfile))) // Edit profile handler
 
 	mux.Handle("GET /me", middleware.AuthMiddleware(db)(http.HandlerFunc(handlers.NewMeHandler(db))))
 	mux.Handle("GET /avatar", http.HandlerFunc(handlers.GetImage))
@@ -111,6 +113,6 @@ func NewRouter(db *sql.DB) http.Handler {
 	mux.Handle("GET /api/users/online", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetOnlineUsers)))
 
 	mux.Handle("GET /api/users/messageable", middleware.AuthMiddleware(db)(http.HandlerFunc(chatHandler.GetMessageableUsers)))
-	
+
 	return mux
 }

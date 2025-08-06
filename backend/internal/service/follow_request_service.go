@@ -1,6 +1,9 @@
 package service
 
-import "github.com/tajjjjr/social-network/backend/internal/store"
+import (
+	"github.com/tajjjjr/social-network/backend/internal/models"
+	"github.com/tajjjjr/social-network/backend/internal/store"
+)
 
 type FollowRequestService struct {
 	FollowRequestStore *store.FollowRequestStore
@@ -32,4 +35,8 @@ func (fr *FollowRequestService) AddtoNotification(follower_id int64, message str
 
 func (fr *FollowRequestService) CancelFollowRequest(followConnectionID int64) error {
 	return fr.FollowRequestStore.FollowRequestCancel(followConnectionID)
+}
+
+func (fr *FollowRequestService) GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error) {
+	return fr.FollowRequestStore.GetPendingFollowRequest(userid)
 }

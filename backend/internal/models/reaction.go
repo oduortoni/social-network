@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// Reaction represents a like or dislike on a post or comment.	
+// Reaction represents a like or dislike on a post or comment.
 type Reaction struct {
 	UserID       int       `json:"user_id"`
 	PostID       *int      `json:"post_id,omitempty"`
