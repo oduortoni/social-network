@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CameraIcon, EditIcon, UserPlusIcon, X, Save } from 'lucide-react';
 import { profileAPI } from '../../lib/api';
 
@@ -11,9 +11,14 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
     nickname: profileDetails.nickname || '',
     email: profileDetails.email || '',
     aboutme: profileDetails.aboutme || '',
+    dateofbirth: profileDetails.dateofbirth || '',
     is_private: profileDetails.is_private || false,
+    profilePicture: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const fileInputRef = useRef(null);
 
   const handleFollow = async () => {
     try {
@@ -35,9 +40,33 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
       nickname: profileDetails.nickname || '',
       email: profileDetails.email || '',
       aboutme: profileDetails.aboutme || '',
+      dateofbirth: profileDetails.dateofbirth || '',
       is_private: profileDetails.is_private || false,
+      profilePicture: null,
     });
+    setPreviewImage(null);
     setShowEditForm(true);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        profilePicture: file
+      }));
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleFormChange = (e) => {
@@ -51,16 +80,66 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage(''); // Clear any previous errors
     
     try {
-      await profileAPI.updateProfile(formData);
+      // Create FormData object to handle file uploads
+      const submitData = new FormData();
+      
+      // Append all form fields
+      submitData.append('firstname', formData.firstname);
+      submitData.append('lastname', formData.lastname);
+      submitData.append('nickname', formData.nickname);
+      submitData.append('email', formData.email);
+      submitData.append('aboutme', formData.aboutme);
+      submitData.append('dateofbirth', formData.dateofbirth);
+      submitData.append('is_private', formData.is_private);
+      
+      // Append profile picture if selected
+      if (formData.profilePicture) {
+        submitData.append('profilePicture', formData.profilePicture);
+      }
+      
+      console.log('Submitting form data:', {
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        nickname: formData.nickname,
+        email: formData.email,
+        aboutme: formData.aboutme,
+        dateofbirth: formData.dateofbirth,
+        is_private: formData.is_private,
+        profilePicture: formData.profilePicture ? formData.profilePicture.name : 'No file selected'
+      });
+      
+      await profileAPI.updateProfile(submitData);
       console.log('Profile updated successfully');
       
       setShowEditForm(false);
+      setPreviewImage(null);
+      setErrorMessage('');
       refreshProfile();
     } catch (error) {
       console.error('Error updating profile:', error);
-      // You could add a toast notification here to show the error to the user
+      
+      // Set user-friendly error message
+      let errorMsg = 'Failed to update profile. Please try again.';
+      
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 400) {
+          errorMsg = 'Invalid data provided. Please check your inputs.';
+        } else if (error.response.status === 401) {
+          errorMsg = 'You are not authorized to perform this action.';
+        } else if (error.response.status === 413) {
+          errorMsg = 'File size too large. Please choose a smaller image.';
+        } else if (error.response.data && error.response.data.message) {
+          errorMsg = error.response.data.message;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      setErrorMessage(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -68,6 +147,8 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
 
   const handleCloseForm = () => {
     setShowEditForm(false);
+    setErrorMessage('');
+    setPreviewImage(null);
   };
 
   const renderFollowButton = () => {
@@ -131,8 +212,9 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
             {/* Profile Picture */}
             <div className="relative">
               <div
-                className="w-40 h-40 rounded-full p-1"
+                className={`w-40 h-40 rounded-full p-1 ${isOwnProfile ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
                 style={{ backgroundColor: 'var(--primary-accent)' }}
+                onClick={isOwnProfile ? handleImageClick : undefined}
               >
                 <img
                   src={profileAPI.fetchProfileImage(profileDetails.avatar || '')}
@@ -142,7 +224,11 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
               </div>
               {/* Profile Picture Edit Button - Only show for own profile */}
               {isOwnProfile && (
-                <button className="absolute bottom-2 right-2 p-2 rounded-full" style={{ backgroundColor: 'var(--tertiary-text)' }}>
+                <button
+                  className="absolute bottom-2 right-2 p-2 rounded-full hover:opacity-80 transition-opacity"
+                  style={{ backgroundColor: 'var(--tertiary-text)' }}
+                  onClick={handleImageClick}
+                >
                   <CameraIcon className="w-4 h-4 text-white" />
                 </button>
               )}
@@ -221,17 +307,43 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
 
             {/* Edit Form */}
             <form onSubmit={handleFormSubmit} className="space-y-6">
+              {/* Error Message */}
+              {errorMessage && (
+                <div className="p-4 rounded-lg border-l-4 border-red-500 bg-red-50 bg-opacity-10">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <X className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-300">{errorMessage}</p>
+                    </div>
+                    <div className="ml-auto pl-3">
+                      <div className="-mx-1.5 -my-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setErrorMessage('')}
+                          className="inline-flex rounded-md p-1.5 text-red-400 hover:text-red-300 focus:outline-none"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* Profile Picture Section */}
               <div className="flex items-center gap-4 mb-6">
                 <div className="relative">
                   <img
-                    src={profileAPI.fetchProfileImage(profileDetails.avatar || '')}
+                    src={previewImage || profileAPI.fetchProfileImage(profileDetails.avatar || '')}
                     alt="Profile"
-                    className="w-20 h-20 rounded-full object-cover"
+                    className="w-20 h-20 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={handleImageClick}
                   />
                   <button
                     type="button"
                     className="absolute bottom-0 right-0 p-1 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors"
+                    onClick={handleImageClick}
                   >
                     <CameraIcon className="w-4 h-4 text-white" />
                   </button>
@@ -239,10 +351,19 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
                 <div>
                   <h3 className="text-lg font-semibold text-white">Profile Picture</h3>
                   <p className="text-sm" style={{ color: 'var(--secondary-text)' }}>
-                    Click the camera icon to change your profile picture
+                    Click the image or camera icon to change your profile picture
                   </p>
                 </div>
               </div>
+
+              {/* Hidden File Input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                accept="image/*"
+                className="hidden"
+              />
 
               {/* Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -287,7 +408,7 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Username
+                  Nickname
                 </label>
                 <input
                   type="text"
@@ -300,7 +421,6 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
                     borderColor: 'var(--border-color)',
                     color: 'var(--primary-text)',
                   }}
-                  required
                 />
               </div>
 
@@ -320,6 +440,24 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
                     color: 'var(--primary-text)',
                   }}
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  name="dateofbirth"
+                  value={formData.dateofbirth}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  style={{
+                    backgroundColor: 'var(--secondary-background)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--primary-text)',
+                  }}
                 />
               </div>
 
