@@ -9,7 +9,7 @@ import ClientDate from '../common/ClientDate';
 import { useRouter } from 'next/navigation';
 import { generateInitialSkeletons, generatePaginationSkeletons } from '../../lib/skeletonUtils';
 
-const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
+const PostList = ({ refreshTrigger, user, posts: initialPosts, profileView = false }) => {
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,6 +78,9 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
   };
 
   useEffect(() => {
+    // Don't add scroll listener in profile view
+    if (profileView) return;
+    
     const handleScroll = () => {
       if (loadingMore || !hasMore) return;
       if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
@@ -88,7 +91,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
     const debouncedScroll = debounce(handleScroll, 200);
     window.addEventListener('scroll', debouncedScroll);
     return () => window.removeEventListener('scroll', debouncedScroll);
-  }, [page, loadingMore, hasMore]);
+  }, [page, loadingMore, hasMore, profileView]);
 
   const debounce = (func, wait) => {
     let timeout;
@@ -463,8 +466,8 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
         </div>
       ))}
 
-      {/* Loading more indicator */}
-      {loadingMore && (
+      {/* Loading more indicator - Only show in non-profile view */}
+      {!profileView && loadingMore && (
         (() => {
           try {
             return (
@@ -483,8 +486,8 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts }) => {
         })()
       )}
 
-      {/* End of posts */}
-      {!hasMore && posts.length > 0 && (
+      {/* End of posts - Only show in non-profile view */}
+      {!profileView && !hasMore && posts.length > 0 && (
         <div className="text-center py-4" style={{ color: 'var(--secondary-text)' }}>
           No more posts to show
         </div>

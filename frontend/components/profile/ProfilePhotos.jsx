@@ -2,7 +2,8 @@ import React from 'react';
 import { profileAPI } from '../../lib/api';
 
 const ProfilePhotos = ({ user, isOwnProfile }) => {
-  const photos = user?.photos || [];
+  var photos = user?.photos || [];
+ 
   console.log('ProfilePhotos rendered with user:', user, 'and photos:', user?.photos);
 
   return (
