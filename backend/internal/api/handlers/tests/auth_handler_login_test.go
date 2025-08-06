@@ -22,6 +22,8 @@ type MockAuthService struct {
 	CreateUserFunc         func(user *models.User) (*models.User, error)
 	ValidateEmailFunc      func(email string) (bool, error)
 	UserExistsFunc         func(email string) (bool, error)
+	UserNewEditEmailExist  func(email string, userid int64) (bool, error)
+	EditUserProfile        func(user *models.User, userid int64) error
 }
 
 func (s *MockAuthService) AuthenticateUser(email, password string) (*models.User, string, error) {
@@ -60,6 +62,12 @@ func TestLogin(t *testing.T) {
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return user, nil
 		},
+		UserNewEditEmailExist:  func(email string, userid int64) (bool, error){
+			    return email,nil
+		},
+	       EditUserProfile :       func(user *models.User, userid int64) error{
+			return nil
+		   }
 	}
 
 	// Create a new auth handler with the mock service

@@ -46,6 +46,11 @@ func TestSignup_Success(t *testing.T) {
 		UserExistsFunc: func(email string) (bool, error) {
 			return false, nil
 		},
+		UserNewEditEmailExist: func(email string, userid int64) (bool, error) {
+			return false, nil
+		},
+		
+		
 	}
 	authHandler := handlers.NewAuthHandler(mockAuthService)
 
