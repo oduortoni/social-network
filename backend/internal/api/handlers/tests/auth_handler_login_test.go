@@ -16,12 +16,14 @@ import (
 
 // MockAuthService is a mock implementation of the AuthService for testing.
 type MockAuthService struct {
-	AuthenticateUserFunc   func(email, password string) (*models.User, string, error)
-	DeleteSessionFunc      func(sessionID string) (int, error)
-	GetUserIDBySessionFunc func(sessionID string) (int, error)
-	CreateUserFunc         func(user *models.User) (*models.User, error)
-	ValidateEmailFunc      func(email string) (bool, error)
-	UserExistsFunc         func(email string) (bool, error)
+	AuthenticateUserFunc      func(email, password string) (*models.User, string, error)
+	DeleteSessionFunc         func(sessionID string) (int, error)
+	GetUserIDBySessionFunc    func(sessionID string) (int, error)
+	CreateUserFunc            func(user *models.User) (*models.User, error)
+	ValidateEmailFunc         func(email string) (bool, error)
+	UserExistsFunc            func(email string) (bool, error)
+	UserNewEditEmailExistFunc func(email string, userid int64) (bool, error)
+	EditUserProfileFunc       func(user *models.User, userid int64) error
 }
 
 func (s *MockAuthService) AuthenticateUser(email, password string) (*models.User, string, error) {
@@ -51,6 +53,14 @@ func (s *MockAuthService) UserExists(email string) (bool, error) {
 	return s.UserExistsFunc(email)
 }
 
+func (s *MockAuthService) UserNewEditEmailExist(email string, userid int64) (bool, error) {
+	return s.UserNewEditEmailExistFunc(email, userid)
+}
+
+func (s *MockAuthService) EditUserProfile(user *models.User, userid int64) error {
+	return s.EditUserProfileFunc(user, userid)
+}
+
 func TestLogin(t *testing.T) {
 	// Create a new mock auth service
 	mockAuthService := &MockAuthService{
@@ -59,6 +69,12 @@ func TestLogin(t *testing.T) {
 		},
 		CreateUserFunc: func(user *models.User) (*models.User, error) {
 			return user, nil
+		},
+		UserNewEditEmailExistFunc: func(email string, userid int64) (bool, error) {
+			return true, nil
+		},
+		EditUserProfileFunc: func(user *models.User, userid int64) error {
+			return nil
 		},
 	}
 

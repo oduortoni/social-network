@@ -114,3 +114,11 @@ func (s *AuthService) ValidateEmail(email string) (bool, error) {
 func (s *AuthService) UserExists(email string) (bool, error) {
 	return s.AuthStore.UserExists(email)
 }
+
+func (s *AuthService) UserNewEditEmailExist(email string, userid int64) (bool, error) {
+	return s.AuthStore.NewEditEmailExist(email, userid)
+}
+
+func (s *AuthService) EditUserProfile(user *models.User, userid int64) error {
+	return s.AuthStore.EditProfile(user, userid)
+}

@@ -12,17 +12,29 @@ type MockPostStorePagination struct {
 }
 
 func (m *MockPostStorePagination) CreatePost(post *models.Post) (int64, error) { return 0, nil }
-func (m *MockPostStorePagination) CreateComment(comment *models.Comment) (int64, error) { return 0, nil }
-func (m *MockPostStorePagination) GetPostByID(id int64) (*models.Post, error) { return nil, nil }
+func (m *MockPostStorePagination) CreateComment(comment *models.Comment) (int64, error) {
+	return 0, nil
+}
+func (m *MockPostStorePagination) GetPostByID(id int64) (*models.Post, error)    { return nil, nil }
 func (m *MockPostStorePagination) GetPosts(userID int64) ([]*models.Post, error) { return nil, nil }
-func (m *MockPostStorePagination) UpdatePost(postID int64, content, imagePath string) (*models.Post, error) { return nil, nil }
-func (m *MockPostStorePagination) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) { return nil, nil }
-func (m *MockPostStorePagination) DeletePost(postID int64) error { return nil }
+func (m *MockPostStorePagination) UpdatePost(postID int64, content, imagePath string) (*models.Post, error) {
+	return nil, nil
+}
+func (m *MockPostStorePagination) GetCommentsByPostID(postID, userID int64) ([]*models.Comment, error) {
+	return nil, nil
+}
+func (m *MockPostStorePagination) DeletePost(postID int64) error                        { return nil }
 func (m *MockPostStorePagination) AddPostViewers(postID int64, viewerIDs []int64) error { return nil }
-func (m *MockPostStorePagination) SearchUsers(query string, currentUserID int64) ([]*models.User, error) { return nil, nil }
-func (m *MockPostStorePagination) UpdateComment(commentID int64, content, imagePath string) (*models.Comment, error) { return nil, nil }
+func (m *MockPostStorePagination) SearchUsers(query string, currentUserID int64) ([]*models.User, error) {
+	return nil, nil
+}
+func (m *MockPostStorePagination) UpdateComment(commentID int64, content, imagePath string) (*models.Comment, error) {
+	return nil, nil
+}
 func (m *MockPostStorePagination) DeleteComment(commentID int64) error { return nil }
-func (m *MockPostStorePagination) GetCommentByID(commentID int64) (*models.Comment, error) { return nil, nil }
+func (m *MockPostStorePagination) GetCommentByID(commentID int64) (*models.Comment, error) {
+	return nil, nil
+}
 
 func (m *MockPostStorePagination) GetPostsPaginated(userID int64, limit, offset int) ([]*models.Post, error) {
 	if limit == 0 {
@@ -68,10 +80,10 @@ func TestGetPostsPaginated(t *testing.T) {
 	service := NewPostService(mockStore)
 
 	tests := []struct {
-		name           string
-		limit          int
-		offset         int
-		expectedCount  int
+		name            string
+		limit           int
+		offset          int
+		expectedCount   int
 		expectedFirstID int64
 	}{
 		{"First page", 2, 0, 2, 1},

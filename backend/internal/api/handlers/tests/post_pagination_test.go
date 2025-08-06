@@ -87,9 +87,9 @@ func TestGetPostsWithPagination(t *testing.T) {
 	handler := handlers.NewPostHandler(mockService)
 
 	tests := []struct {
-		name           string
-		queryParams    string
-		expectedStatus int
+		name            string
+		queryParams     string
+		expectedStatus  int
 		checkPagination bool
 	}{
 		{"No pagination params", "", http.StatusOK, false},
@@ -102,7 +102,7 @@ func TestGetPostsWithPagination(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest("GET", "/posts"+tt.queryParams, nil)
-			
+
 			// Add mock user context
 			ctx := req.Context()
 			ctx = utils.SetUserContext(ctx, int64(1))

@@ -16,7 +16,7 @@ func (Follow *FollowService) IsAccountPublic(followee int64) (bool, error) {
 	return Follow.FollowStore.IsUserAccountPublic(followee)
 }
 
-func (Follow *FollowService) CreateFollowForPublicAccount(followerid, followeeid int64) (int64,error) {
+func (Follow *FollowService) CreateFollowForPublicAccount(followerid, followeeid int64) (int64, error) {
 	return Follow.FollowStore.CreatePublicFollowConnection(followerid, followeeid)
 }
 

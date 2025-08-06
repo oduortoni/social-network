@@ -121,6 +121,15 @@ func (s *AuthStore) UserExists(email string) (bool, error) {
 	return count > 0, nil
 }
 
+func (s *AuthStore) NewEditEmailExist(email string, userid int64) (bool, error) {
+	var count int
+	err := s.DB.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ? and id != ?", email, userid).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func GetUserIDFromSession(sessionID string, db *sql.DB) (int64, error) {
 	var userID int64
 	err := db.QueryRow("SELECT user_id FROM Sessions WHERE id = ?", sessionID).Scan(&userID)
@@ -128,4 +137,9 @@ func GetUserIDFromSession(sessionID string, db *sql.DB) (int64, error) {
 		return 0, err
 	}
 	return userID, nil
+}
+
+func (s *AuthStore) EditProfile(user *models.User, userid int64) error {
+	_, err := s.DB.Exec("UPDATE Users SET email = ?, first_name = ?, last_name = ?, date_of_birth = ?, nickname = ?, about_me = ?, is_profile_public = ?, avatar = ? WHERE id = ?", user.Email, user.FirstName, user.LastName, user.DateOfBirth, user.Nickname, user.AboutMe, user.IsProfilePublic, user.Avatar, userid)
+	return err
 }
