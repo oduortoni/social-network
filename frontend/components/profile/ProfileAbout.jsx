@@ -56,7 +56,7 @@ const ProfileAbout = ({ user, currentUser, isOwnProfile }) => {
       >
         <h3 className="text-xl font-bold mb-4 text-white">Bio</h3>
         <p style={{ color: 'var(--primary-text)' }} className="leading-relaxed">
-          {profileDetails.about || "This user hasn't written a bio yet."}
+          {profileDetails.aboutme || "This user hasn't written a bio yet."}
         </p>
       </div>
     </div>
