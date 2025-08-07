@@ -1,6 +1,9 @@
 package service
 
 import (
+	"fmt"
+	"html"
+
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/store"
 )
@@ -37,6 +40,11 @@ func (ps *ProfileService) GetUserOwnProfile(userid int64) (models.ProfileDetails
 	userDetails.ID = userid
 	userDetails.FollowbtnStatus = "hide"
 	userDetails.MessageBtnStatus = "hide"
+	userDetails.About = html.UnescapeString(userDetails.About)
+	userDetails.FirstName = html.UnescapeString(userDetails.FirstName)
+	userDetails.LastName = html.UnescapeString(userDetails.LastName)
+	userDetails.Nickname = html.UnescapeString(userDetails.Nickname)
+
 	return userDetails, nil
 }
 
@@ -71,6 +79,11 @@ func (ps *ProfileService) GetUserProfile(userid, LoggedInUser int64) (models.Pro
 	} else {
 		userDetails.MessageBtnStatus = "hide"
 	}
+	userDetails.About = html.UnescapeString(userDetails.About)
+	fmt.Println("USER ABOUT", userDetails.About)
+	userDetails.FirstName = html.UnescapeString(userDetails.FirstName)
+	userDetails.LastName = html.UnescapeString(userDetails.LastName)
+	userDetails.Nickname = html.UnescapeString(userDetails.Nickname)
 
 	return userDetails, nil
 }
@@ -85,4 +98,25 @@ func (ps *ProfileService) GetFollowersList(userid int64) (models.FollowListRespo
 
 func (ps *ProfileService) GetFolloweesList(userid int64) (models.FollowListResponse, error) {
 	return ps.ProfileStore.GetUserFollowees(userid)
+}
+
+func (ps *ProfileService) GetUserPhotos(userId int64) ([]models.Photo, error) {
+	postphotos, err := ps.ProfileStore.GetUserPostPhotos(userId)
+	if err != nil {
+		return nil, err
+	}
+	commentphots, err := ps.ProfileStore.GetUserCommentPhotos(userId)
+	if err != nil {
+		return nil, err
+	}
+	photos := append(postphotos, commentphots...)
+
+	var actual []models.Photo
+	for i := range photos {
+		if photos[i].Image != "" {
+			actual = append(actual, photos[i])
+		}
+	}
+
+	return actual, nil
 }

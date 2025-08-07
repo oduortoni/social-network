@@ -11,12 +11,12 @@ import (
 	"strings"
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/tajjjjr/social-network/backend/internal/api/handlers"
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 	"github.com/tajjjjr/social-network/backend/internal/store"
 	"github.com/tajjjjr/social-network/backend/pkg/utils"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func setupProfileEditTestDB(t *testing.T) *sql.DB {
@@ -105,13 +105,13 @@ func TestEditProfile_Success(t *testing.T) {
 
 	// Create form data
 	formData := map[string]string{
-		"email":             "updated@example.com",
-		"firstName":         "UpdatedJohn",
-		"lastName":          "UpdatedDoe",
-		"dob":               "1991-02-02",
-		"nickname":          "updatedjohndoe",
-		"aboutMe":           "Updated bio",
-		"profileVisibility": "private",
+		"email":       "updated@example.com",
+		"firstname":   "UpdatedJohn",
+		"lastname":    "UpdatedDoe",
+		"dateofbirth": "1991-02-02",
+		"nickname":    "updatedjohndoe",
+		"aboutme":     "Updated bio",
+		"is_private":  "true",
 	}
 
 	body, contentType, err := createMultipartFormData(formData, nil)
@@ -121,7 +121,7 @@ func TestEditProfile_Success(t *testing.T) {
 
 	req := httptest.NewRequest("PUT", "/EditProfile", body)
 	req.Header.Set("Content-Type", contentType)
-	
+
 	// Add user ID to context
 	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 	req = req.WithContext(ctx)
@@ -145,9 +145,8 @@ func TestEditProfile_Success(t *testing.T) {
 	// Verify the profile was actually updated in the database
 	var updatedUser models.User
 	err = db.QueryRow("SELECT email, first_name, last_name, date_of_birth, nickname, about_me, is_profile_public FROM Users WHERE id = 1").Scan(
-		&updatedUser.Email, &updatedUser.FirstName, &updatedUser.LastName, 
+		&updatedUser.Email, &updatedUser.FirstName, &updatedUser.LastName,
 		&updatedUser.DateOfBirth, &updatedUser.Nickname, &updatedUser.AboutMe, &updatedUser.IsProfilePublic)
-	
 	if err != nil {
 		t.Fatalf("Failed to query updated user: %v", err)
 	}
@@ -176,13 +175,13 @@ func TestEditProfile_EmailAlreadyExists(t *testing.T) {
 
 	// Try to update to an email that already exists (user 2's email)
 	formData := map[string]string{
-		"email":             "existing@example.com", // This email belongs to user 2
-		"firstName":         "UpdatedJohn",
-		"lastName":          "UpdatedDoe",
-		"dob":               "1991-02-02",
-		"nickname":          "updatedjohndoe",
-		"aboutMe":           "Updated bio",
-		"profileVisibility": "public",
+		"email":       "existing@example.com", // This email belongs to user 2
+		"firstname":   "UpdatedJohn",
+		"lastname":    "UpdatedDoe",
+		"dateofbirth": "1991-02-02",
+		"nickname":    "updatedjohndoe",
+		"aboutme":     "Updated bio",
+		"is_private":  "false",
 	}
 
 	body, contentType, err := createMultipartFormData(formData, nil)
@@ -192,7 +191,7 @@ func TestEditProfile_EmailAlreadyExists(t *testing.T) {
 
 	req := httptest.NewRequest("PUT", "/EditProfile", body)
 	req.Header.Set("Content-Type", contentType)
-	
+
 	// Add user ID to context (user 1 trying to use user 2's email)
 	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 	req = req.WithContext(ctx)
@@ -224,13 +223,13 @@ func TestEditProfile_SameEmailAllowed(t *testing.T) {
 
 	// User updating with their own email should be allowed
 	formData := map[string]string{
-		"email":             "test@example.com", // Same email as user 1
-		"firstName":         "UpdatedJohn",
-		"lastName":          "UpdatedDoe",
-		"dob":               "1991-02-02",
-		"nickname":          "updatedjohndoe",
-		"aboutMe":           "Updated bio",
-		"profileVisibility": "public",
+		"email":       "test@example.com", // Same email as user 1
+		"firstname":   "UpdatedJohn",
+		"lastname":    "UpdatedDoe",
+		"dateofbirth": "1991-02-02",
+		"nickname":    "updatedjohndoe",
+		"aboutme":     "Updated bio",
+		"is_private":  "false",
 	}
 
 	body, contentType, err := createMultipartFormData(formData, nil)
@@ -240,7 +239,7 @@ func TestEditProfile_SameEmailAllowed(t *testing.T) {
 
 	req := httptest.NewRequest("PUT", "/EditProfile", body)
 	req.Header.Set("Content-Type", contentType)
-	
+
 	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 	req = req.WithContext(ctx)
 
@@ -283,13 +282,13 @@ func TestEditProfile_InvalidEmail(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			formData := map[string]string{
-				"email":             tc.email,
-				"firstName":         "UpdatedJohn",
-				"lastName":          "UpdatedDoe",
-				"dob":               "1991-02-02",
-				"nickname":          "updatedjohndoe",
-				"aboutMe":           "Updated bio",
-				"profileVisibility": "public",
+				"email":       tc.email,
+				"firstname":   "UpdatedJohn",
+				"lastname":    "UpdatedDoe",
+				"dateofbirth": "1991-02-02",
+				"nickname":    "updatedjohndoe",
+				"aboutme":     "Updated bio",
+				"is_private":  "false",
 			}
 
 			body, contentType, err := createMultipartFormData(formData, nil)
@@ -299,7 +298,7 @@ func TestEditProfile_InvalidEmail(t *testing.T) {
 
 			req := httptest.NewRequest("PUT", "/EditProfile", body)
 			req.Header.Set("Content-Type", contentType)
-			
+
 			ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 			req = req.WithContext(ctx)
 
@@ -331,13 +330,13 @@ func TestEditProfile_Unauthorized(t *testing.T) {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	formData := map[string]string{
-		"email":             "updated@example.com",
-		"firstName":         "UpdatedJohn",
-		"lastName":          "UpdatedDoe",
-		"dob":               "1991-02-02",
-		"nickname":          "updatedjohndoe",
-		"aboutMe":           "Updated bio",
-		"profileVisibility": "public",
+		"email":       "updated@example.com",
+		"firstname":   "UpdatedJohn",
+		"lastname":    "UpdatedDoe",
+		"dateofbirth": "1991-02-02",
+		"nickname":    "updatedjohndoe",
+		"aboutme":     "Updated bio",
+		"is_private":  "false",
 	}
 
 	body, contentType, err := createMultipartFormData(formData, nil)
@@ -377,7 +376,7 @@ func TestEditProfile_InvalidFormData(t *testing.T) {
 	// Send invalid form data
 	req := httptest.NewRequest("PUT", "/EditProfile", strings.NewReader("invalid form data"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	
+
 	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 	req = req.WithContext(ctx)
 
@@ -408,13 +407,13 @@ func TestEditProfile_WithAvatar(t *testing.T) {
 
 	// Create form data with a small test image
 	formData := map[string]string{
-		"email":             "updated@example.com",
-		"firstName":         "UpdatedJohn",
-		"lastName":          "UpdatedDoe",
-		"dob":               "1991-02-02",
-		"nickname":          "updatedjohndoe",
-		"aboutMe":           "Updated bio",
-		"profileVisibility": "public",
+		"email":       "updated@example.com",
+		"firstname":   "UpdatedJohn",
+		"lastname":    "UpdatedDoe",
+		"dateofbirth": "1991-02-02",
+		"nickname":    "updatedjohndoe",
+		"aboutme":     "Updated bio",
+		"is_private":  "false",
 	}
 
 	// Create a small test image (1x1 pixel JPEG)
@@ -424,7 +423,7 @@ func TestEditProfile_WithAvatar(t *testing.T) {
 	}
 
 	files := map[string][]byte{
-		"avatar": testImage,
+		"profilePicture": testImage,
 	}
 
 	body, contentType, err := createMultipartFormData(formData, files)
@@ -434,7 +433,7 @@ func TestEditProfile_WithAvatar(t *testing.T) {
 
 	req := httptest.NewRequest("PUT", "/EditProfile", body)
 	req.Header.Set("Content-Type", contentType)
-	
+
 	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 	req = req.WithContext(ctx)
 
@@ -458,13 +457,13 @@ func TestEditProfile_XSSPrevention(t *testing.T) {
 
 	// Test XSS prevention with malicious input
 	formData := map[string]string{
-		"email":             "test@example.com",
-		"firstName":         "<script>alert('xss')</script>",
-		"lastName":          "<img src=x onerror=alert('xss')>",
-		"dob":               "1991-02-02",
-		"nickname":          "<svg onload=alert('xss')>",
-		"aboutMe":           "<iframe src='javascript:alert(\"xss\")'></iframe>",
-		"profileVisibility": "public",
+		"email":       "test@example.com",
+		"firstname":   "<script>alert('xss')</script>",
+		"lastname":    "<img src=x onerror=alert('xss')>",
+		"dateofbirth": "1991-02-02",
+		"nickname":    "<svg onload=alert('xss')>",
+		"aboutme":     "<iframe src='javascript:alert(\"xss\")'></iframe>",
+		"is_private":  "false",
 	}
 
 	body, contentType, err := createMultipartFormData(formData, nil)
@@ -474,7 +473,7 @@ func TestEditProfile_XSSPrevention(t *testing.T) {
 
 	req := httptest.NewRequest("PUT", "/EditProfile", body)
 	req.Header.Set("Content-Type", contentType)
-	
+
 	ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 	req = req.WithContext(ctx)
 
@@ -489,7 +488,6 @@ func TestEditProfile_XSSPrevention(t *testing.T) {
 	var updatedUser models.User
 	err = db.QueryRow("SELECT first_name, last_name, nickname, about_me FROM Users WHERE id = 1").Scan(
 		&updatedUser.FirstName, &updatedUser.LastName, &updatedUser.Nickname, &updatedUser.AboutMe)
-	
 	if err != nil {
 		t.Fatalf("Failed to query updated user: %v", err)
 	}
@@ -518,26 +516,26 @@ func TestEditProfile_ProfileVisibilityToggle(t *testing.T) {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	testCases := []struct {
-		name               string
-		profileVisibility  string
-		expectedPublic     bool
+		name           string
+		isPrivate      string
+		expectedPublic bool
 	}{
-		{"Set to public", "public", true},
-		{"Set to private", "private", false},
-		{"Invalid value defaults to private", "invalid", false},
-		{"Empty value defaults to private", "", false},
+		{"Set to public (is_private not set)", "", true},
+		{"Set to private (is_private = true)", "true", false},
+		{"Set to public (is_private = false)", "false", true},
+		{"Invalid value defaults to public", "invalid", true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			formData := map[string]string{
-				"email":             "test@example.com",
-				"firstName":         "John",
-				"lastName":          "Doe",
-				"dob":               "1990-01-01",
-				"nickname":          "johndoe",
-				"aboutMe":           "Test bio",
-				"profileVisibility": tc.profileVisibility,
+				"email":       "test@example.com",
+				"firstname":   "John",
+				"lastname":    "Doe",
+				"dateofbirth": "1990-01-01",
+				"nickname":    "johndoe",
+				"aboutme":     "Test bio",
+				"is_private":  tc.isPrivate,
 			}
 
 			body, contentType, err := createMultipartFormData(formData, nil)
@@ -547,7 +545,7 @@ func TestEditProfile_ProfileVisibilityToggle(t *testing.T) {
 
 			req := httptest.NewRequest("PUT", "/EditProfile", body)
 			req.Header.Set("Content-Type", contentType)
-			
+
 			ctx := context.WithValue(req.Context(), utils.User_id, int64(1))
 			req = req.WithContext(ctx)
 

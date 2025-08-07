@@ -224,6 +224,70 @@ func (followstore *ProfileStore) GetUserFollowees(userid int64) (models.FollowLi
 	return followersList, nil
 }
 
+func (pr *ProfileStore)GetUserPostPhotos(userId int64) ([]models.Photo, error) {
+	var photos []models.Photo
+	rows, err := pr.DB.Query(`
+		SELECT p.image
+		FROM Posts p
+		WHERE p.user_id = ?`, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var photo models.Photo
+		var image sql.NullString
+		err := rows.Scan(&image)
+		if err != nil {
+			return nil, err
+		}
+		if image.Valid {
+			photo.Image = image.String
+		}
+		photos = append(photos, photo)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return photos, nil
+}
+
+
+func (pr *ProfileStore)GetUserCommentPhotos(userId int64) ([]models.Photo, error) {
+	var photos []models.Photo
+	rows, err := pr.DB.Query(`
+		SELECT c.image
+		FROM Comments c
+		WHERE c.user_id = ?`, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var photo models.Photo
+		var image sql.NullString
+		err := rows.Scan(&image)
+		if err != nil {
+			return nil, err
+		}
+		if image.Valid {
+			photo.Image = image.String
+		}
+		photos = append(photos, photo)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return photos, nil
+}
+
+
 // Helper function to handle null string values
 func getStringValue(s sql.NullString) string {
 	if s.Valid {

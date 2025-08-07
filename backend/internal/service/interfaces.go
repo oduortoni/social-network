@@ -63,4 +63,5 @@ type ProfileServiceInterface interface {
 	GetUserPosts(userid int64) ([]models.Post, error)
 	GetFollowersList(userid int64) (models.FollowListResponse, error)
 	GetFolloweesList(userid int64) (models.FollowListResponse, error)
+	GetUserPhotos(userId int64) ([]models.Photo, error)
 }

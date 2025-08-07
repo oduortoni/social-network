@@ -1,7 +1,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const apiCall = async (endpoint, options = {}) => {
-  console.log(endpoint)
+  
   const response = await fetch(`${API_BASE}${endpoint}`, {
     credentials: 'include',
     headers: {
@@ -87,6 +87,24 @@ const acceptFollowRequest = (requestId,status) =>
 const declineFollowRequest = (requestId) =>
   apiCall(`/follow-request/${requestId}/cancel`, { method: "POST" });
 
+export async function updateProfile(profileData) {
+  var response=await fetch(`${API_BASE}/EditProfile`,{
+    method:"PUT",
+    credentials:"include",
+    body:profileData
+  })
+
+
+  // if (!response.ok) {
+  //   throw new Error(response.statusText); 
+    
+  // }
+  
+  return {
+       status:response.status,
+       message:response.json()
+  }  
+};
 
 
 export const profileAPI = {
@@ -95,7 +113,6 @@ export const profileAPI = {
   getFollowing: (userId) => apiCall(`/profile/${userId}/followees`),
   follow: (followeeid) => apiCall('/follow', { method: 'POST', body: JSON.stringify({ followeeid }) }),
   unfollow: (followeeid) => apiCall('/unfollow', { method: 'DELETE', body: JSON.stringify({ followeeid }) }),
-  updateProfile: (profileData) => apiCall('/profile/update', { method: 'PUT', body: JSON.stringify(profileData) }),
   fetchProfileImage,
   fetchFollowers,
   fetchFollowing,

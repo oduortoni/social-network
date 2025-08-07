@@ -46,11 +46,11 @@ const ProfileFollowing = ({ user, currentUser, isOwnProfile }) => {
               >
                 <img
                   src={profileAPI.fetchProfileImage(followedUser.avatar)}
-                  alt={followedUser.first_name}
+                  alt={followedUser.firstname}
                   className="w-20 h-20 rounded-full mx-auto mb-3"
                 />
                 <h4 className="font-medium text-white text-sm">
-                  {followedUser.first_name} {followedUser.last_name}
+                  {followedUser.firstname} {followedUser.lastname}
                 </h4>
               </div>
             ))
