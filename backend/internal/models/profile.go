@@ -4,9 +4,9 @@ type ProfileDetails struct {
 	FirstName string `json:"firstname"` // User's first name
 	LastName  string `json:"lastname"`  // User's last name
 	Email     string `json:"email"`
-	Avatar    string `json:"avatar"` // URL or path to user's avatar image
-	ID        int64  `json:"id"`     // User's unique ID
-	About     string `json:"about"`  // User's bio or description
+	Avatar    string `json:"avatar"`  // URL or path to user's avatar image
+	ID        int64  `json:"id"`      // User's unique ID
+	About     string `json:"aboutme"` // User's bio or description
 	Nickname  string `json:"nickname"`
 	// Follow button status:
 	// - "hide"     → Hidden (for the logged-in user's own profile)
