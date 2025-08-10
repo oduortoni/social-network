@@ -18,7 +18,8 @@ func setupTestDB(t *testing.T) *sql.DB {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		creator_id INTEGER NOT NULL,
 		title TEXT NOT NULL,
-		description TEXT
+		description TEXT,
+		privacy TEXT NOT NULL DEFAULT 'public'
 	);`
 
 	_, err = db.Exec(createTableSQL)
