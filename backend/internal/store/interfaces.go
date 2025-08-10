@@ -15,7 +15,7 @@ type PostStoreInterface interface {
 	DeletePost(postID int64) error
 	AddPostViewers(postID int64, viewerIDs []int64) error
 	SearchUsers(query string, currentUserID int64) ([]*models.User, error)
-	
+
 	UpdateComment(commentID int64, content, imagePath string) (*models.Comment, error)
 	DeleteComment(commentID int64) error
 	GetCommentByID(commentID int64) (*models.Comment, error)

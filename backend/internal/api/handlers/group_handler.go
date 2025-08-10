@@ -2,17 +2,17 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
-	"fmt"
 
 	"github.com/tajjjjr/social-network/backend/internal/models"
 	"github.com/tajjjjr/social-network/backend/internal/service"
 )
 
 type GroupHandler struct {
-	groupService service.GroupService
-	groupRequestService service.GroupRequestService
+	groupService            service.GroupService
+	groupRequestService     service.GroupRequestService
 	groupChatMessageService service.GroupChatMessageService
 }
 

@@ -14,7 +14,7 @@ import (
 
 // MockGroupService is a mock implementation of the GroupService for testing.
 type MockGroupService struct {
-	CreateGroupFunc func(group *models.Group) (*models.Group, error)
+	CreateGroupFunc  func(group *models.Group) (*models.Group, error)
 	GetGroupByIDFunc func(groupID int) (*models.Group, error)
 }
 
@@ -34,9 +34,9 @@ func (m *MockGroupService) GetGroupByID(groupID int) (*models.Group, error) {
 
 // MockGroupRequestService is a mock implementation of the GroupRequestService for testing.
 type MockGroupRequestService struct {
-	SendJoinRequestFunc func(groupID, userID int) (*models.GroupRequest, error)
+	SendJoinRequestFunc    func(groupID, userID int) (*models.GroupRequest, error)
 	ApproveJoinRequestFunc func(requestID int, approverID int) error
-	RejectJoinRequestFunc func(requestID int, rejecterID int) error
+	RejectJoinRequestFunc  func(requestID int, rejecterID int) error
 }
 
 func (m *MockGroupRequestService) SendJoinRequest(groupID, userID int) (*models.GroupRequest, error) {

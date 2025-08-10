@@ -1,4 +1,3 @@
-
 package service
 
 import (
@@ -10,7 +9,7 @@ import (
 
 type groupRequestService struct {
 	groupRequestStore store.GroupRequestStore
-	groupService        GroupService
+	groupService      GroupService
 }
 
 func NewGroupRequestService(groupRequestStore store.GroupRequestStore, groupService GroupService) GroupRequestService {

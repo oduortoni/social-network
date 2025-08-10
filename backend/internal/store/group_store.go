@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/tajjjjr/social-network/backend/internal/models"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tajjjjr/social-network/backend/internal/models"
 )
 
 type groupStore struct {
