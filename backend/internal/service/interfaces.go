@@ -68,4 +68,11 @@ type ProfileServiceInterface interface {
 
 type GroupService interface {
 	CreateGroup(group *models.Group) (*models.Group, error)
+	GetGroupByID(groupID int) (*models.Group, error)
+}
+
+type GroupRequestService interface {
+	SendJoinRequest(groupID, userID int) (*models.GroupRequest, error)
+	ApproveJoinRequest(requestID int, approverID int) error
+	RejectJoinRequest(requestID int, rejecterID int) error
 }
