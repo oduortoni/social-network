@@ -16,3 +16,7 @@ func NewGroupService(groupStore store.GroupStore) GroupService {
 func (s *groupService) CreateGroup(group *models.Group) (*models.Group, error) {
 	return s.groupStore.CreateGroup(group)
 }
+
+func (s *groupService) GetGroupByID(groupID int) (*models.Group, error) {
+	return s.groupStore.GetGroupByID(groupID)
+}
