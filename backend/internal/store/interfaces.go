@@ -20,3 +20,7 @@ type PostStoreInterface interface {
 	DeleteComment(commentID int64) error
 	GetCommentByID(commentID int64) (*models.Comment, error)
 }
+
+type GroupStore interface {
+	CreateGroup(group *models.Group) (*models.Group, error)
+}

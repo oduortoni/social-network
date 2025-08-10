@@ -65,3 +65,7 @@ type ProfileServiceInterface interface {
 	GetFolloweesList(userid int64) (models.FollowListResponse, error)
 	GetUserPhotos(userId int64) ([]models.Photo, error)
 }
+
+type GroupService interface {
+	CreateGroup(group *models.Group) (*models.Group, error)
+}
