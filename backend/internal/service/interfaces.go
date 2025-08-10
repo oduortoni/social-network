@@ -76,3 +76,8 @@ type GroupRequestService interface {
 	ApproveJoinRequest(requestID int, approverID int) error
 	RejectJoinRequest(requestID int, rejecterID int) error
 }
+
+type GroupChatMessageService interface {
+	SendGroupChatMessage(groupID, senderID int, content string) (*models.GroupChatMessage, error)
+	GetGroupChatMessages(groupID int, userID int, limit, offset int) ([]*models.GroupChatMessage, error)
+}
