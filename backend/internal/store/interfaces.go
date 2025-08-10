@@ -15,7 +15,7 @@ type PostStoreInterface interface {
 	DeletePost(postID int64) error
 	AddPostViewers(postID int64, viewerIDs []int64) error
 	SearchUsers(query string, currentUserID int64) ([]*models.User, error)
-	// Comment management methods
+	
 	UpdateComment(commentID int64, content, imagePath string) (*models.Comment, error)
 	DeleteComment(commentID int64) error
 	GetCommentByID(commentID int64) (*models.Comment, error)
@@ -30,4 +30,15 @@ type GroupRequestStore interface {
 	CreateGroupRequest(request *models.GroupRequest) (*models.GroupRequest, error)
 	GetGroupRequestByID(requestID int) (*models.GroupRequest, error)
 	UpdateGroupRequestStatus(requestID int, status string) error
+}
+
+type GroupChatMessageStore interface {
+	CreateGroupChatMessage(message *models.GroupChatMessage) (*models.GroupChatMessage, error)
+	GetGroupChatMessages(groupID int, limit, offset int) ([]*models.GroupChatMessage, error)
+}
+
+type GroupMemberStore interface {
+	IsGroupMember(groupID, userID int) (bool, error)
+	AddGroupMember(groupID, userID int, role string) (*models.GroupMember, error)
+	RemoveGroupMember(groupID, userID int) error
 }
