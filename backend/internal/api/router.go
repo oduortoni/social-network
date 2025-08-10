@@ -46,6 +46,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	reactionStore := store.NewReactionStore(db)
 	profilestore := store.NewProfileStore(db)
 	groupStore := store.NewGroupStore(db)
+	groupRequestStore := store.NewGroupRequestStore(db)
 
 	// Create services
 	postService := service.NewPostService(postStore)
@@ -56,6 +57,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	reactionService := service.NewReactionService(reactionStore)
 	profileService := service.NewProfileService(profilestore)
 	groupService := service.NewGroupService(groupStore)
+	groupRequestService := service.NewGroupRequestService(groupRequestStore, groupService)
 
 	// Create handlers
 	postHandler := handlers.NewPostHandler(postService)
@@ -65,7 +67,7 @@ func NewRouter(db *sql.DB) http.Handler {
 	followRequestHandler := handlers.NewFollowRequestHandler(followRequestService, notifier)
 	reactionHandler := handlers.NewReactionHandler(reactionService)
 	profileHandler := handlers.NewProfileHandler(profileService)
-	groupHandler := handlers.NewGroupHandler(groupService)
+	groupHandler := handlers.NewGroupHandler(groupService, groupRequestService)
 
 	// Authentication Handlers
 	mux.HandleFunc("POST /validate/step1", authHandler.ValidateAccountStepOne)
@@ -77,6 +79,9 @@ func NewRouter(db *sql.DB) http.Handler {
 
 	// Mount handlers
 	mux.Handle("POST /groups", middleware.AuthMiddleware(db)(http.HandlerFunc(groupHandler.CreateGroup)))
+	mux.Handle("POST /groups/{groupID}/join-request", middleware.AuthMiddleware(db)(http.HandlerFunc(groupHandler.SendJoinRequest)))
+	mux.Handle("PUT /groups/{groupID}/join-request/{requestID}/approve", middleware.AuthMiddleware(db)(http.HandlerFunc(groupHandler.ApproveJoinRequest)))
+	mux.Handle("PUT /groups/{groupID}/join-request/{requestID}/reject", middleware.AuthMiddleware(db)(http.HandlerFunc(groupHandler.RejectJoinRequest)))
 	mux.Handle("POST /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.CreatePost)))
 	mux.Handle("GET /posts/{postId}", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPostByID)))
 	mux.Handle("GET /posts", middleware.AuthMiddleware(db)(http.HandlerFunc(postHandler.GetPosts)))
