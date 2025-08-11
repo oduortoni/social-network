@@ -405,6 +405,47 @@ func (fr *FollowRequestHandler) CancelFollowRequest(w http.ResponseWriter, r *ht
 	utils.RespondJSON(w, status, serverResponse)
 }
 
+func (fr *FollowRequestHandler) GetRequestIDByUsers(w http.ResponseWriter, r *http.Request) {
+	var serverResponse utils.Response
+	status := http.StatusOK
+
+	// Get current user id from session (follower)
+	followerID, ok := r.Context().Value(utils.User_id).(int64)
+	if !ok {
+		serverResponse.Message = "User not found in context"
+		utils.RespondJSON(w, http.StatusUnauthorized, serverResponse)
+		return
+	}
+
+	// Parse followee ID from URL path
+	followeeIDStr := r.PathValue("followeeId")
+	followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
+	if err != nil {
+		serverResponse.Message = "Invalid followee ID"
+		utils.RespondJSON(w, http.StatusBadRequest, serverResponse)
+		return
+	}
+
+	// Get the request ID
+	requestID, err := fr.FollowRequestService.GetRequestIDByUsers(followerID, followeeID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			status = http.StatusNotFound
+			serverResponse.Message = "No pending follow request found"
+		} else {
+			status = http.StatusInternalServerError
+			serverResponse.Message = "Failed to retrieve request ID"
+		}
+		utils.RespondJSON(w, status, serverResponse)
+		return
+	}
+
+	response := map[string]interface{}{
+		"request_id": requestID,
+	}
+	utils.RespondJSON(w, status, response)
+}
+
 func (fr *FollowRequestHandler) GetPendingFollowRequest(w http.ResponseWriter, r *http.Request) {
 	var serverResponse utils.Response
 	status := http.StatusOK

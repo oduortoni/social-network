@@ -53,6 +53,7 @@ type FollowRequestServiceInterface interface {
 	CancelFollowRequest(followConnectionID int64) error
 	RetrieveUserName(userID int64) (string, string, error)
 	GetRequestInfo(requestID int64) (int64, int64, error)
+	GetRequestIDByUsers(followerID, followeeID int64) (int64, error)
 	AddtoNotification(follower_id int64, message string) error
 	GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error)
 }
