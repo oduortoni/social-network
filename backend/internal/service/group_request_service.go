@@ -16,8 +16,8 @@ func NewGroupRequestService(groupRequestStore store.GroupRequestStore, groupServ
 	return &groupRequestService{groupRequestStore: groupRequestStore, groupService: groupService}
 }
 
-func (s *groupRequestService) SendJoinRequest(groupID, userID int) (*models.GroupRequest, error) {
-	group, err := s.groupService.GetGroupByID(groupID)
+func (s *groupRequestService) SendJoinRequest(groupID, userID int64) (*models.GroupRequest, error) {
+	group, err := s.groupService.GetGroupByID(int64(groupID))
 	if err != nil {
 		return nil, fmt.Errorf("group not found: %w", err)
 	}
@@ -29,8 +29,8 @@ func (s *groupRequestService) SendJoinRequest(groupID, userID int) (*models.Grou
 	// TODO: Add logic to check if the user is already a member or has a pending request.
 
 	request := &models.GroupRequest{
-		GroupID: groupID,
-		UserID:  userID,
+		GroupID: int64(groupID),
+		UserID:  int64(userID),
 		Status:  "pending",
 	}
 
@@ -42,9 +42,9 @@ func (s *groupRequestService) SendJoinRequest(groupID, userID int) (*models.Grou
 	return createdRequest, nil
 }
 
-func (s *groupRequestService) ApproveJoinRequest(requestID int, approverID int) error {
+func (s *groupRequestService) ApproveJoinRequest(requestID int64, approverID int64) error {
 	// TODO: Add logic to verify approverID is an admin/creator of the group.
-	request, err := s.groupRequestStore.GetGroupRequestByID(requestID)
+	request, err := s.groupRequestStore.GetGroupRequestByID(int64(requestID))
 	if err != nil {
 		return fmt.Errorf("failed to get group request: %w", err)
 	}
@@ -63,9 +63,9 @@ func (s *groupRequestService) ApproveJoinRequest(requestID int, approverID int) 
 	return nil
 }
 
-func (s *groupRequestService) RejectJoinRequest(requestID int, rejecterID int) error {
+func (s *groupRequestService) RejectJoinRequest(requestID int64, rejecterID int64) error {
 	// TODO: Add logic to verify rejecterID is an admin/creator of the group.
-	request, err := s.groupRequestStore.GetGroupRequestByID(requestID)
+	request, err := s.groupRequestStore.GetGroupRequestByID(int64(requestID))
 	if err != nil {
 		return fmt.Errorf("failed to get group request: %w", err)
 	}
