@@ -23,22 +23,22 @@ type PostStoreInterface interface {
 
 type GroupStore interface {
 	CreateGroup(group *models.Group) (*models.Group, error)
-	GetGroupByID(groupID int) (*models.Group, error)
+	GetGroupByID(groupID int64) (*models.Group, error)
 }
 
 type GroupRequestStore interface {
 	CreateGroupRequest(request *models.GroupRequest) (*models.GroupRequest, error)
-	GetGroupRequestByID(requestID int) (*models.GroupRequest, error)
-	UpdateGroupRequestStatus(requestID int, status string) error
+	GetGroupRequestByID(requestID int64) (*models.GroupRequest, error)
+	UpdateGroupRequestStatus(requestID int64, status string) error
 }
 
 type GroupChatMessageStore interface {
 	CreateGroupChatMessage(message *models.GroupChatMessage) (*models.GroupChatMessage, error)
-	GetGroupChatMessages(groupID int, limit, offset int) ([]*models.GroupChatMessage, error)
+	GetGroupChatMessages(groupID int64, limit, offset int) ([]*models.GroupChatMessage, error)
 }
 
 type GroupMemberStore interface {
-	IsGroupMember(groupID, userID int) (bool, error)
-	AddGroupMember(groupID, userID int, role string) (*models.GroupMember, error)
-	RemoveGroupMember(groupID, userID int) error
+	IsGroupMember(groupID, userID int64) (bool, error)
+	AddGroupMember(groupID, userID int64, role string) (*models.GroupMember, error)
+	RemoveGroupMember(groupID, userID int64) error
 }
