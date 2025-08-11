@@ -15,7 +15,7 @@ func NewGroupMemberStore(db *sql.DB) GroupMemberStore {
 	return &groupMemberStore{db: db}
 }
 
-func (s *groupMemberStore) IsGroupMember(groupID, userID int) (bool, error) {
+func (s *groupMemberStore) IsGroupMember(groupID, userID int64) (bool, error) {
 	var exists bool
 	err := s.db.QueryRow("SELECT EXISTS(SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?)", groupID, userID).Scan(&exists)
 	if err != nil {
@@ -24,7 +24,7 @@ func (s *groupMemberStore) IsGroupMember(groupID, userID int) (bool, error) {
 	return exists, nil
 }
 
-func (s *groupMemberStore) AddGroupMember(groupID, userID int, role string) (*models.GroupMember, error) {
+func (s *groupMemberStore) AddGroupMember(groupID, userID int64, role string) (*models.GroupMember, error) {
 	stmt, err := s.db.Prepare("INSERT INTO group_members (group_id, user_id, role) VALUES (?, ?, ?)")
 	if err != nil {
 		return nil, fmt.Errorf("error preparing statement: %w", err)
@@ -42,7 +42,7 @@ func (s *groupMemberStore) AddGroupMember(groupID, userID int, role string) (*mo
 	}
 
 	member := &models.GroupMember{
-		ID:      int(id),
+		ID:      id,
 		GroupID: groupID,
 		UserID:  userID,
 		Role:    role,
@@ -50,7 +50,7 @@ func (s *groupMemberStore) AddGroupMember(groupID, userID int, role string) (*mo
 	return member, nil
 }
 
-func (s *groupMemberStore) RemoveGroupMember(groupID, userID int) error {
+func (s *groupMemberStore) RemoveGroupMember(groupID, userID int64) error {
 	stmt, err := s.db.Prepare("DELETE FROM group_members WHERE group_id = ? AND user_id = ?")
 	if err != nil {
 		return fmt.Errorf("error preparing statement: %w", err)
