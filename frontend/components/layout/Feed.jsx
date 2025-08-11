@@ -15,12 +15,15 @@ const Feed = ({user = null, connectedUsers = []}) => {
   return <div className="flex-1 flex flex-col gap-4">
       {/* Content Container with max-width */}
       <div className="w-full max-w-2xl mx-auto">
-        {/* Stories Section */}
-        {
-          users.map((u, index) => {
-              return <UserCircle avatar={u.avatar? u.avatar : ''} name={u.nickname} active={false} highlight="#3f3fd3" key={index} />;
-          })
-        }
+        <div className="flex overflow-x-auto gap-3 pb-2">
+          {/* Stories Section */}
+          {
+            users.map((u, index) => {
+                return <UserCircle avatar={u.avatar? u.avatar : ''} name={u.nickname} active={false} highlight="#3f3fd3" key={index} />;
+            })
+          }
+
+        </div>
 
         {/* Post Creation Component */}
         <PostCreation user={user} onPostCreated={handlePostCreated} />
