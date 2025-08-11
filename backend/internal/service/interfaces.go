@@ -68,16 +68,16 @@ type ProfileServiceInterface interface {
 
 type GroupService interface {
 	CreateGroup(group *models.Group) (*models.Group, error)
-	GetGroupByID(groupID int) (*models.Group, error)
+	GetGroupByID(groupID int64) (*models.Group, error)
 }
 
 type GroupRequestService interface {
-	SendJoinRequest(groupID, userID int) (*models.GroupRequest, error)
-	ApproveJoinRequest(requestID int, approverID int) error
-	RejectJoinRequest(requestID int, rejecterID int) error
+	SendJoinRequest(groupID, userID int64) (*models.GroupRequest, error)
+	ApproveJoinRequest(requestID int64, approverID int64) error
+	RejectJoinRequest(requestID int64, rejecterID int64) error
 }
 
 type GroupChatMessageService interface {
-	SendGroupChatMessage(groupID, senderID int, content string) (*models.GroupChatMessage, error)
-	GetGroupChatMessages(groupID int, userID int, limit, offset int) ([]*models.GroupChatMessage, error)
+	SendGroupChatMessage(groupID, senderID int64, content string) (*models.GroupChatMessage, error)
+	GetGroupChatMessages(groupID int64, userID int64, limit, offset int) ([]*models.GroupChatMessage, error)
 }
