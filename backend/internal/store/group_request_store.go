@@ -32,11 +32,11 @@ func (s *groupRequestStore) CreateGroupRequest(request *models.GroupRequest) (*m
 		return nil, fmt.Errorf("error getting last insert ID: %w", err)
 	}
 
-	request.ID = int(id)
+	request.ID = id
 	return request, nil
 }
 
-func (s *groupRequestStore) GetGroupRequestByID(requestID int) (*models.GroupRequest, error) {
+func (s *groupRequestStore) GetGroupRequestByID(requestID int64) (*models.GroupRequest, error) {
 	var request models.GroupRequest
 	err := s.db.QueryRow("SELECT id, group_id, user_id, status, created_at FROM group_requests WHERE id = ?", requestID).Scan(
 		&request.ID,
@@ -54,7 +54,7 @@ func (s *groupRequestStore) GetGroupRequestByID(requestID int) (*models.GroupReq
 	return &request, nil
 }
 
-func (s *groupRequestStore) UpdateGroupRequestStatus(requestID int, status string) error {
+func (s *groupRequestStore) UpdateGroupRequestStatus(requestID int64, status string) error {
 	stmt, err := s.db.Prepare("UPDATE group_requests SET status = ? WHERE id = ?")
 	if err != nil {
 		return fmt.Errorf("error preparing statement: %w", err)
