@@ -10,6 +10,10 @@ import (
 	"github.com/tajjjjr/social-network/backend/internal/service"
 )
 
+
+type contextKey string
+const userIDKey contextKey = "userID"
+
 type GroupHandler struct {
 	groupService            service.GroupService
 	groupRequestService     service.GroupRequestService
@@ -27,16 +31,13 @@ func (h *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// The user ID should be extracted from the request context,
-	// which is populated by your authentication middleware.
-	creatorID, ok := r.Context().Value("userID").(int)
+	creatorID, ok := r.Context().Value(userIDKey).(int64)
 	if !ok {
 		http.Error(w, "User ID not found in context", http.StatusUnauthorized)
 		return
 	}
 	group.CreatorID = creatorID
 
-	// Set default privacy if not provided
 	if group.Privacy == "" {
 		group.Privacy = "public"
 	}
@@ -48,7 +49,9 @@ func (h *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newGroup)
+	if err := json.NewEncoder(w).Encode(newGroup); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 func (h *GroupHandler) SendJoinRequest(w http.ResponseWriter, r *http.Request) {
@@ -59,20 +62,30 @@ func (h *GroupHandler) SendJoinRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, ok := r.Context().Value("userID").(int)
+	userID, ok := r.Context().Value(userIDKey).(int64)
 	if !ok {
 		http.Error(w, "User ID not found in context", http.StatusUnauthorized)
 		return
 	}
 
-	request, err := h.groupRequestService.SendJoinRequest(groupID, userID)
+		request, err := h.groupRequestService.SendJoinRequest(int64(groupID), int64(userID))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to send join request: %v", err), http.StatusInternalServerError)
 		return
 	}
 
+	resp := struct {
+		Request *models.GroupRequest `json:"request"`
+		Message string               `json:"message"`
+	}{
+		Request: request,
+		Message: "Join request approved",
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(request)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode response: %v", err), http.StatusInternalServerError)
+	}
 }
 
 func (h *GroupHandler) ApproveJoinRequest(w http.ResponseWriter, r *http.Request) {
@@ -83,20 +96,23 @@ func (h *GroupHandler) ApproveJoinRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	approverID, ok := r.Context().Value("userID").(int)
+	approverID, ok := r.Context().Value(userIDKey).(int)
 	if !ok {
 		http.Error(w, "Approver ID not found in context", http.StatusUnauthorized)
 		return
 	}
 
-	err = h.groupRequestService.ApproveJoinRequest(requestID, approverID)
+	err = h.groupRequestService.ApproveJoinRequest(int64(requestID), int64(approverID))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to approve join request: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Join request approved"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"message": "Join request approved"}); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *GroupHandler) RejectJoinRequest(w http.ResponseWriter, r *http.Request) {
@@ -107,20 +123,23 @@ func (h *GroupHandler) RejectJoinRequest(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	rejecterID, ok := r.Context().Value("userID").(int)
+	rejecterID, ok := r.Context().Value(userIDKey).(int)
 	if !ok {
 		http.Error(w, "Rejecter ID not found in context", http.StatusUnauthorized)
 		return
 	}
 
-	err = h.groupRequestService.RejectJoinRequest(requestID, rejecterID)
+	err = h.groupRequestService.RejectJoinRequest(int64(requestID), int64(rejecterID))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to reject join request: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Join request rejected"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"message": "Join request rejected"}); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *GroupHandler) SendGroupChatMessage(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +150,7 @@ func (h *GroupHandler) SendGroupChatMessage(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	senderID, ok := r.Context().Value("userID").(int)
+	senderID, ok := r.Context().Value(userIDKey).(int)
 	if !ok {
 		http.Error(w, "Sender ID not found in context", http.StatusUnauthorized)
 		return
@@ -145,14 +164,17 @@ func (h *GroupHandler) SendGroupChatMessage(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	message, err := h.groupChatMessageService.SendGroupChatMessage(groupID, senderID, requestBody.Content)
+	message, err := h.groupChatMessageService.SendGroupChatMessage(int64(groupID), int64(senderID), requestBody.Content)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to send message: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(message)
+	if err := json.NewEncoder(w).Encode(message); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *GroupHandler) GetGroupChatMessages(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +185,7 @@ func (h *GroupHandler) GetGroupChatMessages(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	userID, ok := r.Context().Value("userID").(int)
+	userID, ok := r.Context().Value(userIDKey).(int)
 	if !ok {
 		http.Error(w, "User ID not found in context", http.StatusUnauthorized)
 		return
@@ -181,12 +203,15 @@ func (h *GroupHandler) GetGroupChatMessages(w http.ResponseWriter, r *http.Reque
 		offset = 0 // Default offset
 	}
 
-	messages, err := h.groupChatMessageService.GetGroupChatMessages(groupID, userID, limit, offset)
+	messages, err := h.groupChatMessageService.GetGroupChatMessages(int64(groupID), int64(userID), limit, offset)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to get messages: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(messages)
+	if err := json.NewEncoder(w).Encode(messages); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
