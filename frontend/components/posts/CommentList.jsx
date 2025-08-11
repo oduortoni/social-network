@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { fetchComments, updateComment, deleteComment, followUser } from "../../lib/auth";
-import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, Edit, Trash2, UserPlus } from 'lucide-react';
+// import { fetchComments, updateComment, deleteComment, followUser } from "../../lib/auth";
+import { MoreHorizontalIcon, Edit, Trash2, UserPlus } from 'lucide-react';
 import CommentReactionButtons from './CommentReactionButtons';
 import ClientDate from '../common/ClientDate';
+import { profileAPI } from "../../lib/api";
+import { postAPI } from "../../lib/api";
 
 const CommentList = ({ postId, newComment, user }) => {
   const [comments, setComments] = useState([]);
@@ -32,7 +34,7 @@ const CommentList = ({ postId, newComment, user }) => {
   const loadComments = async () => {
     try {
       setLoading(true);
-      const result = await fetchComments(postId);
+      const result = await postAPI.fetchComments(postId);
 
       if (result.success) {
         setComments(result.data || []);
@@ -81,7 +83,7 @@ const CommentList = ({ postId, newComment, user }) => {
 
     setEditLoading(true);
     try {
-      const result = await updateComment(postId, commentId, editContent, editImage);
+      const result = await postAPI.updateComment(postId, commentId, editContent, editImage);
       if (result.success) {
         // Update the comment in the local state
         setComments(prev => prev.map(comment =>
@@ -104,7 +106,7 @@ const CommentList = ({ postId, newComment, user }) => {
   // Handle delete comment
   const handleDeleteComment = async (commentId) => {
     try {
-      const result = await deleteComment(postId, commentId);
+      const result = await postAPI.deleteComment(postId, commentId);
       if (result.success) {
         // Remove the comment from the local state
         setComments(prev => prev.filter(comment => comment.id !== commentId));
@@ -288,7 +290,7 @@ const CommentList = ({ postId, newComment, user }) => {
                         </>
                       ) : (
                         <button
-                          onClick={() => handleFollowUser(comment.user_id)}
+                          onClick={() => profileAPI.follow(comment.user_id)}
                           className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
                           style={{ color: 'var(--primary-text)' }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
