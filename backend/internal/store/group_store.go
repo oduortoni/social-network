@@ -33,12 +33,12 @@ func (s *groupStore) CreateGroup(group *models.Group) (*models.Group, error) {
 		return nil, err
 	}
 
-	group.ID = int(id)
+	group.ID = id
 
 	return group, nil
 }
 
-func (s *groupStore) GetGroupByID(groupID int) (*models.Group, error) {
+func (s *groupStore) GetGroupByID(groupID int64) (*models.Group, error) {
 	var group models.Group
 	err := s.db.QueryRow("SELECT id, creator_id, title, description, privacy, created_at FROM groups WHERE id = ?", groupID).Scan(
 		&group.ID,
