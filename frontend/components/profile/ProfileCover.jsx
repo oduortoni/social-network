@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CameraIcon, EditIcon, UserPlusIcon, X, Save } from 'lucide-react';
 import { profileAPI, updateProfile } from '../../lib/api';
+import { wsService } from '../../lib/websocket';
 
 const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
   const profileDetails = user?.profile_details || {};
@@ -19,6 +20,26 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const fileInputRef = useRef(null);
+
+  // Listen for follow request rejection notifications to refresh profile
+  useEffect(() => {
+    if (!isOwnProfile && currentUser?.id) {
+      const handleFollowRejection = (notification) => {
+        // Check if this notification is about a rejection from the current profile user
+        if (notification.subtype === 'follow_request_rejected' &&
+            notification.user_id === profileDetails.id) {
+          // Refresh the profile to update button status
+          refreshProfile();
+        }
+      };
+
+      wsService.onMessage('notification', handleFollowRejection);
+
+      return () => {
+        wsService.removeHandler('notification', handleFollowRejection);
+      };
+    }
+  }, [isOwnProfile, currentUser?.id, profileDetails.id, refreshProfile]);
 
   const handleFollow = async () => {
     try {
