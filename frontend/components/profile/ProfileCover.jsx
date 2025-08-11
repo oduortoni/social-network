@@ -24,6 +24,12 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
     try {
       if (profileDetails.followbtnstatus === 'following') {
         await profileAPI.unfollow(profileDetails.id);
+      } else if (profileDetails.followbtnstatus === 'pending') {
+        // Cancel the pending follow request
+        const requestResponse = await profileAPI.getFollowRequestId(profileDetails.id);
+        if (requestResponse && requestResponse.request_id) {
+          await profileAPI.cancelFollowRequest(requestResponse.request_id);
+        }
       } else {
         await profileAPI.follow(profileDetails.id);
       }
@@ -158,7 +164,7 @@ const ProfileCover = ({ user, currentUser, isOwnProfile, refreshProfile }) => {
 
     let buttonText = 'Follow';
     if (profileDetails.followbtnstatus === 'pending') {
-      buttonText = 'Pending';
+      buttonText = 'Cancel Request';
     } else if (profileDetails.followbtnstatus === 'following') {
       buttonText = 'Following';
     }
