@@ -17,6 +17,6 @@ func (s *groupService) CreateGroup(group *models.Group) (*models.Group, error) {
 	return s.groupStore.CreateGroup(group)
 }
 
-func (s *groupService) GetGroupByID(groupID int) (*models.Group, error) {
+func (s *groupService) GetGroupByID(groupID int64) (*models.Group, error) {
 	return s.groupStore.GetGroupByID(groupID)
 }
