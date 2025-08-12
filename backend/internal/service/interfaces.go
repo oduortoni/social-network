@@ -65,3 +65,19 @@ type ProfileServiceInterface interface {
 	GetFolloweesList(userid int64) (models.FollowListResponse, error)
 	GetUserPhotos(userId int64) ([]models.Photo, error)
 }
+
+type GroupService interface {
+	CreateGroup(group *models.Group) (*models.Group, error)
+	GetGroupByID(groupID int64) (*models.Group, error)
+}
+
+type GroupRequestService interface {
+	SendJoinRequest(groupID, userID int64) (*models.GroupRequest, error)
+	ApproveJoinRequest(requestID int64, approverID int64) error
+	RejectJoinRequest(requestID int64, rejecterID int64) error
+}
+
+type GroupChatMessageService interface {
+	SendGroupChatMessage(groupID, senderID int64, content string) (*models.GroupChatMessage, error)
+	GetGroupChatMessages(groupID int64, userID int64, limit, offset int) ([]*models.GroupChatMessage, error)
+}
