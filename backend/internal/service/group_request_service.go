@@ -26,8 +26,6 @@ func (s *groupRequestService) SendJoinRequest(groupID, userID int64) (*models.Gr
 		return nil, fmt.Errorf("cannot send join request to a private group")
 	}
 
-	// TODO: Add logic to check if the user is already a member or has a pending request.
-
 	request := &models.GroupRequest{
 		GroupID: int64(groupID),
 		UserID:  int64(userID),
@@ -43,7 +41,6 @@ func (s *groupRequestService) SendJoinRequest(groupID, userID int64) (*models.Gr
 }
 
 func (s *groupRequestService) ApproveJoinRequest(requestID int64, approverID int64) error {
-	// TODO: Add logic to verify approverID is an admin/creator of the group.
 	request, err := s.groupRequestStore.GetGroupRequestByID(int64(requestID))
 	if err != nil {
 		return fmt.Errorf("failed to get group request: %w", err)
@@ -52,8 +49,6 @@ func (s *groupRequestService) ApproveJoinRequest(requestID int64, approverID int
 	if request.Status != "pending" {
 		return fmt.Errorf("request is not pending")
 	}
-
-	// TODO: Add the user to the group_members table.
 
 	err = s.groupRequestStore.UpdateGroupRequestStatus(requestID, "approved")
 	if err != nil {
@@ -64,7 +59,6 @@ func (s *groupRequestService) ApproveJoinRequest(requestID int64, approverID int
 }
 
 func (s *groupRequestService) RejectJoinRequest(requestID int64, rejecterID int64) error {
-	// TODO: Add logic to verify rejecterID is an admin/creator of the group.
 	request, err := s.groupRequestStore.GetGroupRequestByID(int64(requestID))
 	if err != nil {
 		return fmt.Errorf("failed to get group request: %w", err)
