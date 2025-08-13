@@ -215,7 +215,20 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', recipient = nu
           chatName = group.name;
         }
       }
-      setMessages(history || []);
+      let finalHistory = history || [];
+
+      // If it's a group chat and no history, add a welcome message
+      if (chatType === 'group' && finalHistory.length === 0) {
+        finalHistory = [{
+          id: 'welcome',
+          content: `Welcome to ${chatName}! This is the beginning of your group chat.`, 
+          from: 'system',
+          timestamp: Date.now() / 1000,
+          isWelcome: true,
+        }];
+      }
+
+      setMessages(finalHistory);
       setActiveChat({ type: chatType, id: chatId });
       setActiveChatName(chatName);
     } catch (error) {
@@ -309,6 +322,16 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', recipient = nu
                 const isSender = message.from === user.id;
                 const isBroadcast = message.isBroadcast;
                 const isOptimistic = message.isOptimistic;
+                const isWelcome = message.isWelcome;
+
+                if (isWelcome) {
+                  return (
+                    <div key={message.id} className="text-center text-gray-500 italic mb-4">
+                      {message.content}
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={`${message.timestamp}-${message.from}-${index}`}
