@@ -4,7 +4,7 @@ import PostCreation from '../posts/PostCreation';
 import PostList from '../posts/PostList';
 
 const Feed = ({user = null, connectedUsers = []}) => {
-    const users = connectedUsers.filter(u => u.user_id != user.id);
+    const users = connectedUsers.filter(u => u.user_id != user.id).slice(0, 8);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const handlePostCreated = (newPost) => {
@@ -15,7 +15,7 @@ const Feed = ({user = null, connectedUsers = []}) => {
   return <div className="flex-1 flex flex-col gap-4">
       {/* Content Container with max-width */}
       <div className="w-full max-w-2xl mx-auto">
-        <div className="flex overflow-x-auto gap-3 pb-2">
+        <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
           {/* Stories Section */}
           {
             users.map((u, index) => {
