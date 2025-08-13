@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import withAuth from '../../../lib/withAuth';
-import Header from '../../../components/layout/Header';
-import { chatAPI, profileAPI } from '../../../lib/api';
+import withAuth from '../../../../lib/withAuth';
+import Header from '../../../../components/layout/Header';
+import { chatAPI, profileAPI } from '../../../../lib/api';
 import { MessageCircleIcon, ArrowLeftIcon, UsersIcon, MessageSquarePlus } from 'lucide-react';
 import Image from 'next/image';
-import ChatSwitcher from '../../../components/chat/ChatSwitcher';
-import UserListModal from '../../../components/chat/UserListModal';
+import ChatSwitcher from '../../../../components/chat/ChatSwitcher';
+import UserListModal from '../../../../components/chat/UserListModal';
 
 const ChatsPage = ({ user }) => {
   const [messageableUsers, setMessageableUsers] = useState([]);
