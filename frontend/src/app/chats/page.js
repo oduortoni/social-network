@@ -17,10 +17,6 @@ const ChatsPage = ({ user }) => {
   const [currentView, setCurrentView] = useState('All Chats'); // All Chats, Unread, Groups
   const router = useRouter();
 
-  useEffect(() => {
-    loadData();
-  }, [currentView, loadData]);
-
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -45,6 +41,10 @@ const ChatsPage = ({ user }) => {
       setLoading(false);
     }
   }, [currentView]);
+
+  useEffect(() => {
+    loadData();
+  }, [currentView, loadData]);
 
   const handleUserSelect = (selectedUser) => {
     router.push(`/chats/${selectedUser.id}?nickname=${encodeURIComponent(selectedUser.nickname)}`);
