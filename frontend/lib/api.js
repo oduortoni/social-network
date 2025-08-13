@@ -46,13 +46,8 @@ export const chatAPI = {
   getMessageableUsers: () =>
     apiCall('/api/users/messageable'),
 
-  getGroups: async () => {
-    // Mock data for now
-    return [
-      { id: 1, name: 'Cool Group', avatar: '' },
-      { id: 2, name: 'Besties', avatar: '' },
-    ];
-  },
+  getGroups: () =>
+    apiCall('/api/chats/groups'),
 };
 
 
