@@ -215,3 +215,19 @@ func (h *GroupHandler) GetGroupChatMessages(w http.ResponseWriter, r *http.Reque
 		return
 	}
 }
+
+func (h *GroupHandler) SearchPublicGroups(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+
+	groups, err := h.groupService.SearchPublicGroups(query)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to search public groups: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(groups); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode response: %v", err), http.StatusInternalServerError)
+		return
+	}
+}
