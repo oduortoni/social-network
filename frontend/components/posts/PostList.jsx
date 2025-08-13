@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchPosts, fetchPostsPaginated, deletePost, updatePost } from '../../lib/auth';
-import { MoreHorizontalIcon, ThumbsUpIcon, ThumbsDownIcon, MessageCircleIcon, Globe, Users, Lock, Edit, Trash2, UserPlus, User } from 'lucide-react';
+// import { fetchPostsPaginated, deletePost, updatePost } from '../../lib/auth';
+import { MoreHorizontalIcon, MessageCircleIcon, Globe, Users, Lock, Edit, Trash2, UserPlus, User } from 'lucide-react';
 import VerifiedBadge from '../homepage/VerifiedBadge';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
@@ -8,6 +8,8 @@ import ReactionButtons from './ReactionButtons';
 import ClientDate from '../common/ClientDate';
 import { useRouter } from 'next/navigation';
 import { generateInitialSkeletons, generatePaginationSkeletons } from '../../lib/skeletonUtils';
+import { profileAPI } from '../../lib/api';
+import { postAPI } from '../../lib/api';
 
 const PostList = ({ refreshTrigger, user, posts: initialPosts, profileView = false }) => {
   const router = useRouter();
@@ -39,7 +41,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts, profileView = fal
     setError('');
 
     try {
-      const result = await fetchPostsPaginated(pageNum, 10);
+      const result = await postAPI.fetchPostsPaginated(pageNum, 10);
 
       if (result.success) {
         const { posts: newPosts, pagination } = result.data;
@@ -182,7 +184,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts, profileView = fal
 
     setEditLoading(true);
     try {
-      const result = await updatePost(postId, editContent, editImage);
+      const result = await postAPI.updatePost(postId, editContent, editImage);
       if (result.success) {
         // Update the post in the local state
         setPosts(prev => prev.map(post =>
@@ -205,7 +207,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts, profileView = fal
   // Handle delete post
   const handleDeletePost = async (postId) => {
     try {
-      const result = await deletePost(postId);
+      const result = await postAPI.deletePost(postId);
       if (result.success) {
         // Remove the post from the local state
         setPosts(prev => prev.filter(post => post.id !== postId));
@@ -393,7 +395,7 @@ const PostList = ({ refreshTrigger, user, posts: initialPosts, profileView = fal
 
                         {/* Follow Option */}
                         <button
-                          onClick={() => handleFollowUser(post.user_id)}
+                          onClick={() => profileAPI.follow(post.user_id)}
                           className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors"
                           style={{ color: 'var(--primary-text)' }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-background)'}
