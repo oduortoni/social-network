@@ -1,18 +1,43 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import withAuth from '../../../lib/withAuth';
 import Header from '../../../components/layout/Header';
 import { chatAPI } from '../../../lib/api';
 import { ArrowLeftIcon } from 'lucide-react';
 import ChatInterface from '../../../components/chat/ChatInterface';
+import { wsService } from '../../../lib/websocket';
 
 const ChatPage = ({ user, params }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+
   const type = searchParams.get('type') || 'private';
   const name = searchParams.get('name') || searchParams.get('nickname');
   const id = params.userId;
+
+  useEffect(() => {
+    let mounted = true;
+
+    wsService.onMessage('connection_status', (message) => {
+      if (mounted) {
+        setConnectionStatus(message.status);
+      }
+    });
+
+    if (!wsService.isConnected()) {
+      setConnectionStatus('connecting');
+      wsService.connect();
+    } else {
+      setConnectionStatus('connected');
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleBackToChats = () => {
     router.push('/chats');
@@ -42,7 +67,16 @@ const ChatPage = ({ user, params }) => {
         <h1 className="text-3xl font-bold mb-4" style={{ color: 'var(--primary-text)' }}>
           {name}
         </h1>
-        <ChatInterface user={user} recipient={recipient} showSidebar={false} />
+        <div className="flex items-center gap-2 mb-4">
+          <div className={`w-3 h-3 rounded-full ${
+            connectionStatus === 'connected' ? 'bg-green-500' :
+            connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
+          }`}></div>
+          <span className="text-sm capitalize" style={{ color: 'var(--secondary-text)' }}>
+            {connectionStatus}
+          </span>
+        </div>
+        <ChatInterface user={user} recipient={recipient} showSidebar={false} connectionStatus={connectionStatus} />
       </div>
     </div>
   );
