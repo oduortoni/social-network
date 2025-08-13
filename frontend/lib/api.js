@@ -133,3 +133,8 @@ export const profileAPI = {
   acceptFollowRequest,
   declineFollowRequest,
 };
+
+export function fetchGroupImage(avatar) {
+  if (!avatar) return fallbackAvatar;
+  return `${API_BASE}/group-avatar?avatar=${encodeURIComponent(avatar)}`;
+}
