@@ -58,7 +58,7 @@ const ChatsPage = ({ user }) => {
 
   useEffect(() => {
     loadData();
-  }, [currentView, loadData]);
+  }, [currentView]);
 
   const handleUserSelect = (selectedUser) => {
     router.push(`/chats/${selectedUser.id}?nickname=${encodeURIComponent(selectedUser.nickname)}`);
