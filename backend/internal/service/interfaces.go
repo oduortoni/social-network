@@ -53,6 +53,7 @@ type FollowRequestServiceInterface interface {
 	CancelFollowRequest(followConnectionID int64) error
 	RetrieveUserName(userID int64) (string, string, error)
 	GetRequestInfo(requestID int64) (int64, int64, error)
+	GetRequestIDByUsers(followerID, followeeID int64) (int64, error)
 	AddtoNotification(follower_id int64, message string) error
 	GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error)
 }
@@ -64,4 +65,20 @@ type ProfileServiceInterface interface {
 	GetFollowersList(userid int64) (models.FollowListResponse, error)
 	GetFolloweesList(userid int64) (models.FollowListResponse, error)
 	GetUserPhotos(userId int64) ([]models.Photo, error)
+}
+
+type GroupService interface {
+	CreateGroup(group *models.Group) (*models.Group, error)
+	GetGroupByID(groupID int64) (*models.Group, error)
+}
+
+type GroupRequestService interface {
+	SendJoinRequest(groupID, userID int64) (*models.GroupRequest, error)
+	ApproveJoinRequest(requestID int64, approverID int64) error
+	RejectJoinRequest(requestID int64, rejecterID int64) error
+}
+
+type GroupChatMessageService interface {
+	SendGroupChatMessage(groupID, senderID int64, content string) (*models.GroupChatMessage, error)
+	GetGroupChatMessages(groupID int64, userID int64, limit, offset int) ([]*models.GroupChatMessage, error)
 }

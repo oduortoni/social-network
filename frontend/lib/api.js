@@ -261,6 +261,12 @@ const acceptFollowRequest = (requestId, status) =>
 const declineFollowRequest = (requestId) =>
   apiCall(`/follow-request/${requestId}/cancel`, { method: "POST" });
 
+const getFollowRequestId = (followeeId) =>
+  apiCall(`/follow-request-id/${followeeId}`, { method: "GET" });
+
+const cancelFollowRequest = (requestId) =>
+  apiCall(`/follow-request/${requestId}/cancel`, { method: "DELETE" });
+
 export async function updateProfile(profileData) {
   var response = await fetch(`${API_BASE}/EditProfile`, {
     method: "PUT",
@@ -301,4 +307,6 @@ export const profileAPI = {
   fetchPendingFollowRequests,
   acceptFollowRequest,
   declineFollowRequest,
+  getFollowRequestId,
+  cancelFollowRequest,
 };

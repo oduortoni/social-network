@@ -37,6 +37,10 @@ func (fr *FollowRequestService) CancelFollowRequest(followConnectionID int64) er
 	return fr.FollowRequestStore.FollowRequestCancel(followConnectionID)
 }
 
+func (fr *FollowRequestService) GetRequestIDByUsers(followerID, followeeID int64) (int64, error) {
+	return fr.FollowRequestStore.GetRequestIDByUsers(followerID, followeeID)
+}
+
 func (fr *FollowRequestService) GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error) {
 	return fr.FollowRequestStore.GetPendingFollowRequest(userid)
 }
