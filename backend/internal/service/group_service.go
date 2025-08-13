@@ -20,3 +20,7 @@ func (s *groupService) CreateGroup(group *models.Group) (*models.Group, error) {
 func (s *groupService) GetGroupByID(groupID int64) (*models.Group, error) {
 	return s.groupStore.GetGroupByID(groupID)
 }
+
+func (s *groupService) SearchPublicGroups(query string) ([]*models.Group, error) {
+	return s.groupStore.SearchPublicGroups(query)
+}
