@@ -56,3 +56,30 @@ func (s *groupStore) GetGroupByID(groupID int64) (*models.Group, error) {
 	}
 	return &group, nil
 }
+
+func (s *groupStore) SearchPublicGroups(query string) ([]*models.Group, error) {
+	rows, err := s.db.Query("SELECT id, creator_id, title, description, privacy, created_at FROM groups WHERE privacy = 'public' AND title LIKE ?", "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var groups []*models.Group
+	for rows.Next() {
+		var group models.Group
+		err := rows.Scan(
+			&group.ID,
+			&group.CreatorID,
+			&group.Title,
+			&group.Description,
+			&group.Privacy,
+			&group.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, &group)
+	}
+
+	return groups, nil
+}
