@@ -101,6 +101,14 @@ func (fr *FollowRequestStore) FollowRequestCancel(requestID int64) error {
 	return err
 }
 
+// GetRequestIDByUsers retrieves the request ID for a pending follow request between two users
+func (fr *FollowRequestStore) GetRequestIDByUsers(followerID, followeeID int64) (int64, error) {
+	var requestID int64
+	query := "SELECT id FROM Followers WHERE follower_id = ? AND followee_id = ? AND status = 'pending'"
+	err := fr.DB.QueryRow(query, followerID, followeeID).Scan(&requestID)
+	return requestID, err
+}
+
 func (fr *FollowRequestStore) GetPendingFollowRequest(userid int64) (models.FollowRequestUserResponse, error) {
 	var response models.FollowRequestUserResponse
 
