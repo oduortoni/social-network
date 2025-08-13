@@ -14,29 +14,32 @@ const ChatsPage = ({ user }) => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [currentView, setCurrentView] = useState('All Chats'); // All Chats, Unread, Groups
   const router = useRouter();
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      const unread = await chatAPI.getUnreadChatCount();
+      setUnreadCount(unread.count);
+
       if (currentView === 'All Chats') {
         const users = await chatAPI.getMessageableUsers();
         setMessageableUsers(users || []);
-        const groupData = await chatAPI.getGroups(); // Mocked for now
+        const groupData = await chatAPI.getGroups();
         setGroups(groupData || []);
       } else if (currentView === 'Unread') {
-        // TODO: Implement unread chats fetching
-        setMessageableUsers([]);
+        const unreadChats = await chatAPI.getUnreadChats();
+        setMessageableUsers(unreadChats || []); // Assuming unread chats are also messageable users for now
         setGroups([]);
       } else if (currentView === 'Groups') {
-        const groupData = await chatAPI.getGroups(); // Mocked for now
+        const groupData = await chatAPI.getGroups();
         setGroups(groupData || []);
         setMessageableUsers([]);
       }
     } catch (error) {
       console.error(`Failed to load data for ${currentView}:`, error);
-      setError(`Failed to load data. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -66,17 +69,6 @@ const ChatsPage = ({ user }) => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p style={{ color: 'var(--primary-text)' }}>Loading...</p>
           </div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-          <button onClick={loadData} className="ml-4 underline hover:no-underline">
-            Try again
-          </button>
         </div>
       );
     }
@@ -135,7 +127,7 @@ const ChatsPage = ({ user }) => {
             Chats
           </h1>
         </div>
-        <ChatSwitcher currentView={currentView} setCurrentView={setCurrentView} />
+        <ChatSwitcher currentView={currentView} setCurrentView={setCurrentView} unreadCount={unreadCount} />
         {renderContent()}
       </div>
     </div>
