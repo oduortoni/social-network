@@ -20,6 +20,7 @@ type MockFollowRequestService struct {
 	RejectedFollowConnectionFunc func(followConnectionID int64) error
 	RetrieveUserNameFunc         func(userID int64) (string, string, error)
 	GetRequestInfoFunc           func(requestID int64) (int64, int64, error)
+	GetRequestIDByUsersFunc      func(followerID, followeeID int64) (int64, error)
 	AddtoNotificationFunc        func(follower_id int64, message string) error
 	CancelFollowRequestFunc      func(followConnectionID int64) error
 	GetPendingFollowRequestFunc  func(userid int64) (models.FollowRequestUserResponse, error)
@@ -58,6 +59,13 @@ func (s *MockFollowRequestService) GetRequestInfo(requestID int64) (int64, int64
 		return s.GetRequestInfoFunc(requestID)
 	}
 	return 1, 2, nil
+}
+
+func (s *MockFollowRequestService) GetRequestIDByUsers(followerID, followeeID int64) (int64, error) {
+	if s.GetRequestIDByUsersFunc != nil {
+		return s.GetRequestIDByUsersFunc(followerID, followeeID)
+	}
+	return 1, nil
 }
 
 func (s *MockFollowRequestService) AddtoNotification(follower_id int64, message string) error {

@@ -33,7 +33,17 @@ class NotificationService {
         const handlers = this.handlers.get(subtype) || [];
         handlers.forEach(handler => handler(notification));
       }
-      
+
+      if (subtype === 'follow_request_rejected') {
+        const handlers = this.handlers.get(subtype) || [];
+        handlers.forEach(handler => handler(notification));
+      }
+
+      if (subtype === 'follow_request_cancelled') {
+        const handlers = this.handlers.get(subtype) || [];
+        handlers.forEach(handler => handler(notification));
+      }
+
       if (subtype === "follow"){
       const handlers = this.handlers.get(subtype) || [];
         handlers.forEach(handler => handler(notification));
