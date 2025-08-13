@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-const ChatSwitcher = ({ currentView, setCurrentView }) => {
+const ChatSwitcher = ({ currentView, setCurrentView, unreadCount }) => {
   const views = ["All Chats", "Unread", "Groups"];
 
   return (
@@ -23,6 +23,11 @@ const ChatSwitcher = ({ currentView, setCurrentView }) => {
             }}
           >
             {view}
+            {view === 'Unread' && unreadCount > 0 && (
+              <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                {unreadCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
