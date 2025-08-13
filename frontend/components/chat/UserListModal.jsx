@@ -10,20 +10,16 @@ const UserListModal = ({ user, onClose }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchMutualFollows = async () => {
+    const fetchFollowers = async () => {
       try {
         setLoading(true);
-        const [followersResponse, followingResponse] = await Promise.all([
-          profileAPI.getFollowers(user.id),
-          profileAPI.getFollowing(user.id),
-        ]);
-
-        if (followersResponse.success && followingResponse.success) {
-          const followersIds = new Set(followersResponse.data.map(f => f.id));
-          const mutualFollows = followingResponse.data.filter(f => followersIds.has(f.id));
-          setFollowingUsers(mutualFollows);
+        const response = await profileAPI.getFollowers(user.id);
+        if (response.success) {
+          // Sort followers by nickname in ascending order
+          const sortedFollowers = response.data.sort((a, b) => a.nickname.localeCompare(b.nickname));
+          setFollowingUsers(sortedFollowers);
         } else {
-          setError(followersResponse.error || followingResponse.error || 'Failed to fetch mutual followers');
+          setError(response.error || 'Failed to fetch followers');
         }
       } catch (err) {
         setError('Network error: ' + err.message);
@@ -33,7 +29,7 @@ const UserListModal = ({ user, onClose }) => {
     };
 
     if (user?.id) {
-      fetchMutualFollows();
+      fetchFollowers();
     }
   }, [user]);
 
