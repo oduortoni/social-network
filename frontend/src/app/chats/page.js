@@ -5,17 +5,18 @@ import { useRouter } from 'next/navigation';
 import withAuth from '../../../lib/withAuth';
 import Header from '../../../components/layout/Header';
 import { chatAPI, profileAPI } from '../../../lib/api';
-import { MessageCircleIcon, ArrowLeftIcon, UsersIcon } from 'lucide-react';
+import { MessageCircleIcon, ArrowLeftIcon, UsersIcon, MessageSquarePlus } from 'lucide-react';
 import Image from 'next/image';
 import ChatSwitcher from '../../../components/chat/ChatSwitcher';
+import UserListModal from '../../../components/chat/UserListModal';
 
 const ChatsPage = ({ user }) => {
   const [messageableUsers, setMessageableUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentView, setCurrentView] = useState('All Chats'); // All Chats, Unread, Groups
+  const [showUserListModal, setShowUserListModal] = useState(false);
   const router = useRouter();
 
   const loadData = useCallback(async () => {
@@ -130,6 +131,21 @@ const ChatsPage = ({ user }) => {
         <ChatSwitcher currentView={currentView} setCurrentView={setCurrentView} unreadCount={unreadCount} />
         {renderContent()}
       </div>
+
+      {/* Start Conversation Button */}
+      <button
+        className="fixed bottom-8 right-8 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-300 group"
+        onClick={() => setShowUserListModal(true)}
+      >
+        <div className="flex items-center">
+          <MessageSquarePlus className="w-6 h-6" />
+          <span className="hidden group-hover:inline ml-2">Start Conversation</span>
+        </div>
+      </button>
+
+      {showUserListModal && (
+        <UserListModal user={user} onClose={() => setShowUserListModal(false)} />
+      )}
     </div>
   );
 };
