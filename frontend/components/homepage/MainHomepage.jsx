@@ -17,17 +17,6 @@ const MainHomepage = ({ user, profile, connectionStatus, connectedUsers = [] }) 
         </div>
         <ActivitySidebar user={user} />
       </div>
-      {/* Start Conversation Button */}
-      <button
-        className="fixed bottom-8 right-8 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
-        onClick={() => setShowUserListModal(true)}
-      >
-        Start Conversation
-      </button>
-
-      {showUserListModal && (
-        <UserListModal user={user} onClose={() => setShowUserListModal(false)} />
-      )}
     </div>
   );
 };
