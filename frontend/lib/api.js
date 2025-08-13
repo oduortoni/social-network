@@ -41,6 +41,14 @@ export const chatAPI = {
   // Mark notifications as read
   markNotificationsRead: () =>
     apiCall('/api/notifications/read', { method: 'POST' }),
+
+  // Get unread chats
+  getUnreadChats: () =>
+    apiCall('/api/chats/unread'),
+
+  // Get unread chat count
+  getUnreadChatCount: () =>
+    apiCall('/api/chats/unread/count'),
   
   // Get users the current user can message
   getMessageableUsers: () =>
