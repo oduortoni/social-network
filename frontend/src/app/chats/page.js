@@ -22,7 +22,12 @@ const ChatsPage = ({ user }) => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const unread = await chatAPI.getUnreadChatCount();
+      let unread = { count: 0 };
+      try {
+        unread = await chatAPI.getUnreadChatCount();
+      } catch (e) {
+        console.error("Failed to fetch unread chat count:", e);
+      }
       setUnreadCount(unread.count);
 
       if (currentView === 'All Chats') {
@@ -31,8 +36,13 @@ const ChatsPage = ({ user }) => {
         const groupData = await chatAPI.getGroups();
         setGroups(groupData || []);
       } else if (currentView === 'Unread') {
-        const unreadChats = await chatAPI.getUnreadChats();
-        setMessageableUsers(unreadChats || []); // Assuming unread chats are also messageable users for now
+        let unreadChats = [];
+        try {
+          unreadChats = await chatAPI.getUnreadChats();
+        } catch (e) {
+          console.error("Failed to fetch unread chats:", e);
+        }
+        setMessageableUsers(unreadChats || []);
         setGroups([]);
       } else if (currentView === 'Groups') {
         const groupData = await chatAPI.getGroups();
