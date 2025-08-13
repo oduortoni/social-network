@@ -299,8 +299,22 @@ export async function updateProfile(profileData) {
 
 export const profileAPI = {
   getProfile: (userId) => apiCall(`/profile/${userId}`),
-  getFollowers: (userId) => apiCall(`/profile/${userId}/followers`),
-  getFollowing: (userId) => apiCall(`/profile/${userId}/followees`),
+  getFollowers: async (userId) => {
+    try {
+      const data = await apiCall(`/profile/${userId}/followers`);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message || 'Failed to fetch followers' };
+    }
+  },
+  getFollowing: async (userId) => {
+    try {
+      const data = await apiCall(`/profile/${userId}/followees`);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message || 'Failed to fetch following' };
+    }
+  },
   follow: (followeeid) =>
     apiCall("/follow", {
       method: "POST",
