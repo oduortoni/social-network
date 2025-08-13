@@ -136,7 +136,7 @@ const ChatsPage = ({ user }) => {
 
 const ChatItem = ({ item, type, onSelect }) => {
   const isGroup = type === 'group';
-  const avatar = isGroup ? (item.avatar || '/path/to/group/avatar.png') : profileAPI.fetchProfileImage(item.avatar || '');
+  const avatar = isGroup ? chatAPI.fetchGroupImage(item.avatar || '') : profileAPI.fetchProfileImage(item.avatar || '');
   const name = isGroup ? item.name : item.nickname;
 
   return (
