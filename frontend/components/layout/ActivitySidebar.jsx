@@ -110,10 +110,18 @@ const ActivitySidebar = () => {
       });
   };
 
+  const handleFollowRequestCancelled = (notification) => {
+    // Remove the cancelled follow request from activities
+    setActivities((prev) => prev.filter((a) =>
+      !(a.requestId === notification.request_id && a.userId === notification.user_id)
+    ));
+  };
+
   useEffect(() => {
     wsService.onMessage('notification', handleNotification);
     notificationService.onNotification('follow_request', handleRequest);
     notificationService.onNotification('follow', handleFollow);
+    notificationService.onNotification('follow_request_cancelled', handleFollowRequestCancelled);
 
     profileAPI.fetchPendingFollowRequests()
       .then((requests) => {
@@ -145,8 +153,9 @@ const ActivitySidebar = () => {
       wsService.removeHandler('notification', handleNotification);
       notificationService.removeHandler('follow_request', handleRequest);
       notificationService.removeHandler('follow', handleFollow);
+      notificationService.removeHandler('follow_request_cancelled', handleFollowRequestCancelled);
     };
-  }, [handleRequest, handleNotification, handleFollow]);
+  }, [handleRequest, handleNotification, handleFollow, handleFollowRequestCancelled]);
 
   return (
     <div className="w-72">

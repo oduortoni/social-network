@@ -27,7 +27,33 @@ func (followstore *FollowStore) IsUserAccountPublic(userid int64) (bool, error) 
 
 func (followstore *FollowStore) CreatePublicFollowConnection(followerId, followeeId int64) (int64, error) {
 	currentTime := time.Now()
-	result, err := followstore.DB.Exec("INSERT INTO Followers (follower_id, followee_id, status, requested_at, accepted_at) VALUES (?, ?, ?, ?, ?)", followerId, followeeId, "accepted", currentTime, currentTime)
+
+	// First, try to update existing rejected record
+	result, err := followstore.DB.Exec(
+		"UPDATE Followers SET status = 'accepted', requested_at = ?, accepted_at = ? WHERE follower_id = ? AND followee_id = ? AND status = 'rejected'",
+		currentTime, currentTime, followerId, followeeId,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	// If we updated an existing record, return its ID
+	if rowsAffected > 0 {
+		var followID int64
+		err = followstore.DB.QueryRow("SELECT id FROM Followers WHERE follower_id = ? AND followee_id = ?", followerId, followeeId).Scan(&followID)
+		if err != nil {
+			return 0, err
+		}
+		return followID, nil
+	}
+
+	// Otherwise, create a new record
+	result, err = followstore.DB.Exec("INSERT INTO Followers (follower_id, followee_id, status, requested_at, accepted_at) VALUES (?, ?, ?, ?, ?)", followerId, followeeId, "accepted", currentTime, currentTime)
 	if err != nil {
 		return 0, err
 	}
@@ -43,7 +69,32 @@ func (followstore *FollowStore) CreatePublicFollowConnection(followerId, followe
 func (followstore *FollowStore) CreatePrivateFollowConnection(followerId, followeeId int64) (int64, error) {
 	currentTime := time.Now()
 
+	// First, try to update existing rejected record
 	result, err := followstore.DB.Exec(
+		"UPDATE Followers SET status = 'pending', requested_at = ?, accepted_at = NULL WHERE follower_id = ? AND followee_id = ? AND status = 'rejected'",
+		currentTime, followerId, followeeId,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	// If we updated an existing record, return its ID
+	if rowsAffected > 0 {
+		var followID int64
+		err = followstore.DB.QueryRow("SELECT id FROM Followers WHERE follower_id = ? AND followee_id = ?", followerId, followeeId).Scan(&followID)
+		if err != nil {
+			return 0, err
+		}
+		return followID, nil
+	}
+
+	// Otherwise, create a new record
+	result, err = followstore.DB.Exec(
 		"INSERT INTO Followers (follower_id, followee_id, status, requested_at) VALUES (?, ?, ?, ?)",
 		followerId, followeeId, "pending", currentTime,
 	)
