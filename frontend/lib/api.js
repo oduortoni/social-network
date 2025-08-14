@@ -22,15 +22,43 @@ const apiCall = async (endpoint, options = {}) => {
 export const postAPI = {
   createPost: async (formData) => {
     try {
-      const data = await apiCall("/posts", {
+      const response = await fetch(`${API_BASE}/posts`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
       return { success: true, data };
     } catch (error) {
       return {
         success: false,
         error: error.message || "Failed to create post",
+      };
+    }
+  },
+  createComment: async (postId, formData) => {
+    try {
+      const response = await fetch(`${API_BASE}/posts/${postId}/comments`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message || "Failed to create comment",
       };
     }
   },
