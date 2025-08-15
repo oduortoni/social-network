@@ -50,7 +50,10 @@ const Header = ({ user = null }) => {
       {/* Navigation Icons - Centered absolutely */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-6 z-0">
         {/* Home Icon */}
-        <div className="flex flex-col items-center cursor-pointer" onClick={() => router.push('/me')}>
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => router.push('/me')}
+        >
           <HomeIcon className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
           <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Home</span>
         </div>
