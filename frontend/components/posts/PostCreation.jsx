@@ -9,7 +9,7 @@ import {
   Users,
   Lock,
 } from "lucide-react";
-import { createPost } from "../../lib/auth";
+import { postAPI } from "../../lib/api";
 import UserSearch from "./UserSearch";
 import { profileAPI } from "../../lib/api";
 
@@ -119,7 +119,7 @@ const PostCreation = ({ user, onPostCreated }) => {
         formData.append("image", selectedImage);
       }
 
-      const result = await createPost(formData);
+      const result = await postAPI.createPost(formData);
 
       if (result.success) {
         // Reset form

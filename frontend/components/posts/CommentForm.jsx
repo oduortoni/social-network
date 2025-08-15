@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { ImageIcon, SendIcon, X } from "lucide-react";
-import { createComment } from "../../lib/auth";
+import { postAPI } from "../../lib/api";
 import { profileAPI } from "../../lib/api";
 
 const CommentForm = ({ postId, user, onCommentCreated }) => {
@@ -80,7 +80,7 @@ const CommentForm = ({ postId, user, onCommentCreated }) => {
         formData.append("image", selectedImage);
       }
 
-      const result = await createComment(postId, formData);
+      const result = await postAPI.createComment(postId, formData);
 
       if (result.success) {
         // Reset form
