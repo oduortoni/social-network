@@ -40,7 +40,7 @@ const UserListModal = ({ user, onClose }) => {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
           <p>Loading users...</p>
         </div>
@@ -50,7 +50,7 @@ const UserListModal = ({ user, onClose }) => {
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
           <p className="text-red-500">Error: {error}</p>
           <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Close</button>
@@ -60,7 +60,7 @@ const UserListModal = ({ user, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[80vh] flex flex-col"
         style={{ backgroundColor: 'var(--secondary-background)', color: 'var(--primary-text)' }}>
         <div className="flex justify-between items-center mb-4">
