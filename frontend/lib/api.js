@@ -242,10 +242,22 @@ export const chatAPI = {
 
   // Mark notifications as read
   markNotificationsRead: () =>
-    apiCall("/api/notifications/read", { method: "POST" }),
+    apiCall('/api/notifications/read', { method: 'POST' }),
 
+  // Get unread chats
+  getUnreadChats: () =>
+    apiCall('/api/chats/unread'),
+
+  // Get unread chat count
+  getUnreadChatCount: () =>
+    apiCall('/api/chats/unread/count'),
+  
   // Get users the current user can message
-  getMessageableUsers: () => apiCall("/api/users/messageable"),
+  getMessageableUsers: () =>
+    apiCall('/api/users/messageable'),
+
+  getGroups: () =>
+    apiCall('/api/chats/groups'),
 };
 
 const fallbackAvatar =
@@ -315,8 +327,22 @@ export async function updateProfile(profileData) {
 
 export const profileAPI = {
   getProfile: (userId) => apiCall(`/profile/${userId}`),
-  getFollowers: (userId) => apiCall(`/profile/${userId}/followers`),
-  getFollowing: (userId) => apiCall(`/profile/${userId}/followees`),
+  getFollowers: async (userId) => {
+    try {
+      const data = await apiCall(`/profile/${userId}/followers`);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message || 'Failed to fetch followers' };
+    }
+  },
+  getFollowing: async (userId) => {
+    try {
+      const data = await apiCall(`/profile/${userId}/followees`);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message || 'Failed to fetch following' };
+    }
+  },
   follow: (followeeid) =>
     apiCall("/follow", {
       method: "POST",
@@ -338,3 +364,8 @@ export const profileAPI = {
   getFollowRequestId,
   cancelFollowRequest,
 };
+
+export function fetchGroupImage(avatar) {
+  if (!avatar) return fallbackAvatar;
+  return `${API_BASE}/group-avatar?avatar=${encodeURIComponent(avatar)}`;
+}
