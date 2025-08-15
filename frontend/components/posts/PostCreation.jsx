@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { createPost } from "../../lib/auth";
 import UserSearch from "./UserSearch";
+import { profileAPI } from "../../lib/api";
+
 
 const PostCreation = ({ user, onPostCreated }) => {
   const [content, setContent] = useState("");
@@ -161,9 +163,7 @@ const PostCreation = ({ user, onPostCreated }) => {
         >
           <img
             src={
-              user?.avatar && user.avatar !== "no profile photo"
-                ? `http://localhost:9000/avatar?avatar=${user.avatar}`
-                : "http://localhost:9000/avatar?avatar=user-profile-circle-svgrepo-com.svg"
+                profileAPI.fetchProfileImage(user?.avatar || '')
             }
             alt="Profile"
             className="w-10 h-10 rounded-full flex-shrink-0"
