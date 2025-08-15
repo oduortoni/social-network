@@ -107,8 +107,8 @@ const Header = ({ user = null }) => {
           )}
         </div>
 
-        {/* Groups Icon */}
-        <div className="flex flex-col items-center cursor-pointer" onClick={() => router.push('/chats')}>
+        {/* Groups Icon (Disabled) */}
+        <div className="flex flex-col items-center cursor-not-allowed opacity-50">
           <UsersIcon className="w-6 h-6" style={{ color: 'var(--primary-text)' }} />
           <span className="text-xs" style={{ color: 'var(--primary-text)' }}>Groups</span>
         </div>
