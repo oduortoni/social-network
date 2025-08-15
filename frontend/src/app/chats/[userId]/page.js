@@ -16,7 +16,7 @@ const ChatPage = ({ user, params }) => {
 
   const type = searchParams.get('type') || 'private';
   const name = searchParams.get('name') || searchParams.get('nickname');
-  const id = params.unwrap(userId);
+  const id = params.userId;
 
   useEffect(() => {
     let mounted = true;
