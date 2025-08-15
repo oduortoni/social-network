@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { profileAPI } from '../../lib/api';
+import { chatAPI, profileAPI } from '../../lib/api';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 
@@ -10,16 +10,16 @@ const UserListModal = ({ user, onClose }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchFollowers = async () => {
+    const fetchMessageableUsers = async () => {
       try {
         setLoading(true);
-        const response = await profileAPI.getFollowers(user.id);
-        if (response.success) {
+        const response = await chatAPI.getMessageableUsers();
+        if (response) {
           // Sort followers by nickname in ascending order
-          const sortedFollowers = response.data.sort((a, b) => a.nickname.localeCompare(b.nickname));
-          setFollowingUsers(sortedFollowers);
+          const sortedUsers = response.sort((a, b) => a.nickname.localeCompare(b.nickname));
+          setFollowingUsers(sortedUsers);
         } else {
-          setError(response.error || 'Failed to fetch followers');
+          setError('Failed to fetch users');
         }
       } catch (err) {
         setError('Network error: ' + err.message);
@@ -29,7 +29,7 @@ const UserListModal = ({ user, onClose }) => {
     };
 
     if (user?.id) {
-      fetchFollowers();
+      fetchMessageableUsers();
     }
   }, [user]);
 
