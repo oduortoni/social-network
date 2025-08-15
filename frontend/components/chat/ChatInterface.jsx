@@ -233,13 +233,10 @@ const ChatInterface = ({ user, connectionStatus = 'disconnected', recipient = nu
       setActiveChatName(chatName);
     } catch (error) {
       console.error('Failed to load chat history:', error);
-      // If we get a 403 (permission denied), still allow the chat to open with empty history
+      // If we get an error, still allow the chat to open with empty history
       // This enables users to start new conversations
-      if (error.message.includes('403')) {
-        console.log('No existing chat history or permission denied - starting fresh chat');
-        setMessages([]);
-        setActiveChat({ type: chatType, id: chatId });
-      }
+      setMessages([]);
+      setActiveChat({ type: chatType, id: chatId });
     }
   };
 
