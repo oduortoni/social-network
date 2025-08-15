@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import withAuth from '../../../../lib/withAuth';
-import Header from '../../../../components/layout/Header';
-import { chatAPI, profileAPI } from '../../../../lib/api';
+import withAuth from '../../../lib/withAuth';
+import Header from '../../../components/layout/Header';
+import { chatAPI, profileAPI } from '../../../lib/api';
 import { MessageCircleIcon, ArrowLeftIcon, UsersIcon, MessageSquarePlus } from 'lucide-react';
 import Image from 'next/image';
-import ChatSwitcher from '../../../../components/chat/ChatSwitcher';
-import UserListModal from '../../../../components/chat/UserListModal';
+import ChatSwitcher from '../../../components/chat/ChatSwitcher';
+import UserListModal from '../../../components/chat/UserListModal';
 
 const ChatsPage = ({ user }) => {
   const [messageableUsers, setMessageableUsers] = useState([]);
@@ -169,7 +169,7 @@ const ChatItem = ({ item, type, onSelect }) => {
     <div
       onClick={() => onSelect(item)}
       className="flex items-center gap-4 p-4 rounded-lg border cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
-      style={{ 
+      style={{
         backgroundColor: 'var(--secondary-background)',
         borderColor: 'var(--border-color)',
       }}

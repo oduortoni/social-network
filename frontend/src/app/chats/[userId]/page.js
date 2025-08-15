@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import withAuth from '../../../lib/withAuth';
-import Header from '../../../components/layout/Header';
-import { chatAPI } from '../../../lib/api';
+import withAuth from '../../../../lib/withAuth';
+import Header from '../../../../components/layout/Header';
+import { chatAPI } from '../../../../lib/api';
 import { ArrowLeftIcon } from 'lucide-react';
-import ChatInterface from '../../../components/chat/ChatInterface';
-import { wsService } from '../../../lib/websocket';
+import ChatInterface from '../../../../components/chat/ChatInterface';
+import { wsService } from '../../../../lib/websocket';
 
 const ChatPage = ({ user, params }) => {
   const router = useRouter();
@@ -16,7 +16,7 @@ const ChatPage = ({ user, params }) => {
 
   const type = searchParams.get('type') || 'private';
   const name = searchParams.get('name') || searchParams.get('nickname');
-  const id = params.userId;
+  const id = params.unwrap(userId);
 
   useEffect(() => {
     let mounted = true;
